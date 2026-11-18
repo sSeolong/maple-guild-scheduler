@@ -3330,13 +3330,25 @@ function fbFlattenTree(obj, prefix, out) {
     var k = keys[i], v = obj[k];
     if (v === undefined || v === null) continue;
     var p = prefix ? prefix + '/' + k : k;
-    if (typeof v === 'object' && !isArr(v)) {
+    if (typeof v === 'object') {
+      /* 배열도 인덱스 경로로 펀다 — RTDB가 배열을 객체로 돌려줘도 같은 경로가 된다 */
       if (Object.keys(v).length) fbFlattenTree(v, p, out);
+      /* 빈 배열/객체는 값이 없는 것으로 본다 (경로 삭제는 shadow 비교가 처리) */
     } else {
-      out[p] = isArr(v) ? v.join(',') : v;
+      out[p] = v;
     }
   }
   return out;
+}
+function fbGetPath(obj, path) {
+  var parts = String(path).split('/');
+  var cur = obj;
+  for (var i = 0; i < parts.length; i++) {
+    if (cur === null || typeof cur !== 'object') return null;
+    if (!Object.prototype.hasOwnProperty.call(cur, parts[i])) return null;
+    cur = cur[parts[i]];
+  }
+  return cur === undefined ? null : cur;
 }
 function fbSig(flat) {
   var keys = Object.keys(flat || {});
@@ -3526,14 +3538,18 @@ function fbApplyRemote(val, force) {
     var p = pkeys[i], pv = FB.pending[p];
     var rv = Object.prototype.hasOwnProperty.call(flat, p) ? flat[p] : null;
     if (pv === rv) { delete FB.pending[p]; continue; }
-    flat[p] = pv;
+    if (pv === null) delete flat[p];
+    else flat[p] = pv;
   }
   var sig = fbSig(flat);
   if (!force && sig === FB.appliedSig) return;
 
-  var nested = {};
-  var keys = Object.keys(flat);
-  for (var k = 0; k < keys.length; k++) fbSetPath(nested, keys[k], flat[keys[k]]);
+  var nested = JSON.parse(JSON.stringify(val));
+  var stillPending = Object.keys(FB.pending);
+  for (var q = 0; q < stillPending.length; q++) {
+    var pp = stillPending[q];
+    fbSetPath(nested, pp, FB.pending[pp] === null ? null : FB.pending[pp]);
+  }
 
   var remote = fbRemoteToState(nested);
   var localSettings = (state && state.settings) ? state.settings : { myMemberId: '', setupDone: false };
