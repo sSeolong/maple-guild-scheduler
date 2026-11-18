@@ -309,20 +309,57 @@
   .cell.h0{background:#f4ebdb; border-color:#e8dcc6; color:#c3b39c}
   .cell.is-sel{outline:2.5px solid #c96a0c; outline-offset:1px}
 
-  /* 칸 맨 아래: 이미 확정된 파티 배지 */
-  .c-conf{
-    margin-top:auto; display:flex; align-items:center; gap:1px; min-width:0; max-width:100%;
-    font-size:9px; font-weight:800; line-height:1.3; letter-spacing:-0.03em;
-    padding:1px 4px; border-radius:5px;
-    background:#2f7a4a; color:#f4fff8;
-    box-shadow:0 0 0 1px rgba(255,255,255,.55);
-    white-space:nowrap;
+  /* ---------- 확정 파티 주간 캘린더 (확정 파티 일정 탭) ---------- */
+  .cal{
+    display:grid; gap:5px; min-width:620px;
+    grid-template-columns:88px repeat(7,minmax(0,1fr));
   }
-  .c-conf i{font-style:normal; flex:0 0 auto; line-height:1}
-  .c-conf .ck2{display:none}
-  .c-conf-n{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .c-conf-x{flex:0 0 auto; font-weight:900; margin-left:1px}
-  .cell.heat.has-conf{padding-bottom:5px}
+  .cal-m{display:none}
+  .cal .gh, .cal .rh{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:3px 2px; font-size:11.5px; line-height:1.2;
+  }
+  .cal .gh b{font-size:12.5px; color:#3a2c20; font-weight:800}
+  .cal .gh small{font-size:10px; color:#a08c74; font-weight:600}
+  .cal .rh{align-items:flex-start; text-align:left; padding-left:3px; color:#6b5a46; font-weight:700; font-size:11px; line-height:1.2}
+  .cal .rh small{color:#a89478; font-size:10px; font-weight:600}
+  .cal-cell{
+    display:flex; flex-direction:column; gap:3px; min-height:64px;
+    padding:5px; border-radius:11px; border:1px solid #ece0cc; background:#fffdf8;
+  }
+  .cal-cell.is-empty{background:#fbf5ea; border-style:dashed; border-color:#e6d9c3}
+  .cal-cell.is-today{box-shadow:inset 0 0 0 1.5px #e6a04a}
+  .cal-chip{
+    display:block; width:100%; min-width:0; border:0; cursor:pointer; font-family:inherit;
+    text-align:left; border-radius:7px; padding:3px 5px 3px 7px;
+    background:#eef8f1; color:#1d4a33; font-size:10px; font-weight:800; line-height:1.25;
+    box-shadow:inset 3px 0 0 var(--cc,#2f7a4a), inset 0 0 0 1px #d5e8db;
+    overflow:hidden;
+  }
+  .cal-chip:hover{background:#e3f3e9}
+  .cal-chip b{display:block; font-size:10px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .cal-chip small{display:block; font-size:8.5px; font-weight:700; color:#4f7a5f; letter-spacing:0}
+  .cal-chip.is-cont{
+    display:flex; align-items:center; gap:2px; padding:2px 5px 2px 7px;
+    background:transparent; color:#6c7d71; font-size:9px; font-weight:700;
+    box-shadow:inset 3px 0 0 #cfe1d4, inset 0 0 0 1px #e4eee7;
+  }
+  .cal-chip.is-cont b{flex:1 1 auto; min-width:0; font-size:9px; font-weight:700; white-space:nowrap}
+  .cal-chip.is-cont .ar{flex:0 0 auto; font-size:8px; opacity:.8; font-weight:800}
+  .cal-more{
+    display:block; font-size:9px; font-weight:800; color:#6b7d70; text-align:right;
+    padding:0 2px; line-height:1.3;
+  }
+  .cal-legend{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px; font-size:10.5px; color:var(--ink3)}
+  .cal-legend i{display:inline-block; width:14px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; font-style:normal}
+  .cal-legend .cl-start{background:#eef8f1; box-shadow:inset 3px 0 0 #2f7a4a, inset 0 0 0 1px #d5e8db}
+  .cal-legend .cl-cont{width:auto; height:auto; background:transparent; color:#6c7d71; font-weight:800; font-size:10px}
+  .cal-legend .cl-note{margin-left:auto; color:#a08c74}
+  .cal-sum{margin-top:10px; font-size:11.5px; font-weight:700; color:#2f6b48; line-height:1.5}
+  .cal-sum b{color:#1d4a33}
+  .cal-sum.is-none{color:#8a7660; font-weight:600}
+  .party.is-hl{box-shadow:0 0 0 3px rgba(47,122,74,.45), 0 12px 26px rgba(0,0,0,.18); transition:box-shadow .2s}
+
   .legend{display:flex; align-items:center; gap:5px; margin-top:11px; font-size:10.5px; color:var(--ink3); flex-wrap:wrap}
   .legend i{width:16px; height:12px; border-radius:4px; display:inline-block; border:1px solid #eadcc6}
   .legend .l0{background:#f4ebdb}
@@ -717,10 +754,29 @@
     .grid-m .cell.has-party{height:72px; padding:6px 5px}
     .grid-m .c-names i{font-size:8.2px; padding:1px 2px}
     .grid-m .c-n{font-size:8px}
-    .grid-m .c-conf{font-size:7px; padding:1px 0; letter-spacing:-0.05em; gap:0; justify-content:center}
-    .grid-m .c-conf .ck{display:none}
-    .grid-m .c-conf .ck2{display:inline}
     .grid-m .c-dots i{width:4.5px; height:4.5px}
+
+    /* 모바일: 확정 파티 캘린더도 요일을 행으로 돌려 5시간대가 한 화면에 */
+    .cal-d{display:none}
+    .cal-m{display:grid; min-width:0; grid-template-columns:38px repeat(5,minmax(0,1fr)); gap:3px}
+    .cal .gh{padding:2px 0}
+    .cal .gh b{font-size:10.5px; white-space:nowrap; letter-spacing:-.3px}
+    .cal .gh small{font-size:8px; letter-spacing:-.2px}
+    .cal .rh{align-items:center; font-size:11.5px; font-weight:800; color:#3a2c20; padding-left:1px; line-height:1.15}
+    .cal .rh small{font-size:9px; font-weight:600}
+    .cal-cell{min-height:62px; padding:2px; border-radius:9px; gap:2px; overflow:hidden}
+    .cal-chip{
+      padding:2px 2px 2px 4px; border-radius:6px; font-size:8px; letter-spacing:-.04em;
+      box-shadow:inset 2.5px 0 0 var(--cc,#2f7a4a), inset 0 0 0 1px #d5e8db;
+    }
+    .cal-chip b{font-size:8px}
+    .cal-chip small{font-size:8px; letter-spacing:-.03em}
+    .cal-chip.is-cont{padding:1px 2px 1px 4px; font-size:7.4px; gap:1px}
+    .cal-chip.is-cont b{font-size:7.4px}
+    .cal-chip.is-cont .ar{font-size:7px}
+    .cal-more{font-size:8px; padding:0 1px}
+    .cal-legend{font-size:10px; gap:8px}
+    .cal-legend .cl-note{margin-left:0; flex:1 1 100%}
     .step{gap:8px}
     .step-no{width:20px; height:20px; font-size:11px}
     .setup-group-row{padding:7px 8px}
@@ -929,6 +985,27 @@
 
     <!-- ============ TAB 2 : 확정 파티 일정 ============ -->
     <section class="panel" id="panel-parties">
+
+      <div class="card" id="calCard">
+        <div class="card-head">
+          <h2>확정 파티 주간 캘린더</h2>
+          <div class="wk-mini" role="group" aria-label="주 이동">
+            <button type="button" class="wk-btn" data-action="week-prev" aria-label="이전 주 보기">‹</button>
+            <button type="button" class="wk-pill" data-action="week-goto" data-offset="0">이번 주</button>
+            <button type="button" class="wk-pill" data-action="week-goto" data-offset="1">다음 주</button>
+            <button type="button" class="wk-btn" data-action="week-next" aria-label="다음 주 보기">›</button>
+            <span class="wk-range" id="calWeekRange">-</span>
+          </div>
+        </div>
+        <p class="sub">확정된 파티만 모아 보는 <b>목~수 · 5시간대</b> 표입니다. 칸의 파티 이름을 누르면 아래 <b>확정된 파티</b> 카드로 이동합니다.</p>
+        <div class="grid-wrap" id="calHost"></div>
+        <div class="cal-legend">
+          <span><i class="cl-start"></i>시작</span>
+          <span><i class="cl-cont">↳</i>앞 시간대에서 이어짐</span>
+          <span class="cl-note">파티 이름을 누르면 아래 카드로 이동 · 캘린더 내보내기는 카드에서</span>
+        </div>
+        <div id="calNote"></div>
+      </div>
 
       <div class="card" id="partyListCard">
         <h2>확정된 파티</h2>
@@ -1905,23 +1982,53 @@ function slotParties(day, blockId) {
   var runnable = runnableGroupsIn(weekKeyFor(ui.weekOffset), day, blockId, '');
   return { runnable: runnable, shared: sharedMembersOf(runnable) };
 }
-/* 이 칸(날짜+시간)에 이미 확정된 파티 — 칸 아래 배지로 보여 준다 */
+/* 이 칸(날짜+시간)의 실제 시각 범위 — 자정 이후 칸은 다음 날 00:00부터 */
+function slotRangeFor(day, blockId) {
+  var blk = getBlock(blockId);
+  var d = addDays(weekStartFor(ui.weekOffset), day);
+  if (blk.afterMidnight) d = addDays(d, 1);
+  var base = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  var s = base + timeToMin(blk.start) * 60000;
+  return { s: s, e: s + (Number(blk.dur) || 120) * 60000 };
+}
+function partyRangeFor(p) {
+  var d = parseYmd(p && p.date);
+  if (!d) return null;
+  var s = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() + timeToMin(p.startTime) * 60000;
+  return { s: s, e: s + (Number(p.durationMin) || 120) * 60000 };
+}
+/* 이 칸(날짜+시간)에 걸려 있는 확정 파티 — 시작이 이른 순서. 길게 잡힌 파티는 이어지는 칸에도 걸린다 */
 function confirmedPartiesIn(day, blockId) {
   var blk = getBlock(blockId);
   if (!blk) return [];
-  var d = addDays(weekStartFor(ui.weekOffset), day);
-  if (blk.afterMidnight) d = addDays(d, 1);
-  var dateStr = ymd(d);
-  var s1 = timeToMin(blk.start), e1 = s1 + (Number(blk.dur) || 120);
-  var out = [];
+  var cell = slotRangeFor(day, blk.id);
+  var hit = [];
   for (var i = 0; i < state.parties.length; i++) {
-    var p = state.parties[i];
-    if (p.date !== dateStr) continue;
-    var s2 = timeToMin(p.startTime), e2 = s2 + (Number(p.durationMin) || 120);
-    if (!(s1 < e2 && s2 < e1)) continue;
-    out.push(p);
+    var pr = partyRangeFor(state.parties[i]);
+    if (!pr) continue;
+    if (!(cell.s < pr.e && pr.s < cell.e)) continue;
+    hit.push({ p: state.parties[i], s: pr.s });
   }
+  hit.sort(function (a, b) { return a.s - b.s; });
+  var out = [];
+  for (var k = 0; k < hit.length; k++) out.push(hit[k].p);
   return out;
+}
+/* 이 파티의 '시작' 칸(day:block). 시작 시각이 칸 사이(예: 09:00)면 걸리는 첫 칸을 시작 칸으로 본다 */
+function partyStartCell(p) {
+  var pr = partyRangeFor(p);
+  if (!pr) return null;
+  var first = null, firstAt = null;
+  for (var day = 0; day < 7; day++) {
+    for (var b = 0; b < BLOCKS.length; b++) {
+      var blk = BLOCKS[b];
+      var cell = slotRangeFor(day, blk.id);
+      if (!(cell.s < pr.e && pr.s < cell.e)) continue;
+      if (pr.s >= cell.s && pr.s < cell.e) return day + ':' + blk.id;
+      if (first === null || cell.s < firstAt) { first = day + ':' + blk.id; firstAt = cell.s; }
+    }
+  }
+  return first;
 }
 /* 칸에 들어갈 만큼 짧게: 고정 파티 이름(고장난손가락·ㅇ) 우선, 없으면 보스 이름 */
 function partyShortLabel(p) {
@@ -1935,19 +2042,6 @@ function partyShortLabel(p) {
   }
   if (!labels.length) return '파티';
   return labels.length > 1 ? labels[0] + '+' + (labels.length - 1) : labels[0];
-}
-function confirmedBadgesIn(day, blockId) {
-  var list = confirmedPartiesIn(day, blockId);
-  if (!list.length) return '';
-  var first = partyShortLabel(list[0]);
-  var extra = list.length - 1;
-  var title = [];
-  for (var i = 0; i < list.length; i++) title.push(partyShortLabel(list[i]) + ' · ' + list[i].boss + ' · ' + list[i].startTime + ' 시작');
-  return '<span class="c-conf" title="' + esc(title.join(' / ')) + '">' +
-    '<i class="ck">✅</i><i class="ck2">✓</i>' +
-    '<span class="c-conf-n">' + esc(first) + '</span>' +
-    (extra > 0 ? '<span class="c-conf-x">+' + extra + '</span>' : '') +
-    '</span>';
 }
 function toggleSlot(day, blockId) {
   var m = getMember(ui.activeMemberId);
@@ -2073,6 +2167,7 @@ function renderWeekBar() {
     else pills[i].classList.remove('is-active');
   }
   renderHeatWeekBar();
+  renderCalWeekBar();
   renderWeekEndNote();
 }
 /* '길드 전체 가능 시간' 카드 안 미니 주 전환 — 위 주간 바와 같은 ui.weekOffset을 쓴다 */
@@ -2086,6 +2181,22 @@ function renderHeatWeekBar() {
     else pills[i].classList.remove('is-active');
   }
   var badge = byId('heatWeekRange');
+  if (badge) {
+    badge.textContent = (off === 0 || off === 1) ? weekRangeShort(off) : weekLabelFor(off) + ' ' + weekRangeShort(off);
+    badge.title = weekLabelFor(off) + ' (' + weekEndLabel(off).textFull + ')';
+  }
+}
+/* '확정 파티 주간 캘린더' 카드 안 주 전환 — 역시 같은 ui.weekOffset */
+function renderCalWeekBar() {
+  var card = byId('calCard');
+  if (!card) return;
+  var off = ui.weekOffset;
+  var pills = qsa('#calCard .wk-pill');
+  for (var i = 0; i < pills.length; i++) {
+    if (Number(pills[i].getAttribute('data-offset')) === off) pills[i].classList.add('is-active');
+    else pills[i].classList.remove('is-active');
+  }
+  var badge = byId('calWeekRange');
   if (badge) {
     badge.textContent = (off === 0 || off === 1) ? weekRangeShort(off) : weekLabelFor(off) + ' ' + weekRangeShort(off);
     badge.title = weekLabelFor(off) + ' (' + weekEndLabel(off).textFull + ')';
@@ -2280,18 +2391,12 @@ function cellMarkup(mode, day, blk, m, mobile) {
   if (list.length > limit) names += '<i class="more">+' + (list.length - limit) + '</i>';
   var runnableNames = '';
   for (var r2 = 0; r2 < rn; r2++) runnableNames += (r2 ? ', ' : '') + st.runnable[r2].group.name;
-  var confirmed = confirmedPartiesIn(day, blk.id);
-  var confirmedNames = '';
-  for (var c2 = 0; c2 < confirmed.length; c2++) confirmedNames += (c2 ? ', ' : '') + confirmed[c2].boss;
-  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls +
-    (confirmed.length ? ' has-conf' : '') + '"' + styleAttr +
+  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls + '"' + styleAttr +
     ' data-action="heat" data-day="' + day + '" data-block="' + blk.id + '"' +
     ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' ' + n + '명 가능' + (n ? ' — ' + esc(nickList(list)) : '') +
-    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') +
-    (confirmed.length ? ' / 확정된 파티: ' + esc(confirmedNames) : '') + '">' +
+    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') + '">' +
     '<span class="c-top"><span class="c-dots">' + dots + '</span><span class="c-n">' + (n > 0 ? n + '명' : '·') + '</span></span>' +
     (n > 0 ? '<span class="c-names">' + names + '</span>' : '') +
-    confirmedBadgesIn(day, blk.id) +
     '</button>';
 }
 function slotConfirmMarkup(rg, members, dateStr, blk) {
@@ -2824,6 +2929,100 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   if (card && card.scrollIntoView) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
 }
 
+/* ---------------- 렌더 : 확정 파티 주간 캘린더 (목~수 · 5시간대) ---------------- */
+function partyCalTitle(p) {
+  var g = p.groupId ? getGroup(p.groupId) : null;
+  var t = (g && g.name ? g.name + ' · ' : '') + (p.boss || '') + ' · ' + p.startTime + ' 시작 · ' + (Number(p.durationMin) || 120) + '분';
+  if (p.members && p.members.length) t += ' · ' + p.members.join('·');
+  return t;
+}
+function calChipMarkup(p, isStart) {
+  var g = p.groupId ? getGroup(p.groupId) : null;
+  var cc = g ? groupColor(g) : '#2f7a4a';
+  var name = partyShortLabel(p);
+  var title = partyCalTitle(p) + (isStart ? '' : ' (앞 시간대에서 이어짐)');
+  var attr = ' data-action="cal-party" data-id="' + esc(p.id) + '" style="--cc:' + cc + '"' +
+    ' title="' + esc(title) + '" aria-label="' + esc(title) + ' — 확정된 파티 카드로 이동"';
+  if (isStart) {
+    return '<button type="button" class="cal-chip is-start"' + attr + '><b>' + esc(name) + '</b>' +
+      '<small>' + esc(p.startTime) + '</small></button>';
+  }
+  return '<button type="button" class="cal-chip is-cont"' + attr + '><span class="ar">↳</span><b>' + esc(name) + '</b></button>';
+}
+function calCellMarkup(day, blk, mobile) {
+  var list = confirmedPartiesIn(day, blk.id);
+  var key = day + ':' + blk.id;
+  var cellDate = addDays(weekStartFor(ui.weekOffset), day + (blk.afterMidnight ? 1 : 0));
+  var isToday = ymd(cellDate) === ymd(new Date());
+  var html = '<div class="cal-cell' + (list.length ? '' : ' is-empty') + (isToday ? ' is-today' : '') + '">';
+  var limit = mobile ? 2 : 3;
+  for (var i = 0; i < list.length && i < limit; i++) {
+    html += calChipMarkup(list[i], partyStartCell(list[i]) === key);
+  }
+  if (list.length > limit) html += '<span class="cal-more">+' + (list.length - limit) + '</span>';
+  html += '</div>';
+  return html;
+}
+function calGridMarkup(mobile) {
+  var ws = weekStartFor(ui.weekOffset);
+  var html = '<div class="gh"></div>';
+  var b, day;
+  if (!mobile) {
+    for (day = 0; day < 7; day++) html += dayHeaderCell(day, ws);
+    for (b = 0; b < BLOCKS.length; b++) {
+      html += '<div class="rh"><span>' + BLOCKS[b].label + '</span>' + (BLOCKS[b].noTime ? '' : '<small>' + BLOCKS[b].time + '</small>') + '</div>';
+      for (day = 0; day < 7; day++) html += calCellMarkup(day, BLOCKS[b], false);
+    }
+  } else {
+    for (b = 0; b < BLOCKS.length; b++) {
+      html += '<div class="gh gb"><b>' + (BLOCKS[b].mini || BLOCKS[b].short) + '</b>' + (BLOCKS[b].noTime ? '' : '<small>' + BLOCKS[b].start + '</small>') + '</div>';
+    }
+    for (day = 0; day < 7; day++) {
+      var dd = addDays(ws, day);
+      html += '<div class="rh"><span>' + DAY_NAMES[day] + '</span><small>' + (dd.getMonth() + 1) + '/' + dd.getDate() + '</small></div>';
+      for (b = 0; b < BLOCKS.length; b++) html += calCellMarkup(day, BLOCKS[b], true);
+    }
+  }
+  return html;
+}
+function renderConfirmedCalendar() {
+  var host = byId('calHost');
+  if (!host) return;
+  host.innerHTML = '<div class="cal cal-d">' + calGridMarkup(false) + '</div>' +
+    '<div class="cal cal-m">' + calGridMarkup(true) + '</div>';
+  /* 이번 주 확정 건수 — 한 파티가 여러 칸에 걸쳐도 한 번만 센다 */
+  var seen = {}, n = 0, day, b, i, list;
+  for (day = 0; day < 7; day++) {
+    for (b = 0; b < BLOCKS.length; b++) {
+      list = confirmedPartiesIn(day, BLOCKS[b].id);
+      for (i = 0; i < list.length; i++) {
+        if (seen[list[i].id]) continue;
+        seen[list[i].id] = 1; n++;
+      }
+    }
+  }
+  var note = byId('calNote');
+  if (note) {
+    var range = weekLabelFor(ui.weekOffset) + '(' + weekRangeShort(ui.weekOffset) + ')';
+    if (n) {
+      note.innerHTML = '<div class="cal-sum">' + range + ' 확정 파티 <b>' + n + '개</b> · 카드를 누르면 아래에서 바로 내보낼 수 있어요</div>';
+    } else {
+      note.innerHTML = '<div class="cal-sum is-none">' + range + '에는 확정된 파티가 없습니다. 주를 넘겨 보거나 아래 자동 매칭에서 날짜를 골라 확정해 보세요.</div>';
+    }
+  }
+  renderCalWeekBar();
+}
+/* 캘린더에서 파티를 누르면 아래 '확정된 파티' 카드로 이동 + 잠깐 강조 */
+function focusPartyCard(id) {
+  var card = byId('party-' + id);
+  if (!card) { toast('아래 목록에서 이 파티를 찾지 못했어요'); return; }
+  var prev = qsa('.party.is-hl');
+  for (var i = 0; i < prev.length; i++) prev[i].classList.remove('is-hl');
+  card.classList.add('is-hl');
+  if (card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(function () { card.classList.remove('is-hl'); }, 2600);
+}
+
 /* ---------------- 렌더 : 확정 파티 ---------------- */
 function sortedParties() {
   return state.parties.slice().sort(function (a, b) {
@@ -2835,6 +3034,7 @@ function renderParties() {
   if (!host) return;
   var count = byId('partyCount');
   if (count) count.textContent = String(state.parties.length);
+  renderConfirmedCalendar();
   var list = sortedParties();
   if (!list.length) {
     host.innerHTML = '<div class="empty">아직 확정된 파티가 없습니다. 아래 자동 매칭에서 날짜를 골라 확정해 보세요.</div>';
@@ -2853,7 +3053,7 @@ function renderParties() {
       memberHtml += '<span>' + esc(p.members[j]) + '</span>';
     }
     var gurl = buildGoogleUrl(p);
-    html += '<article class="party' + (past ? ' past' : '') + (p.id === ui.freshPartyId ? ' fresh' : '') + '">' +
+    html += '<article class="party' + (past ? ' past' : '') + (p.id === ui.freshPartyId ? ' fresh' : '') + '" id="party-' + esc(p.id) + '">' +
       '<div class="party-head">' +
         '<div class="boss-name">' + esc(p.boss) + '</div>' +
         '<div class="' + ddayCls + '">' + ddayText + '</div>' +
@@ -3596,7 +3796,7 @@ function switchTab(tab) {
     if (panels[j].id === 'panel-' + tab) panels[j].classList.add('is-active');
     else panels[j].classList.remove('is-active');
   }
-  if (tab === 'parties') { renderGroups(); }
+  if (tab === 'parties') { renderGroups(); renderConfirmedCalendar(); }
 }
 function changeWeek(delta, srcEl) {
   ui.weekOffset += delta;
@@ -3624,6 +3824,7 @@ function afterWeekChange(srcEl) {
   renderGridHint();
   renderGrid();
   renderHeat();
+  renderConfirmedCalendar();
   renderSlotDetail();
   renderGroups();
   renderPasteWeekBar();
@@ -4010,6 +4211,7 @@ function handleAction(action, el) {
     }
     case 'cell': toggleSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
     case 'heat': selectSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
+    case 'cal-party': focusPartyCard(el.getAttribute('data-id')); break;
     case 'save-party': saveParty(); break;
     case 'cancel-party': resetPartyForm(); toast('수정을 취소했어요'); break;
     case 'edit-party': startPartyEdit(el.getAttribute('data-id')); break;
