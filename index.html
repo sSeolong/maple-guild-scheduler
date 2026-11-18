@@ -553,7 +553,6 @@
   .r-state.closed{background:#e5d9c6; color:#8a7a64}
   .r-tags{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px}
   .r-boss{padding:2px 8px; border-radius:8px; background:var(--slate); color:#ffe6c2; font-size:10.5px; font-weight:800}
-  .r-job{padding:2px 8px; border-radius:8px; background:#ffe6c2; color:#9a5406; font-size:10.5px; font-weight:800}
   .r-spec{padding:2px 8px; border-radius:8px; background:#efe3cd; color:#6b5a46; font-size:10.5px; font-weight:700}
   .r-need{
     margin:0 0 8px; font-size:12px; color:#4a3626; line-height:1.5;
@@ -1108,15 +1107,11 @@
 
       <div class="card">
         <h2>파티 구함</h2>
-        <p class="sub">파티를 구하거나 파티원을 구할 때 올리는 게시판입니다. 목표 보스와 직업으로 걸러 볼 수 있어요.</p>
+        <p class="sub">파티를 구하거나 파티원을 구할 때 올리는 게시판입니다. 목표 보스로 걸러 볼 수 있어요.</p>
         <div class="filter-bar">
           <div>
             <span class="field">보스</span>
             <select id="filterBoss"></select>
-          </div>
-          <div>
-            <span class="field">직업</span>
-            <select id="filterJob"></select>
           </div>
           <button type="button" class="pill" data-action="recruit-open-only" id="openOnlyBtn">모집중만 보기</button>
         </div>
@@ -1135,20 +1130,13 @@
               <input type="text" id="rName" placeholder="예: 단풍잎사냥꾼" maxlength="30" autocomplete="off">
             </div>
             <div>
-              <label class="field" for="rBoss">목표 보스</label>
-              <select id="rBoss"></select>
-              <input type="text" id="rBossCustom" placeholder="보스 이름 직접 입력" style="display:none; margin-top:6px" autocomplete="off">
-            </div>
-          </div>
-          <div class="form-row">
-            <div>
-              <label class="field" for="rJob">직업</label>
-              <select id="rJob"></select>
-            </div>
-            <div>
               <label class="field" for="rSpec">스펙 / 환산</label>
               <input type="text" id="rSpec" placeholder="예: 환산 4.2 · 무릉 62층" maxlength="50" autocomplete="off">
             </div>
+          </div>
+          <div class="field-block">
+            <span class="field" id="rBossLabel">목표 보스 <span class="field-note">— 보스를 누르면 난이도가 열려요 · 여러 개 고를 수 있어요</span></span>
+            <div class="bp-wrap" id="recruitBossPicker" role="group" aria-labelledby="rBossLabel"></div>
           </div>
           <div class="field-block">
             <label class="field" for="rNeed">구하는 포지션 / 조건</label>
@@ -1271,11 +1259,12 @@ var ui = {
   groupChecked: [],
   groupBosses: [],
   pickerBoss: '',        /* 보스 선택기에서 난이도를 펼쳐 둔 보스 ('' = 없음) */
+  recruitBosses: [],     /* 파티 구함 폼에서 고른 목표 보스 (여러 개) */
+  recruitPickerBoss: '', /* 파티 구함 폼 보스 선택기에서 난이도를 펼쳐 둔 보스 */
   setupOpen: true,
   showAllMatches: {},
   editingRecruitId: null,
   filterBoss: '',
-  filterJob: '',
   openOnly: false,
   freshPartyId: null,
   pasteMode: 'add',      /* add: 기존 시간 유지하고 추가 / replace: 해당 멤버 시간 덮어쓰기 */
@@ -2659,68 +2648,84 @@ function bossBaseName(boss) {
   return BOSS_ALIAS[base] || base;
 }
 function bossPickLabel(diff, name) { return diff ? diff + ' ' + name : name; }
-function bossHasPick(name, diff) { return ui.groupBosses.indexOf(bossPickLabel(diff, name)) >= 0; }
-function toggleBossPick(name, diff) {
+/* 보스 → 난이도 선택기는 초기 세팅(kind 'group')과 파티 구함(kind 'recruit')이 같은 코드를 함께 쓴다 */
+function bpCtx(kind) {
+  if (kind === 'recruit') return { list: ui.recruitBosses, hostId: 'recruitBossPicker', openKey: 'recruitPickerBoss', etcId: 'bpEtcInputRecruit' };
+  return { list: ui.groupBosses, hostId: 'groupBossPicker', openKey: 'pickerBoss', etcId: 'bpEtcInput' };
+}
+function bpKindOf(el) {
+  var k = (el && el.getAttribute) ? el.getAttribute('data-pick') : '';
+  return k === 'recruit' ? 'recruit' : 'group';
+}
+function bossHasPick(kind, name, diff) { return bpCtx(kind).list.indexOf(bossPickLabel(diff, name)) >= 0; }
+function toggleBossPick(kind, name, diff) {
+  var list = bpCtx(kind).list;
   var label = bossPickLabel(diff, name);
-  var i = ui.groupBosses.indexOf(label);
-  if (i >= 0) { ui.groupBosses.splice(i, 1); return false; }
-  ui.groupBosses.push(label);
+  var i = list.indexOf(label);
+  if (i >= 0) { list.splice(i, 1); return false; }
+  list.push(label);
   return true;
 }
-function removeBossPick(label) {
-  var i = ui.groupBosses.indexOf(label);
-  if (i >= 0) { ui.groupBosses.splice(i, 1); renderBossPicker(); }
+function removeBossPick(kind, label) {
+  var list = bpCtx(kind).list;
+  var i = list.indexOf(label);
+  if (i >= 0) { list.splice(i, 1); renderBossPicker(kind); }
 }
-function addEtcBoss() {
-  var input = byId('bpEtcInput');
+function addEtcBoss(kind) {
+  var ctx = bpCtx(kind);
+  var input = byId(ctx.etcId);
   var raw = String((input && input.value) || '');
   var parts = raw.split(',');
   var added = 0;
   for (var i = 0; i < parts.length; i++) {
     var nm = parts[i].trim().replace(/\s+/g, ' ');
     if (!nm) continue;
-    if (ui.groupBosses.indexOf(nm) >= 0) continue;
-    ui.groupBosses.push(nm);
+    if (ctx.list.indexOf(nm) >= 0) continue;
+    ctx.list.push(nm);
     added++;
   }
   if (input) input.value = '';
-  renderBossPicker();
+  renderBossPicker(kind);
   if (added) toast('목표 보스에 ' + (added > 1 ? added + '개' : '') + ' 추가했어요');
   else toast('보스 이름을 적어 주세요');
-  var again = byId('bpEtcInput');
+  var again = byId(ctx.etcId);
   if (again && again.focus) again.focus();
 }
-function togglePickerBoss(name) {
+function togglePickerBoss(kind, name) {
+  var ctx = bpCtx(kind);
   if (name === BP_ETC) {
-    ui.pickerBoss = ui.pickerBoss === BP_ETC ? '' : BP_ETC;
-    renderBossPicker();
-    if (ui.pickerBoss === BP_ETC) {
-      var inp = byId('bpEtcInput');
+    ui[ctx.openKey] = ui[ctx.openKey] === BP_ETC ? '' : BP_ETC;
+    renderBossPicker(kind);
+    if (ui[ctx.openKey] === BP_ETC) {
+      var inp = byId(ctx.etcId);
       if (inp && inp.focus) setTimeout(function () { inp.focus(); }, 40);
     }
     return;
   }
   var def = bossDef(name);
-  if (ui.pickerBoss === name) {
+  if (ui[ctx.openKey] === name) {
     /* 난이도가 하나뿐인 보스(스우·검은마법사)는 한 번 더 누르면 해제 */
-    if (def && def.diffs.length === 1) toggleBossPick(name, def.diffs[0]);
-    else ui.pickerBoss = '';
-    renderBossPicker();
+    if (def && def.diffs.length === 1) toggleBossPick(kind, name, def.diffs[0]);
+    else ui[ctx.openKey] = '';
+    renderBossPicker(kind);
     return;
   }
-  ui.pickerBoss = name;
+  ui[ctx.openKey] = name;
   /* 난이도가 하나뿐이면 한 번에 골라진다 */
-  if (def && def.diffs.length === 1) toggleBossPick(name, def.diffs[0]);
-  renderBossPicker();
+  if (def && def.diffs.length === 1) toggleBossPick(kind, name, def.diffs[0]);
+  renderBossPicker(kind);
 }
-function renderBossPicker() {
-  var host = byId('groupBossPicker');
+function renderBossPicker(kind) {
+  var k = kind === 'recruit' ? 'recruit' : 'group';
+  var ctx = bpCtx(k);
+  var host = byId(ctx.hostId);
   if (!host) return;
-  var active = ui.pickerBoss || '';
+  var list = ctx.list;
+  var active = ui[ctx.openKey] || '';
   /* 보스별 선택 개수 */
   var counts = {};
-  for (var c = 0; c < ui.groupBosses.length; c++) {
-    var base = bossBaseName(ui.groupBosses[c]);
+  for (var c = 0; c < list.length; c++) {
+    var base = bossBaseName(list[c]);
     if (bossDef(base)) counts[base] = (counts[base] || 0) + 1;
   }
   var html = '<div class="bp-grid">';
@@ -2728,45 +2733,45 @@ function renderBossPicker() {
     var bd = BOSS_PICKER[i];
     var n = counts[bd.name] || 0;
     html += '<button type="button" class="bp-boss' + (active === bd.name ? ' is-open' : '') + (n ? ' has-sel' : '') + '"' +
-      ' data-action="bp-boss" data-boss="' + esc(bd.name) + '" aria-pressed="' + (n ? 'true' : 'false') + '">' +
+      ' data-action="bp-boss" data-pick="' + k + '" data-boss="' + esc(bd.name) + '" aria-pressed="' + (n ? 'true' : 'false') + '">' +
       esc(bd.name) + (n ? '<i class="bp-n">' + n + '</i>' : '') + '</button>';
-    if (active === bd.name) html += bossDiffRow(bd);
+    if (active === bd.name) html += bossDiffRow(k, bd);
   }
-  html += '<button type="button" class="bp-boss bp-etc' + (active === BP_ETC ? ' is-open' : '') + '" data-action="bp-boss" data-boss="' + BP_ETC + '">＋ 그외</button>';
+  html += '<button type="button" class="bp-boss bp-etc' + (active === BP_ETC ? ' is-open' : '') + '" data-action="bp-boss" data-pick="' + k + '" data-boss="' + BP_ETC + '">＋ 그외</button>';
   if (active === BP_ETC) {
     html += '<div class="bp-diff bp-etc-row">' +
       '<span class="bp-diff-label">그 외 보스</span>' +
-      '<input type="text" id="bpEtcInput" placeholder="보스 이름 (예: 루시드 · 하드 윌)" autocomplete="off">' +
-      '<button type="button" class="btn btn-primary btn-sm" data-action="bp-etc-add">추가</button>' +
-      '<button type="button" class="bp-diff-close" data-action="bp-boss" data-boss="' + BP_ETC + '" aria-label="닫기">×</button>' +
+      '<input type="text" id="' + ctx.etcId + '" placeholder="보스 이름 (예: 루시드 · 하드 윌)" autocomplete="off">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-action="bp-etc-add" data-pick="' + k + '">추가</button>' +
+      '<button type="button" class="bp-diff-close" data-action="bp-boss" data-pick="' + k + '" data-boss="' + BP_ETC + '" aria-label="닫기">×</button>' +
       '</div>';
   }
   html += '</div>';
 
   /* 선택한 보스 요약 — X 로 바로 빼기 */
-  html += '<div class="bp-selected"><span class="bp-sel-label">선택한 보스 <b>' + ui.groupBosses.length + '</b></span>';
-  if (!ui.groupBosses.length) {
+  html += '<div class="bp-selected"><span class="bp-sel-label">선택한 보스 <b>' + list.length + '</b></span>';
+  if (!list.length) {
     html += '<span class="bp-empty">아직 고른 보스가 없어요. 위에서 보스를 누르고 난이도를 골라 주세요.</span>';
   } else {
     html += '<div class="bp-sel-pills">';
-    for (var s = 0; s < ui.groupBosses.length; s++) {
-      var label = ui.groupBosses[s];
+    for (var s = 0; s < list.length; s++) {
+      var label = list[s];
       html += '<span class="bp-sel-pill">' + esc(label) +
-        '<button type="button" data-action="bp-remove" data-boss="' + esc(label) + '" aria-label="' + esc(label) + ' 삭제" title="삭제">×</button></span>';
+        '<button type="button" data-action="bp-remove" data-pick="' + k + '" data-boss="' + esc(label) + '" aria-label="' + esc(label) + ' 삭제" title="삭제">×</button></span>';
     }
     html += '</div>';
   }
   html += '</div>';
   host.innerHTML = html;
 }
-function bossDiffRow(bd) {
+function bossDiffRow(kind, bd) {
   var html = '<div class="bp-diff" data-for="' + esc(bd.name) + '"><span class="bp-diff-label">' + esc(bd.name) + ' 난이도</span>';
   for (var i = 0; i < bd.diffs.length; i++) {
-    var on = bossHasPick(bd.name, bd.diffs[i]);
-    html += '<button type="button" class="bp-diff-pill' + (on ? ' is-on' : '') + '" data-action="bp-diff" data-boss="' + esc(bd.name) + '" data-diff="' + esc(bd.diffs[i]) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+    var on = bossHasPick(kind, bd.name, bd.diffs[i]);
+    html += '<button type="button" class="bp-diff-pill' + (on ? ' is-on' : '') + '" data-action="bp-diff" data-pick="' + kind + '" data-boss="' + esc(bd.name) + '" data-diff="' + esc(bd.diffs[i]) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
       (on ? '✓ ' : '') + esc(bd.diffs[i]) + '</button>';
   }
-  html += '<button type="button" class="bp-diff-close" data-action="bp-close-diff" aria-label="난이도 접기">×</button></div>';
+  html += '<button type="button" class="bp-diff-close" data-action="bp-close-diff" data-pick="' + kind + '" aria-label="난이도 접기">×</button></div>';
   return html;
 }
 function renderGroupBossChecks() {
@@ -3133,31 +3138,41 @@ function renderMemberChecks(selected) {
 }
 
 /* ---------------- 렌더 : 파티 구함 ---------------- */
+/* 모집 글의 목표 보스는 '하드 세렌 · 노말 칼로스'처럼 한 문자열에 이어 담는다
+   (예전 글도 같은 형식이라 그대로 읽히고, 저장 구조는 바꾸지 않는다) */
+var RECRUIT_BOSS_SEP = ' · ';
+function recruitBossLabels(r) {
+  var parts = String((r && r.boss) || '').split('·');
+  var out = [];
+  for (var i = 0; i < parts.length; i++) {
+    var s = parts[i].trim();
+    if (s) out.push(s);
+  }
+  return out;
+}
+function recruitBossText(list) { return (list || []).join(RECRUIT_BOSS_SEP); }
 function recruitBossList() {
   var seen = {}, out = [];
   for (var i = 0; i < state.recruits.length; i++) {
-    var b = state.recruits[i].boss;
-    if (b && !seen[b]) { seen[b] = 1; out.push(b); }
+    var labels = recruitBossLabels(state.recruits[i]);
+    for (var j = 0; j < labels.length; j++) {
+      if (!seen[labels[j]]) { seen[labels[j]] = 1; out.push(labels[j]); }
+    }
   }
   out.sort(function (a, b) { return a.localeCompare(b, 'ko'); });
   return out;
 }
-function recruitJobList() {
-  var seen = {}, out = [];
-  for (var i = 0; i < state.recruits.length; i++) {
-    var j = state.recruits[i].job;
-    if (j && !seen[j]) { seen[j] = 1; out.push(j); }
-  }
-  out.sort(function (a, b) { return a.localeCompare(b, 'ko'); });
-  return out;
+function recruitBossTags(r) {
+  var labels = recruitBossLabels(r), html = '';
+  for (var i = 0; i < labels.length; i++) html += '<span class="r-boss">' + esc(labels[i]) + '</span>';
+  return html;
 }
 function filteredRecruits() {
   var out = [];
   for (var i = 0; i < state.recruits.length; i++) {
     var r = state.recruits[i];
     if (ui.openOnly && r.status !== 'open') continue;
-    if (ui.filterBoss && r.boss !== ui.filterBoss) continue;
-    if (ui.filterJob && r.job !== ui.filterJob) continue;
+    if (ui.filterBoss && recruitBossLabels(r).indexOf(ui.filterBoss) < 0) continue;
     out.push(r);
   }
   out.sort(function (a, b) {
@@ -3168,21 +3183,14 @@ function filteredRecruits() {
 }
 function renderRecruitFilters() {
   var bossSel = byId('filterBoss');
-  var jobSel = byId('filterJob');
-  if (!bossSel || !jobSel) return;
-  var bosses = recruitBossList(), jobs = recruitJobList();
+  if (!bossSel) return;
+  var bosses = recruitBossList();
   var bh = '<option value="">전체 보스</option>';
   for (var i = 0; i < bosses.length; i++) {
     bh += '<option value="' + esc(bosses[i]) + '"' + (ui.filterBoss === bosses[i] ? ' selected' : '') + '>' + esc(bosses[i]) + '</option>';
   }
   bossSel.innerHTML = bh;
-  var jh = '<option value="">전체 직업</option>';
-  for (var k = 0; k < jobs.length; k++) {
-    jh += '<option value="' + esc(jobs[k]) + '"' + (ui.filterJob === jobs[k] ? ' selected' : '') + '>' + esc(jobs[k]) + '</option>';
-  }
-  jobSel.innerHTML = jh;
   if (ui.filterBoss && bosses.indexOf(ui.filterBoss) < 0) { ui.filterBoss = ''; bossSel.value = ''; }
-  if (ui.filterJob && jobs.indexOf(ui.filterJob) < 0) { ui.filterJob = ''; jobSel.value = ''; }
   var btn = byId('openOnlyBtn');
   if (btn) {
     if (ui.openOnly) btn.classList.add('is-active'); else btn.classList.remove('is-active');
@@ -3213,8 +3221,7 @@ function renderRecruits() {
       '<div class="r-top"><div class="r-name">' + esc(r.name) + '</div>' +
         '<span class="r-state ' + (closed ? 'closed' : 'open') + '">' + (closed ? '모집 마감' : '모집중') + '</span></div>' +
       '<div class="r-tags">' +
-        '<span class="r-boss">' + esc(r.boss) + '</span>' +
-        '<span class="r-job">' + esc(r.job) + '</span>' +
+        recruitBossTags(r) +
         (r.spec ? '<span class="r-spec">' + esc(r.spec) + '</span>' : '') +
       '</div>' +
       (r.need ? '<p class="r-need">' + esc(r.need) + '</p>' : '') +
@@ -3239,10 +3246,9 @@ function resetRecruitForm() {
   var t = byId('recruitFormTitle');
   if (t) t.textContent = '모집 글 올리기';
   byId('rName').value = '';
-  byId('rBoss').selectedIndex = 0;
-  byId('rBossCustom').value = '';
-  byId('rBossCustom').style.display = 'none';
-  byId('rJob').selectedIndex = 0;
+  ui.recruitBosses = [];
+  ui.recruitPickerBoss = '';
+  renderBossPicker('recruit');
   byId('rSpec').value = '';
   byId('rNeed').value = '';
   byId('rContact').value = '';
@@ -3256,11 +3262,14 @@ function fillRecruitForm(r) {
   byId('recruitSaveBtn').textContent = '수정 저장';
   byId('recruitCancelBtn').style.display = '';
   byId('rName').value = r.name;
-  var known = BOSSES.indexOf(r.boss) >= 0;
-  byId('rBoss').value = known ? r.boss : BOSS_CUSTOM;
-  byId('rBossCustom').value = known ? '' : r.boss;
-  byId('rBossCustom').style.display = known ? 'none' : '';
-  byId('rJob').value = JOBS.indexOf(r.job) >= 0 ? r.job : '기타';
+  /* 이미 올린 글의 목표 보스(한 개·여러 개 모두)를 그대로 선택 상태로 되살린다 */
+  ui.recruitBosses = recruitBossLabels(r);
+  ui.recruitPickerBoss = '';
+  for (var bi = 0; bi < ui.recruitBosses.length; bi++) {
+    var bbase = bossBaseName(ui.recruitBosses[bi]);
+    if (bossDef(bbase)) { ui.recruitPickerBoss = bbase; break; }
+  }
+  renderBossPicker('recruit');
   byId('rSpec').value = r.spec || '';
   byId('rNeed').value = r.need || '';
   byId('rContact').value = r.contact || '';
@@ -3268,29 +3277,27 @@ function fillRecruitForm(r) {
   setFolded('recruitFormCard', false);
 }
 function saveRecruit() {
-  var bossSel = byId('rBoss').value;
-  var boss = bossSel === BOSS_CUSTOM ? String(byId('rBossCustom').value || '').trim() : bossSel;
+  var bosses = ui.recruitBosses.slice();
   var data = {
     name: String(byId('rName').value || '').trim(),
-    boss: boss,
-    job: byId('rJob').value || '기타',
+    boss: recruitBossText(bosses),
     spec: String(byId('rSpec').value || '').trim(),
     need: String(byId('rNeed').value || '').trim(),
     contact: String(byId('rContact').value || '').trim(),
     memo: String(byId('rMemo').value || '').trim()
   };
   if (!data.name) { toast('닉네임이나 파티명을 입력해 주세요'); byId('rName').focus(); return; }
-  if (!data.boss) { toast('목표 보스를 골라 주세요'); return; }
+  if (!bosses.length) { toast('목표 보스를 하나 이상 골라 주세요'); return; }
   if (ui.editingRecruitId) {
     var r = getRecruit(ui.editingRecruitId);
     if (r) {
-      r.name = data.name; r.boss = data.boss; r.job = data.job; r.spec = data.spec;
+      r.name = data.name; r.boss = data.boss; r.spec = data.spec;
       r.need = data.need; r.contact = data.contact; r.memo = data.memo;
     }
     toast('모집 글을 수정했어요');
   } else {
     state.recruits.push({
-      id: uid('r'), name: data.name, boss: data.boss, job: data.job, spec: data.spec,
+      id: uid('r'), name: data.name, boss: data.boss, job: '', spec: data.spec,
       need: data.need, contact: data.contact, memo: data.memo,
       status: 'open', createdAt: Date.now()
     });
@@ -4192,11 +4199,6 @@ function buildSelects() {
   for (var j = 0; j < BOSSES.length; j++) bossHtml += '<option value="' + esc(BOSSES[j]) + '">' + esc(BOSSES[j]) + '</option>';
   bossHtml += '<option value="' + esc(BOSS_CUSTOM) + '">' + esc(BOSS_CUSTOM) + '</option>';
   byId('bossSelect').innerHTML = bossHtml;
-  byId('rBoss').innerHTML = bossHtml;
-
-  var jobHtml = '<option value="">직업 선택</option>';
-  for (var i = 0; i < JOBS.length; i++) jobHtml += '<option value="' + esc(JOBS[i]) + '">' + esc(JOBS[i]) + '</option>';
-  byId('rJob').innerHTML = jobHtml;
 }
 function resetSample() {
   if (!confirm('샘플 데이터로 되돌릴까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글이 모두 사라지고, 같은 링크를 연 길드원 전원에게 함께 적용됩니다.')) return;
@@ -4206,7 +4208,6 @@ function resetSample() {
   ui.activeMemberId = state.settings.myMemberId || (state.members.length ? state.members[0].id : null);
   ui.showAllMatches = {};
   ui.filterBoss = '';
-  ui.filterJob = '';
   ui.openOnly = false;
   ui.freshPartyId = null;
   save();
@@ -4263,16 +4264,21 @@ function handleAction(action, el) {
       if (cardId && byId(cardId)) setFolded(cardId, !byId(cardId).classList.contains('is-collapsed'));
       break;
     case 'save-group': saveGroup(); break;
-    case 'bp-boss': togglePickerBoss(el.getAttribute('data-boss')); break;
+    case 'bp-boss': togglePickerBoss(bpKindOf(el), el.getAttribute('data-boss')); break;
     case 'bp-diff': {
-      var bpBoss = el.getAttribute('data-boss'), bpDiff = el.getAttribute('data-diff');
-      toggleBossPick(bpBoss, bpDiff);
-      renderBossPicker();
+      var bpKind = bpKindOf(el), bpBoss = el.getAttribute('data-boss'), bpDiff = el.getAttribute('data-diff');
+      toggleBossPick(bpKind, bpBoss, bpDiff);
+      renderBossPicker(bpKind);
       break;
     }
-    case 'bp-remove': removeBossPick(el.getAttribute('data-boss')); break;
-    case 'bp-etc-add': addEtcBoss(); break;
-    case 'bp-close-diff': ui.pickerBoss = ''; renderBossPicker(); break;
+    case 'bp-remove': removeBossPick(bpKindOf(el), el.getAttribute('data-boss')); break;
+    case 'bp-etc-add': addEtcBoss(bpKindOf(el)); break;
+    case 'bp-close-diff': {
+      var bpk = bpKindOf(el);
+      ui[bpCtx(bpk).openKey] = '';
+      renderBossPicker(bpk);
+      break;
+    }
     case 'cancel-group': resetGroupForm(); toast('수정을 취소했어요'); break;
     case 'edit-group': {
       var g = getGroup(el.getAttribute('data-id'));
@@ -4350,13 +4356,7 @@ function bindEvents() {
       else { state.settings.myMemberId = ''; save(); renderSetup(); renderActiveSelect(); renderGridHint(); }
       return;
     }
-    if (t.id === 'rBoss') {
-      var rc = byId('rBossCustom');
-      if (rc) rc.style.display = t.value === BOSS_CUSTOM ? '' : 'none';
-      return;
-    }
     if (t.id === 'filterBoss') { ui.filterBoss = t.value; renderRecruits(); return; }
-    if (t.id === 'filterJob') { ui.filterJob = t.value; renderRecruits(); return; }
     if (t.type === 'checkbox') {
       var scope = t.getAttribute('data-scope');
       if (scope === 'gboss') {
@@ -4387,7 +4387,8 @@ function bindEvents() {
     var id = e.target && e.target.id;
     if (id === 'bulkNicks') { e.preventDefault(); bulkAddMembers(); }
     if (id === 'gName') { e.preventDefault(); saveGroup(); }
-    if (id === 'bpEtcInput') { e.preventDefault(); addEtcBoss(); }
+    if (id === 'bpEtcInput') { e.preventDefault(); addEtcBoss('group'); }
+    if (id === 'bpEtcInputRecruit') { e.preventDefault(); addEtcBoss('recruit'); }
     if (id === 'rName') { e.preventDefault(); saveRecruit(); }
   });
 }
