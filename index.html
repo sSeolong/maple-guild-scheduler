@@ -443,6 +443,8 @@
     font-size:11.5px; font-weight:700; color:#9a5406;
   }
   .p-actions{display:flex; flex-wrap:wrap; gap:6px}
+  .p-tip{margin:0 0 10px; font-size:11px; color:#8f7f68; line-height:1.55}
+  .p-tip b{color:#6b563c}
 
   /* ---------- 고정 파티 / 자동 매칭 ---------- */
   .group{
@@ -1078,6 +1080,7 @@
       <div class="card" id="partyListCard">
         <h2>확정된 파티</h2>
         <p class="sub" id="partyListSub">다가오는 일정부터 순서대로 보여 드려요.</p>
+        <p class="p-tip">📅 <b>캘린더 추가</b>는 카드에 적힌 알림(기본 1시간 전) 그대로 아이폰·갤럭시·구글 캘린더에 들어가요 · 📋 <b>카톡 메시지 복사</b>는 단톡방에 그대로 붙여넣으면 됩니다.</p>
         <div id="partyList"></div>
       </div>
 
@@ -1101,7 +1104,7 @@
           <button type="button" class="fold-btn" data-action="toggle-fold" data-target="partyFormBody" data-fold-btn="partyFormToggle" id="partyFormToggle" aria-expanded="true" aria-controls="partyFormBody">접기</button>
         </div>
         <div id="partyFormBody" data-fold-body="1">
-        <p class="sub">자동 매칭 없이 직접 일정을 넣고 싶을 때 씁니다. 애플 캘린더(.ics)와 구글 캘린더로 바로 내보낼 수 있어요.</p>
+        <p class="sub">자동 매칭 없이 직접 일정을 넣고 싶을 때 씁니다. 확정된 파티 카드에서 아이폰·갤럭시·구글 캘린더로 바로 추가할 수 있어요.</p>
 
         <div class="form-row">
           <div>
@@ -1165,7 +1168,7 @@
           <button type="button" class="btn btn-primary" data-action="save-party" id="partySaveBtn">일정 추가</button>
           <button type="button" class="btn btn-ghost" data-action="cancel-party" id="partyCancelBtn" style="display:none">수정 취소</button>
         </div>
-        <p class="hint">알림은 기본 <b>1시간 전</b>이고, .ics 파일 안에 <b>VALARM</b>(1시간 전)으로 들어갑니다. 애플 캘린더에 저장하면 파티 시작 1시간 전에 알림이 울리고, 구글 캘린더는 일정만 추가되니 알림은 캘린더 앱에서 1시간 전으로 직접 설정해 주세요.</p>
+        <p class="hint">알림은 기본 <b>1시간 전</b>이고, 캘린더 파일 안에 <b>VALARM</b>으로 함께 들어갑니다. 여기서 고른 알림(10분 전·2시간 전·아침 9시 등)이 그대로 캘린더 알림이 돼요. 구글 캘린더에 넣었을 때 알림이 비어 있으면 일정에서 한 번만 확인해 주세요.</p>
         </div>
       </div>
 
@@ -1578,18 +1581,6 @@ function buildICS(p) {
   var out = [];
   for (var i = 0; i < lines.length; i++) out.push(foldIcsLine(lines[i]));
   return out.join('\r\n') + '\r\n';
-}
-function buildGoogleUrl(p) {
-  var t = partyTimes(p);
-  var params = [
-    'action=TEMPLATE',
-    'text=' + encodeURIComponent(calendarTitle(p)),
-    'dates=' + utcStamp(t.startUtc) + '/' + utcStamp(t.endUtc),
-    'details=' + encodeURIComponent(partyDescription(p)),
-    'location=' + encodeURIComponent('메이플스토리'),
-    'ctz=Asia/Seoul'
-  ];
-  return 'https://calendar.google.com/calendar/render?' + params.join('&');
 }
 function icsFileName(p) {
   var name = '메이플길드_' + String(p.date).replace(/-/g, '') + '_' + p.boss;
@@ -3321,7 +3312,6 @@ function renderParties() {
     for (var j = 0; j < (p.members || []).length; j++) {
       memberHtml += '<span>' + esc(p.members[j]) + '</span>';
     }
-    var gurl = buildGoogleUrl(p);
     html += '<article class="party' + (past ? ' past' : '') + (p.id === ui.freshPartyId ? ' fresh' : '') + '" id="party-' + esc(p.id) + '">' +
       '<div class="party-head">' +
         '<div class="boss-name">' + esc(p.boss) + '</div>' +
@@ -3332,8 +3322,8 @@ function renderParties() {
       (p.memo ? '<p class="p-memo">' + esc(p.memo) + '</p>' : '') +
       (alarmLabel(p) === '알림 없음' ? '' : '<div class="p-alarm">⏰ ' + esc(alarmLabel(p)) + '</div>') +
       '<div class="p-actions">' +
-        '<button type="button" class="btn btn-sm btn-primary" data-action="ics" data-id="' + esc(p.id) + '">📅 애플 캘린더 (.ics)</button>' +
-        '<a class="btn btn-sm" href="' + esc(gurl) + '" target="_blank" rel="noopener">🗓 구글 캘린더</a>' +
+        '<button type="button" class="btn btn-sm btn-primary" data-action="ics" data-id="' + esc(p.id) + '">' + esc(icsButtonLabel(p)) + '</button>' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-action="copy-kakao" data-id="' + esc(p.id) + '">📋 카톡 메시지 복사</button>' +
         '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-party" data-id="' + esc(p.id) + '">수정</button>' +
         '<button type="button" class="btn btn-sm btn-danger" data-action="delete-party" data-id="' + esc(p.id) + '">삭제</button>' +
       '</div>' +
@@ -4568,6 +4558,70 @@ function downloadICS(id) {
     toast('캘린더 파일을 내보냈어요');
   }
 }
+/* 카드 버튼 문구 — 카드에 적힌 알림을 그대로 보여 준다 (기본 1시간 전) */
+function icsButtonLabel(p) {
+  var a = normalizeAlarm(p.alarm);
+  if (a === 'none') return '📅 캘린더에 추가';
+  if (a === 'morning') return '📅 아침 9시 알림 캘린더 추가';
+  var n = Number(a);
+  if (n % 60 === 0) return '📅 ' + (n / 60) + '시간 알림 캘린더 추가';
+  return '📅 ' + n + '분 전 알림 캘린더 추가';
+}
+
+/* ---------------- 카톡 공지 문구 복사 ---------------- */
+var SITE_URL = 'https://sseolong.github.io/maple-guild-scheduler/';
+function kakaoMessage(p) {
+  var d = parseYmd(p.date) || new Date();
+  var names = [];
+  for (var i = 0; i < (p.members || []).length; i++) {
+    var nm = String(p.members[i] || '').trim();
+    if (nm) names.push(nm);
+  }
+  return [
+    '[보스 일정 확정] ' + (String(p.boss || '').trim() || '보스'),
+    '📅 ' + fmtMDW(d) + ' ' + String(p.startTime || '') + ' 시작',
+    '👥 ' + (names.length ? names.join(', ') : '파티원 미정'),
+    '🔗 ' + SITE_URL
+  ].join('\n');
+}
+/* iOS 사파리 등 클립보드 API가 막힌 곳에서도 복사되도록 예비 경로 */
+function copyTextFallback(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.top = '0';
+  ta.style.left = '0';
+  ta.style.width = '1px';
+  ta.style.height = '1px';
+  ta.style.padding = '0';
+  ta.style.border = '0';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  var ok = false;
+  try {
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    ok = document.execCommand('copy');
+  } catch (err) { ok = false; }
+  document.body.removeChild(ta);
+  return ok;
+}
+function copyKakaoMessage(id) {
+  var p = getParty(id);
+  if (!p) { toast('일정을 찾지 못했습니다'); return; }
+  var text = kakaoMessage(p);
+  function done() { toast('카톡 공지 메시지를 복사했어요! 단톡방에 붙여넣기 하세요'); }
+  function fail() { toast('복사가 잘 안 됐어요 — 다시 한 번 눌러 주세요'); }
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done, function () {
+      if (copyTextFallback(text)) done(); else fail();
+    });
+    return;
+  }
+  if (copyTextFallback(text)) done(); else fail();
+}
 
 /* ---------------- 초기화 / 이벤트 ---------------- */
 function buildSelects() {
@@ -4633,6 +4687,7 @@ function handleAction(action, el) {
     case 'edit-party': startPartyEdit(el.getAttribute('data-id')); break;
     case 'delete-party': deleteParty(el.getAttribute('data-id')); break;
     case 'ics': downloadICS(el.getAttribute('data-id')); break;
+    case 'copy-kakao': copyKakaoMessage(el.getAttribute('data-id')); break;
     case 'reset-sample': resetSample(); break;
     case 'toggle-fold':
       var cardId = el.getAttribute('data-target') === 'partyFormBody' ? 'partyFormCard' :
