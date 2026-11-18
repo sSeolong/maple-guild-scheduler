@@ -2868,7 +2868,8 @@ function pasteTokenize(text) {
   var s = String(text === null || text === undefined ? '' : text);
   var toks = [];
   var i = 0, n = s.length, buf = '';
-  var rangeRe = new RegExp('^' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시\\s*(?:\\d{1,2}\\s*분)?\\s*(?:~|-|에서|부터)\\s*' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시\\s*(?:\\d{1,2}\\s*분)?(?:\\s*까지)?');
+  var rangeRe = new RegExp('^' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시?\\s*(?:\\d{1,2}\\s*분)?\\s*(?:~|-|에서|부터)\\s*' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시\\s*(?:\\d{1,2}\\s*분)?(?:\\s*까지)?');
+  var rangeWordRe = new RegExp('^' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시?\\s*(?:~|-|에서|부터)\\s*(자정|새벽)');
   var hourRe = new RegExp('^' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시(?:\\s*(\\d{1,2})\\s*분)?(?:\\s*(이후로|이후부터|이후|부터는|부터|이전|전|까지|쯤|정도))?');
   function flush() { if (buf) { toks.push({ k: 'text', v: buf }); buf = ''; } }
   while (i < n) {
@@ -2902,6 +2903,13 @@ function pasteTokenize(text) {
       var sa = pasteAbsHour(Number(m[2]), m[1] || '');
       var ea = pasteAbsHour(Number(m[4]), m[3] || '');
       toks.push({ k: 'time', blocks: pasteBlocksBetween(sa, ea) });
+      i += m[0].length; continue;
+    }
+    /* 10시~자정 · 8시부터 새벽 */
+    m = restS.match(rangeWordRe);
+    if (m) {
+      flush();
+      toks.push({ k: 'time', blocks: pasteBlocksBetween(pasteAbsHour(Number(m[2]), m[1] || ''), 24) });
       i += m[0].length; continue;
     }
     /* 22:00 처럼 숫자:숫자 */
@@ -2980,16 +2988,29 @@ function pasteLines(text) {
   return out;
 }
 
-/* 한 줄이 '이름' 줄인지 본다 (이름: 내용 / [이름] 내용 / 이름만) */
+/* 한 줄이 '이름' 줄인지 본다 (이름: 내용 / [이름] 내용 / 이름만 / 이름 + 내용) */
 function pasteNameOf(line) {
   var L = String(line).trim();
   var m;
   m = L.match(/^\[([^\[\]]{1,20})\]\s*(.*)$/);
   if (m && pasteIsNick(m[1], true)) return { name: pasteCleanNick(m[1]), rest: m[2] || '' };
   m = L.match(/^([^:\[\]]{1,24})\s*:\s*(.*)$/);
-  if (m && pasteIsNick(m[1], true)) return { name: pasteCleanNick(m[1]), rest: m[2] || '' };
+  /* '22:00' 같은 시각의 콜론은 이름 구분이 아니다 */
+  if (m && !/\d\s*$/.test(m[1]) && pasteIsNick(m[1], true)) return { name: pasteCleanNick(m[1]), rest: m[2] || '' };
   if (pasteIsNick(L, false)) return { name: pasteCleanNick(L), rest: '' };
+  /* '가을단풍 토 오전, 일 8시 이후' 처럼 이름 뒤에 바로 내용이 오는 줄 */
+  m = L.match(/^(\S{2,16})\s+(.+)$/);
+  if (m && pasteIsNick(m[1], true) && pasteHasDayOrTime(m[2])) return { name: pasteCleanNick(m[1]), rest: m[2] };
   return null;
+}
+function pasteHasDayOrTime(s) {
+  var toks = pasteTokenize(s);
+  var d = false, t = false;
+  for (var i = 0; i < toks.length; i++) {
+    if (toks[i].k === 'day') d = true;
+    if (toks[i].k === 'time') t = true;
+  }
+  return d || t;
 }
 function pasteChunks(lines) {
   var chunks = [], cur = null;
