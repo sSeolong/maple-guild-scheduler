@@ -937,7 +937,8 @@ var GUILD_NAME = '메이플 길드';
 var DAY_NAMES = ['목', '금', '토', '일', '월', '화', '수'];
 
 var BLOCKS = [
-  { id: 'b0', label: '오전 10~12시', short: '10~12시', mini: '10–12', time: '10:00–12:00', start: '10:00', dur: 120 },
+  /* b0는 '오전'으로만 표시합니다. 실제 시간이 필요할 때(캘린더·파티 만들기)는 start 10:00을 기본값으로 씁니다. */
+  { id: 'b0', label: '오전', short: '오전', mini: '오전', time: '', start: '10:00', dur: 120, noTime: true },
   { id: 'b1', label: '오후 6~8시', short: '6~8시', mini: '6–8', time: '18:00–20:00', start: '18:00', dur: 120 },
   { id: 'b2', label: '오후 8~10시', short: '8~10시', mini: '8–10', time: '20:00–22:00', start: '20:00', dur: 120 },
   { id: 'b3', label: '오후 10시~자정', short: '10~자정', mini: '10–자정', time: '22:00–24:00', start: '22:00', dur: 120 },
@@ -1844,12 +1845,12 @@ function gridMarkup(mode, mobile) {
   if (!mobile) {
     for (d = 0; d < 7; d++) html += dayHeaderCell(d, ws);
     for (b = 0; b < BLOCKS.length; b++) {
-      html += '<div class="rh"><span>' + BLOCKS[b].label + '</span><small>' + BLOCKS[b].time + '</small></div>';
+      html += '<div class="rh"><span>' + BLOCKS[b].label + '</span>' + (BLOCKS[b].noTime ? '' : '<small>' + BLOCKS[b].time + '</small>') + '</div>';
       for (day = 0; day < 7; day++) html += cellMarkup(mode, day, BLOCKS[b], m, false);
     }
   } else {
     for (b = 0; b < BLOCKS.length; b++) {
-      html += '<div class="gh gb"><b>' + (BLOCKS[b].mini || BLOCKS[b].short) + '</b><small>' + BLOCKS[b].start + '</small></div>';
+      html += '<div class="gh gb"><b>' + (BLOCKS[b].mini || BLOCKS[b].short) + '</b>' + (BLOCKS[b].noTime ? '' : '<small>' + BLOCKS[b].start + '</small>') + '</div>';
     }
     for (d = 0; d < 7; d++) {
       var dd = addDays(ws, d);
@@ -1986,7 +1987,7 @@ function renderSlotDetail() {
   }
 
   html += '<button type="button" class="btn btn-primary btn-sm" data-action="make-party"' + (list.length ? '' : ' disabled') + '>⚔ 이 시간으로 파티 만들기</button>';
-  html += '<p class="hint">' + fmtMDW(addDays(ws, day)) + (dayText ? dayText : '') + ' ' + esc(blk.time) + ' 기준' + (blk.afterMidnight ? ' (자정 이후라 날짜는 다음 날로 들어갑니다)' : '') + '</p>';
+  html += '<p class="hint">' + fmtMDW(addDays(ws, day)) + (dayText ? dayText : '') + ' ' + (blk.noTime ? esc(blk.label) + ' 기준' : esc(blk.time) + ' 기준') + (blk.afterMidnight ? ' (자정 이후라 날짜는 다음 날로 들어갑니다)' : '') + '</p>';
   html += '</div>';
   host.innerHTML = html;
 }
@@ -2959,7 +2960,7 @@ function makePartyFromSlot() {
   renderMemberChecks(list.map(function (m) { return m.nick; }));
   switchTab('parties');
   setFolded('partyFormCard', false);
-  toast('가능 인원 ' + list.length + '명으로 폼을 채웠어요. 보스만 골라 주세요');
+  toast('가능 인원 ' + list.length + '명으로 폼을 채웠어요. 보스만 골라 주세요' + (blk.noTime ? ' (시작 시간은 10:00으로 채워 뒀어요)' : ''));
   var form = byId('partyFormCard');
   if (form && form.scrollIntoView) setTimeout(function () { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 40);
 }
