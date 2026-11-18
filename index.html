@@ -1910,8 +1910,10 @@ function confirmedPartiesIn(day, blockId) {
   }
   return out;
 }
-/* 칸에 들어갈 만큼 짧게: '하드 세렌 · 노말 칼로스' → '하드세렌+1' */
+/* 칸에 들어갈 만큼 짧게: 고정 파티 이름(고장난손가락·ㅇ) 우선, 없으면 보스 이름 */
 function partyShortLabel(p) {
+  var g = p.groupId ? getGroup(p.groupId) : null;
+  if (g && g.name) return String(g.name).replace(/\s+/g, '');
   var parts = String(p.boss || '').split('·');
   var labels = [];
   for (var i = 0; i < parts.length; i++) {
@@ -1928,7 +1930,7 @@ function confirmedBadgesIn(day, blockId) {
   var extra = list.length - 1;
   var text = '✅' + first + (extra > 0 ? ' +' + extra : '');
   var title = [];
-  for (var i = 0; i < list.length; i++) title.push(list[i].boss + ' · ' + list[i].startTime + ' 시작');
+  for (var i = 0; i < list.length; i++) title.push(partyShortLabel(list[i]) + ' · ' + list[i].boss + ' · ' + list[i].startTime + ' 시작');
   return '<span class="c-conf" title="' + esc(title.join(' / ')) + '">' + esc(text) + '</span>';
 }
 function toggleSlot(day, blockId) {
