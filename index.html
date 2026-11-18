@@ -2317,10 +2317,10 @@ function renderWeekEndNote() {
   var go = '<button type="button" class="wk-go" data-action="week-goto" data-offset="' + (off + 1) + '">' +
     nxName + '(' + mdShort(nx.ws) + '~) 보기 →</button>';
   if (weekEndingSoon(off)) {
-    host.innerHTML = '<div class="week-endnote is-ending">⏳ <span><b>' + weekLabelFor(off) + '(' + cur.text + ')는 ' +
+    host.innerHTML = '<div class="week-endnote is-ending"><span>⏳ <b>' + weekLabelFor(off) + '(' + cur.text + ')는 ' +
       fmtMDW(cur.we) + '까지</b>예요.<br>다음 주에 쓸 시간이면 여기가 아니라 <b>다음 주 시간표</b>에 넣어 주셔요.</span>' + go + '</div>';
   } else if (weekTimeLeft(off) <= 0) {
-    host.innerHTML = '<div class="week-endnote">⏳ <b>이미 지난 주(' + cur.text + ')</b>를 보고 있어요.<br>지난 날짜로는 파티를 확정할 수 없어요.' + go + '</div>';
+    host.innerHTML = '<div class="week-endnote"><span>⏳ <b>이미 지난 주(' + cur.text + ')</b>를 보고 있어요.<br>지난 날짜로는 파티를 확정할 수 없어요.</span>' + go + '</div>';
   } else {
     host.innerHTML = '';
   }
@@ -2335,11 +2335,11 @@ function renderPasteWeekBar() {
     nxName + '(' + mdShort(nx.ws) + '~) 보기 →</button>';
   if (weekEndingSoon(off)) {
     host.className = 'paste-week is-ending';
-    host.innerHTML = '⏳ 지금은 <b>' + weekLabelFor(off) + '(' + cur.text + ')</b><br>' + fmtMDW(cur.we) + '까지만 남았어요.<br>' +
-      '다음 주 시간이면 주를 먼저 바꿔 주세요.' + go;
+    host.innerHTML = '<span>⏳ 지금은 <b>' + weekLabelFor(off) + '(' + cur.text + ')</b><br>' + fmtMDW(cur.we) + '까지만 남았어요.<br>' +
+      '다음 주 시간이면 주를 먼저 바꿔 주세요.</span>' + go;
   } else if (weekTimeLeft(off) <= 0) {
     host.className = 'paste-week is-ending';
-    host.innerHTML = '⏳ <b>이미 지난 주(' + cur.text + ')</b> 표입니다.<br>지난 날짜에 넣지 않도록 주를 확인해 주세요.' + go;
+    host.innerHTML = '<span>⏳ <b>이미 지난 주(' + cur.text + ')</b> 표입니다.<br>지난 날짜에 넣지 않도록 주를 확인해 주세요.</span>' + go;
   } else {
     host.className = 'paste-week';
     host.innerHTML = '📅 붙여넣은 내용은 <b>' + weekLabelFor(off) + '(' + cur.text + ')</b> 표에 들어갑니다.';
