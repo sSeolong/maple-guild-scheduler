@@ -230,6 +230,7 @@
   .rh{align-items:flex-start; text-align:left; padding-left:3px; color:#6b5a46; font-weight:700; font-size:11px; line-height:1.2}
   .rh small{color:#a89478; font-size:10px; font-weight:600}
   .cell{
+    position:relative;
     min-height:40px; border-radius:11px; border:1px dashed #d9c9ae; background:#fffdf8;
     font-family:inherit; font-size:12.5px; font-weight:800; color:#a89478;
     cursor:pointer; display:grid; place-items:center; padding:0; transition:.13s;
@@ -246,8 +247,10 @@
     display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
     gap:2px; padding:4px 4px 5px; min-height:62px; text-align:left;
   }
-  .c-top{display:flex; justify-content:flex-end; align-items:center; line-height:1; min-height:11px}
-  .c-n{font-size:9px; font-weight:800; letter-spacing:0}
+  .c-top{display:flex; justify-content:space-between; align-items:center; line-height:1; min-height:11px; gap:3px}
+  .c-n{font-size:9px; font-weight:800; letter-spacing:0; margin-left:auto}
+  .c-dots{display:flex; gap:2px; align-items:center}
+  .c-dots i{display:block; width:6px; height:6px; border-radius:50%; background:var(--pc,#c96a0c); box-shadow:0 0 0 1px rgba(255,255,255,.8)}
   .c-names{display:flex; flex-direction:column; gap:2px; min-width:0}
   .c-names i{
     font-style:normal; display:block; font-size:9.5px; font-weight:700; line-height:1.3;
@@ -453,6 +456,92 @@
     border:1px dashed #ddcdb4; border-radius:13px; background:#faf4e8;
   }
 
+  /* ---------- 고정 파티 테두리 (겹침 · 합집합) ---------- */
+  .cell.has-party{border-style:solid; border-color:transparent}
+  .cell.party-1{box-shadow:inset 0 0 0 2.5px var(--pc1)}
+  .cell.party-2{box-shadow:inset 0 0 0 2.5px var(--pc1), inset 0 0 0 5px var(--pc2)}
+  .cell.party-3{box-shadow:inset 0 0 0 2px var(--pc1), inset 0 0 0 4px var(--pc2), inset 0 0 0 6px var(--pc3)}
+  .cell.union.party-2{box-shadow:inset 0 0 0 2.5px var(--pc1), inset 0 0 0 5px var(--pc2), 0 0 0 2px rgba(43,41,54,.30)}
+  .cell.union.party-3{box-shadow:inset 0 0 0 2px var(--pc1), inset 0 0 0 4px var(--pc2), inset 0 0 0 6px var(--pc3), 0 0 0 2px rgba(43,41,54,.30)}
+  .cell.union{z-index:1}
+  .c-names i.hit{background:#ffdcd2; color:#a02f16; font-weight:800}
+  .c-names i.more{background:#efe3cd; color:#6b5a46; font-weight:800}
+  .cell.heat.h0 .c-names i.hit{background:#ffdcd2}
+  .cell.heat.h5 .c-names i.hit, .cell.heat.h6 .c-names i.hit{background:#ffe0d2; color:#8f2a12}
+  .legend .lg{display:inline-flex; align-items:center; gap:5px}
+  .legend i.lg1{background:#fdf8ef; box-shadow:inset 0 0 0 2px #2f7ff0}
+  .legend i.lg2{background:#fdf8ef; box-shadow:inset 0 0 0 2px #2f7ff0, inset 0 0 0 4px #12a67a}
+  .legend i.lgw{background:#ffdcd2; color:#a02f16; font-size:9px; font-weight:800; text-align:center; line-height:11px; font-style:normal}
+
+  /* ---------- 초기 세팅 ---------- */
+  .setup-card{border:1px solid #e9bf85; background:linear-gradient(180deg,#fffaf1,#fdf2e0)}
+  .setup-card h2::before{background:linear-gradient(180deg,#4bb47c,#1f7d4f)}
+  .setup-sum{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:#6b563c; line-height:1.5}
+  .setup-sum > span{flex:1 1 190px; min-width:0}
+  .setup-sum b{color:#8a4d05}
+  .setup-sum .btn{flex:0 0 auto; margin-left:auto}
+  .step{display:flex; gap:10px; padding:12px 0; border-top:1px dashed #ecdcc0}
+  .setup-card .step:first-of-type{border-top:0; padding-top:2px}
+  .step-no{
+    flex:0 0 auto; width:22px; height:22px; border-radius:50%;
+    background:linear-gradient(160deg,#f5a63f,#d97706); color:#fff8ee;
+    display:grid; place-items:center; font-size:11.5px; font-weight:800;
+  }
+  .step-body{flex:1 1 auto; min-width:0}
+  .step-title{font-size:13px; font-weight:800; color:#33261a; margin-bottom:7px}
+  .setup-group-row{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:8px 9px 8px 10px; border-radius:11px; background:#fffdf8;
+    border:1px solid #ece0cb; border-left:5px solid var(--pc,#c96a0c); margin-bottom:6px;
+  }
+  .pc-dot{width:8px; height:8px; border-radius:50%; background:var(--pc,#c96a0c); flex:0 0 auto}
+  .sgr-name{font-size:12.5px; font-weight:800; color:#2a2018}
+  .sgr-mem{font-size:11px; color:#6b5a46; flex:1 1 100%; order:3; line-height:1.45}
+  .sgr-act{display:flex; gap:4px; margin-left:auto}
+  .boss-tag{padding:2px 7px; border-radius:7px; background:var(--slate); color:#ffe6c2; font-size:10.5px; font-weight:800; white-space:nowrap}
+  .boss-tag.soft{background:#efe3cd; color:#6b5a46}
+  .member-item.is-mine{border-color:#e0a44f; background:#fff6e4}
+  .member-pick{display:flex; align-items:center; gap:7px; margin-bottom:9px; flex-wrap:wrap}
+  .member-pick select{flex:1 1 170px; min-width:0}
+  .btn.is-on{background:#ffe6c2; border-color:#efb265; color:#8a4d05; box-shadow:inset 0 0 0 2px rgba(239,139,31,.35)}
+  .hint.warn{color:#a8482e}
+  .hint.warn b{color:#a8482e}
+
+  /* ---------- 슬롯 상세 : 가능한 고정 파티 ---------- */
+  .badge-union{padding:2px 9px; border-radius:9px; background:#2b2936; color:#ffe6c2; font-size:11px; font-weight:800}
+  .who span.hit{background:#ffdcd2; border-color:#f0b8a6; color:#a02f16; font-weight:800}
+  .sd-parties{display:flex; flex-direction:column; gap:6px; margin-bottom:9px}
+  .sd-p{
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:8px 9px; border-radius:11px; background:#fffdf8;
+    border:1px solid #e6d8c0; border-left:4px solid var(--pc,#c96a0c);
+  }
+  .sd-p > b{font-size:12px; color:#33261a}
+  .sd-mem{display:flex; flex-wrap:wrap; gap:4px; font-size:10.5px; color:#6b5a46}
+  .sd-mem span{padding:1px 6px; border-radius:6px; background:#f1e6d3}
+  .sd-mem span.hit{background:#ffdcd2; color:#a02f16; font-weight:800}
+  .sd-p .sd-confirm{margin-left:auto}
+  .sd-conflict{margin-left:auto; font-size:10.5px; font-weight:800; color:#a8482e; white-space:nowrap}
+  .sd-note{margin:0 0 9px; padding:8px 10px; border-radius:10px; font-size:11.5px; line-height:1.5; font-weight:600}
+  .sd-note.warn{background:#fdeae4; border:1px solid #f3cbbf; color:#a02f16}
+  .sd-note.ok{background:#e8f5ec; border:1px solid #c6e3cf; color:#25683f}
+
+  /* ---------- 합집합 목록 ---------- */
+  .union-row{
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    padding:9px 10px; border-radius:12px; background:#fffdf8;
+    border:1px dashed #d8c8ae; margin-bottom:7px;
+  }
+  .u-when{flex:0 0 132px; font-size:12px; font-weight:800; color:#33261a; line-height:1.3}
+  .u-parties{display:flex; flex-wrap:wrap; gap:5px; flex:1 1 auto}
+  .u-tag{
+    display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:8px;
+    background:var(--pc,#c96a0c); color:#fff; font-size:10.5px; font-weight:800;
+  }
+  .u-warn{flex:1 1 100%; font-size:11px; color:#a8482e; font-weight:700}
+  .u-ok{flex:1 1 100%; font-size:11px; color:#25683f; font-weight:700}
+  .m-over{display:block; font-size:10.5px; color:#a8482e; font-weight:700; margin-top:2px}
+
   @media (max-width:760px){
     .recruit-list{grid-template-columns:1fr}
   }
@@ -472,9 +561,17 @@
     .grid-d{display:none}
     .grid-m{display:grid; min-width:0; grid-template-columns:44px repeat(4,minmax(0,1fr)); gap:4px}
     .grid-m .cell{min-height:44px; border-radius:10px; font-size:13.5px}
-    .grid-m .cell.heat{min-height:56px; padding:3px 3px 4px; gap:1px}
+    .grid-m .cell.heat{height:64px; min-height:64px; overflow:hidden; padding:3px 4px 4px; gap:1px}
     .grid-m .c-names i{font-size:8.6px; padding:1px 3px}
     .grid-m .c-n{font-size:8.5px}
+    .grid-m .c-dots i{width:5px; height:5px}
+    .step{gap:8px}
+    .step-no{width:20px; height:20px; font-size:11px}
+    .setup-group-row{padding:7px 8px}
+    .sd-p .sd-confirm{margin-left:0; width:100%; justify-content:center}
+    .u-when{flex:1 1 100%}
+    .member-pick select{flex:1 1 100%}
+    .member-pick .btn{flex:1 1 auto; justify-content:center}
     .grid-m .rh{align-items:center; font-size:12px; font-weight:800; color:#3a2c20; padding-left:2px; line-height:1.15}
     .grid-m .rh small{font-size:9.5px; font-weight:600}
     .grid-m .gh{padding:2px 0}
@@ -523,6 +620,77 @@
     <!-- ============ TAB 1 : 주간 가능 시간표 ============ -->
     <section class="panel is-active" id="panel-availability">
 
+      <!-- ===== 초기 세팅 ===== -->
+      <div class="card setup-card" id="setupCard">
+        <div class="form-head">
+          <h2>초기 세팅 — 길드원 · 고정 파티</h2>
+          <button type="button" class="fold-btn" data-action="toggle-setup" id="setupFoldBtn" aria-expanded="true" aria-controls="setupBody">접기</button>
+        </div>
+        <div id="setupSummary" class="setup-sum" style="display:none"></div>
+        <div id="setupBody">
+          <p class="sub">한 번만 세팅해 두면, 다음부터는 <b>가능한 시간 칸만</b> 누르면 됩니다. 고정 파티 하나에 <b>보스를 여러 개</b> 넣을 수 있어요.</p>
+
+          <div class="step">
+            <div class="step-no">1</div>
+            <div class="step-body">
+              <div class="step-title">길드원 &amp; 내 캐릭터</div>
+              <div class="form-row one" style="margin-bottom:8px">
+                <input type="text" id="bulkNicks" placeholder="닉네임을 쉼표로 구분해 한 번에 (예: 단풍, 새벽, 은빛, 고요)" autocomplete="off">
+              </div>
+              <div class="form-actions" style="margin:0 0 9px">
+                <button type="button" class="btn btn-primary btn-sm" data-action="bulk-add-members">길드원 한 번에 추가</button>
+              </div>
+              <div class="chips" id="setupMemberChips"></div>
+              <label class="field" for="myMemberSelect">내 캐릭터 <span style="font-weight:600;color:#96836c">— 다음에 들어오면 자동으로 선택됩니다</span></label>
+              <select id="myMemberSelect"></select>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-no">2</div>
+            <div class="step-body">
+              <div class="step-title">고정 파티 (파티마다 보스 여러 개)</div>
+              <p class="hint" style="margin:0 0 9px">예: <b>1팟</b> = 단풍·새벽 → 하드 세렌 · 노말 칼로스 / <b>2팟</b> = 새벽·은빛·고요 → 하드 림보 · 노말 흉성</p>
+              <div id="setupGroupList"></div>
+              <div class="form-actions" style="margin:8px 0 0">
+                <button type="button" class="btn btn-ghost btn-sm" data-action="new-group">＋ 고정 파티 추가</button>
+              </div>
+
+              <div id="groupEditor" style="display:none; margin-top:11px; padding:11px; border-radius:12px; background:#fffdf8; border:1px solid #e6d8c0">
+                <div class="form-row">
+                  <div>
+                    <label class="field" for="gName">파티명</label>
+                    <input type="text" id="gName" placeholder="비우면 1팟 · 세렌·칼로스" maxlength="30" autocomplete="off">
+                  </div>
+                  <div>
+                    <label class="field" for="gMemo">메모 (선택)</label>
+                    <input type="text" id="gMemo" placeholder="예: 같은 파티로 두 보스 연속" maxlength="60" autocomplete="off">
+                  </div>
+                </div>
+                <div class="field-block">
+                  <span class="field">파티원 (길드원에서 선택)</span>
+                  <div class="checks" id="groupMemberChecks"></div>
+                </div>
+                <div class="field-block">
+                  <span class="field">목표 보스 — 여러 개 선택</span>
+                  <div class="checks" id="groupBossChecks"></div>
+                  <input type="text" id="gBossCustom" placeholder="그 외 보스 직접 입력 (쉼표로 구분)" style="margin-top:7px" autocomplete="off">
+                </div>
+                <div class="form-actions">
+                  <button type="button" class="btn btn-primary btn-sm" data-action="save-group" id="groupSaveBtn">고정 파티 저장</button>
+                  <button type="button" class="btn btn-ghost btn-sm" data-action="cancel-group" id="groupCancelBtn">취소</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top:6px">
+            <button type="button" class="btn btn-primary" data-action="finish-setup">초기 세팅 저장하고 시작</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-action="reset-empty">샘플 비우기</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="week-bar">
           <button type="button" class="week-nav" data-action="week-prev" aria-label="이전 주">‹</button>
@@ -539,36 +707,29 @@
       </div>
 
       <div class="card">
-        <h2>길드원</h2>
-        <p class="sub">닉네임만 등록하고, 아래 표에서 가능한 시간을 눌러 칠해 주세요. 이름을 누르면 그 길드원의 시간표를 편집합니다.</p>
-        <div class="chips" id="memberChips"></div>
-        <div class="form-row">
-          <div>
-            <label class="field" for="mNick">닉네임</label>
-            <input type="text" id="mNick" placeholder="예: 단풍잎사냥꾼" maxlength="20" autocomplete="off">
-          </div>
-          <div style="display:flex; align-items:flex-end; gap:7px; flex-wrap:wrap">
-            <button type="button" class="btn btn-primary" data-action="save-member" id="memberSaveBtn">길드원 추가</button>
-            <button type="button" class="btn btn-ghost" data-action="cancel-member" id="memberCancelBtn" style="display:none">취소</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
         <h2>가능 시간 입력</h2>
+        <div class="member-pick">
+          <select id="activeMemberSelect" aria-label="가능 시간을 편집할 길드원"></select>
+          <button type="button" class="btn btn-sm btn-ghost" data-action="set-my-member" id="myStarBtn">☆ 내 캐릭터로 지정</button>
+        </div>
         <p class="sub" id="gridHint">길드원을 선택한 뒤 칸을 눌러 가능한 시간을 표시하세요.</p>
         <div class="grid-wrap" id="gridHost"></div>
       </div>
 
       <div class="card">
         <h2>길드 전체 가능 시간</h2>
-        <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다. 칸을 누르면 자세히 보고 바로 파티를 만들 수 있어요.</p>
+        <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다. <b>테두리</b>는 고정 파티가 전원 모일 수 있는 시간이에요. 칸을 누르면 자세히 보고 바로 확정할 수 있습니다.</p>
         <div class="grid-wrap" id="heatHost"></div>
         <div class="legend">
           <span>적음</span>
           <i class="l0"></i><i class="l1"></i><i class="l3"></i><i class="l5"></i><i class="l6"></i>
           <span>많음</span>
           <span style="margin-left:auto">색이 진할수록 가능 인원이 많아요</span>
+        </div>
+        <div class="legend" style="margin-top:6px">
+          <span class="lg"><i class="lg1"></i>파티 하나 전원 가능</span>
+          <span class="lg"><i class="lg2"></i>합집합 · 두 파티 이상</span>
+          <span class="lg"><i class="lgw">!</i>파티원 겹침</span>
         </div>
         <div id="slotDetail"></div>
       </div>
@@ -578,39 +739,24 @@
     <!-- ============ TAB 2 : 확정 파티 일정 ============ -->
     <section class="panel" id="panel-parties">
 
-      <div class="card" id="groupFormCard">
+      <div class="card">
         <div class="form-head">
           <h2>고정 파티 자동 매칭</h2>
-          <button type="button" class="fold-btn" data-action="toggle-fold" data-target="groupForm" data-fold-btn="groupFormBtn" id="groupFormBtn" aria-expanded="true" aria-controls="groupForm">접기</button>
+          <button type="button" class="fold-btn" data-action="open-setup">초기 세팅에서 편집</button>
         </div>
-        <p class="sub">고정 파티원을 미리 등록해 두면 위 <b>주간 가능 시간표</b>와 자동으로 맞춰서, 전원이 가능한 날짜·시간을 찾아 드려요. 날짜를 정하기 전에도 등록할 수 있습니다.</p>
+        <p class="sub">고정 파티원을 등록해 두면 위 <b>주간 가능 시간표</b>와 자동으로 맞춰서, 전원이 가능한 날짜·시간을 찾아 드려요. 파티 하나에 보스를 여러 개 넣을 수 있습니다.</p>
 
-        <div id="groupForm" data-fold-body="1">
-          <div class="form-row">
-            <div>
-              <label class="field" for="gName">파티명</label>
-              <input type="text" id="gName" placeholder="예: 하드 세렌 고정팟" maxlength="30" autocomplete="off">
-            </div>
-            <div>
-              <label class="field" for="gBoss">목표 보스</label>
-              <select id="gBoss"></select>
-            </div>
-          </div>
-          <div class="field-block">
-            <span class="field">고정 파티원 (길드원에서 선택)</span>
-            <div class="checks" id="groupMemberChecks"></div>
-          </div>
-          <div class="field-block">
-            <label class="field" for="gMemo">메모 (선택)</label>
-            <input type="text" id="gMemo" placeholder="예: 매주 목요일 22시, 6인 고정" maxlength="60" autocomplete="off">
-          </div>
-          <div class="form-actions">
-            <button type="button" class="btn btn-primary" data-action="save-group" id="groupSaveBtn">고정 파티 등록</button>
-            <button type="button" class="btn btn-ghost" data-action="cancel-group" id="groupCancelBtn" style="display:none">수정 취소</button>
-          </div>
+        <div id="groupList"></div>
+
+        <div class="form-actions" style="margin-top:10px">
+          <button type="button" class="btn btn-ghost btn-sm" data-action="new-group-jump">＋ 고정 파티 추가</button>
         </div>
+      </div>
 
-        <div id="groupList" style="margin-top:14px"></div>
+      <div class="card">
+        <h2>합집합 — 두 파티가 같은 시간에</h2>
+        <p class="sub">고정 파티 전원이 한 칸에 모두 모일 수 있는 시간을 모았습니다. 파티원이 겹치면 그 시간에 두 파티를 동시에 돌릴 수는 없으니, 하나씩 시간을 나눠 잡아 주세요.</p>
+        <div id="unionList"></div>
       </div>
 
       <div class="card">
@@ -766,7 +912,8 @@
 
   <footer class="foot">
     <p>입력한 내용은 이 브라우저 안(localStorage)에만 저장됩니다.<br>다른 기기와 공유하려면 브라우저 데이터를 함께 옮겨 주세요.</p>
-    <button type="button" class="btn btn-sm" data-action="reset-sample">샘플 데이터로 초기화</button>
+    <button type="button" class="btn btn-sm" data-action="reset-sample">샘플 데이터로 되돌리기</button>
+    <button type="button" class="btn btn-sm" data-action="reset-empty" style="margin-left:6px">샘플 비우고 빈 상태로</button>
   </footer>
 </div>
 
@@ -774,14 +921,14 @@
 
 <script>
 /* =========================================================
-   메이플스토리 길드 스케줄 — 단일 파일 프로토타입 (v2)
-   1) 가능 시간 칸에 길드원 닉네임 표시
-   2) '파티 구함' 탭 (모집 게시판)
-   3) 고정 파티원 ↔ 주간 가능 시간 자동 매칭 · 원클릭 확정
+   메이플스토리 길드 스케줄 — 단일 파일 (v3)
+   1) 초기 세팅: 길드원 한 번에 추가 · 고정 파티(보스 여러 개) · 내 캐릭터 저장
+   2) 합집합 테두리: 전원 가능 파티 / 두 파티 이상 겹치는 칸 구분 · 파티원 겹침 표시
+   3) 가능 시간 칸에 길드원 닉네임 표시 · '파티 구함' 탭 · 자동 매칭 · .ics 내보내기
    ========================================================= */
 
-var STORE_KEY = 'mapleGuildScheduler.v2';
-var LEGACY_KEY = 'mapleGuildScheduler.v1';
+var STORE_KEY = 'mapleGuildScheduler.v3';
+var LEGACY_KEYS = ['mapleGuildScheduler.v2', 'mapleGuildScheduler.v1'];
 var GUILD_NAME = '메이플 길드';
 var DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -804,25 +951,38 @@ var BOSSES = [
   '하드 세렌', '노말 세렌', '익스트림 세렌',
   '노말 칼로스', '하드 칼로스', '익스트림 칼로스',
   '노말 카링', '하드 카링', '익스트림 카링',
+  '하드 림보', '노말 림보', '노말 흉성', '하드 흉성',
   '하드 검은 마법사', '익스트림 스우', '하드 스우', '노말 스우',
   '하드 루시드', '하드 윌', '카오스 더스크', '하드 듄켈', '하드 데미안',
   '카오스 파풀라투스', '하드 매그너스', '하드 힐라', '카오스 자쿰',
   '하드 가엔슬', '노말 가엔슬', '카오스 핑크빈', '하드 반레온'
 ];
 var BOSS_CUSTOM = '기타 (직접 입력)';
+/* 고정 파티 편집에서 바로 누를 수 있는 보스 칩 */
+var BOSS_PICKS = [
+  '하드 세렌', '노말 세렌', '노말 칼로스', '하드 칼로스',
+  '하드 림보', '노말 흉성', '하드 흉성',
+  '노말 카링', '하드 카링', '하드 검은 마법사', '익스트림 스우', '하드 윌'
+];
+/* 고정 파티마다 다른 색 — 테두리·배지에 그대로 쓰인다 */
+var PARTY_COLORS = ['#2f7ff0', '#12a67a', '#c3418f', '#7a5cff', '#0e93a7', '#d1622a'];
 
 /* ---------------- 상태 ---------------- */
-var state = { members: [], availability: {}, parties: [], groups: [], recruits: [] };
+var state = {
+  members: [], availability: {}, parties: [], groups: [], recruits: [],
+  settings: { myMemberId: '', setupDone: false }
+};
 var ui = {
   weekOffset: 0,
   activeMemberId: null,
-  editingMemberId: null,
   selectedSlot: null,
   editingPartyId: null,
   formMembers: [],
   tab: 'availability',
   editingGroupId: null,
   groupChecked: [],
+  groupBosses: [],
+  setupOpen: true,
   showAllMatches: {},
   editingRecruitId: null,
   filterBoss: '',
@@ -1018,7 +1178,10 @@ function readRaw(key) {
 }
 function isArr(v) { return Object.prototype.toString.call(v) === '[object Array]'; }
 function normalize(data) {
-  var out = { members: [], availability: {}, parties: [], groups: [], recruits: [] };
+  var out = {
+    members: [], availability: {}, parties: [], groups: [], recruits: [],
+    settings: { myMemberId: '', setupDone: false }
+  };
   var i;
   if (data && isArr(data.members)) {
     for (i = 0; i < data.members.length; i++) {
@@ -1044,13 +1207,19 @@ function normalize(data) {
   if (data && isArr(data.groups)) {
     for (i = 0; i < data.groups.length; i++) {
       var g = data.groups[i];
-      if (g && g.id && g.name) {
-        out.groups.push({
-          id: String(g.id), name: String(g.name), boss: String(g.boss || '보스'),
-          memberIds: isArr(g.memberIds) ? g.memberIds.map(String) : [],
-          memo: String(g.memo || '')
-        });
+      if (!g || !g.id) continue;
+      var bosses = [];
+      if (isArr(g.bossList)) {
+        for (var bi = 0; bi < g.bossList.length; bi++) if (g.bossList[bi]) bosses.push(String(g.bossList[bi]));
       }
+      if (!bosses.length && g.boss) bosses.push(String(g.boss));
+      if (!g.name && !bosses.length) continue;
+      out.groups.push({
+        id: String(g.id), name: String(g.name || '고정 파티'), bossList: bosses,
+        memberIds: isArr(g.memberIds) ? g.memberIds.map(String) : [],
+        memo: String(g.memo || ''),
+        color: /^#[0-9a-fA-F]{6}$/.test(String(g.color || '')) ? String(g.color) : PARTY_COLORS[out.groups.length % PARTY_COLORS.length]
+      });
     }
   }
   if (data && isArr(data.recruits)) {
@@ -1067,16 +1236,25 @@ function normalize(data) {
       }
     }
   }
+  if (data && data.settings && typeof data.settings === 'object') {
+    out.settings = {
+      myMemberId: String(data.settings.myMemberId || ''),
+      setupDone: !!data.settings.setupDone
+    };
+  }
+  if (out.settings.myMemberId && !getMemberIn(out.members, out.settings.myMemberId)) out.settings.myMemberId = '';
   return out;
 }
 function migrateLegacy(old) {
-  var s = normalize({ members: old.members, availability: old.availability, parties: old.parties });
-  var sample = buildSample();
-  s.groups = sample.groups.filter(function (g) {
-    for (var i = 0; i < g.memberIds.length; i++) if (!getMemberIn(s.members, g.memberIds[i])) return false;
-    return true;
-  });
-  s.recruits = sample.recruits;
+  var s = normalize(old);
+  if (!s.groups.length) {
+    var sample = buildSample();
+    s.groups = sample.groups.filter(function (g) {
+      for (var i = 0; i < g.memberIds.length; i++) if (!getMemberIn(s.members, g.memberIds[i])) return false;
+      return true;
+    });
+  }
+  if (!s.recruits.length) s.recruits = buildSample().recruits;
   return s;
 }
 function getMemberIn(list, id) {
@@ -1091,10 +1269,11 @@ function load() {
       if (parsed && parsed.members) { state = normalize(parsed); return; }
     } catch (err) { /* 깨진 데이터는 다음 단계로 */ }
   }
-  var legacy = readRaw(LEGACY_KEY);
-  if (legacy) {
+  for (var li = 0; li < LEGACY_KEYS.length; li++) {
+    var oldRaw = readRaw(LEGACY_KEYS[li]);
+    if (!oldRaw) continue;
     try {
-      var old = JSON.parse(legacy);
+      var old = JSON.parse(oldRaw);
       if (old && old.members) { state = migrateLegacy(old); save(); return; }
     } catch (err2) { /* 깨진 데이터는 샘플로 대체 */ }
   }
@@ -1102,23 +1281,23 @@ function load() {
   save();
 }
 
-/* ---------------- 샘플 데이터 ---------------- */
+/* ---------------- 샘플 데이터 ----------------
+   사용자 길드 예시: 1팟 = A,B → 세렌·칼로스 / 2팟 = B,C,D → 림보·흉성
+   두 파티가 같은 시간에 모이는 칸은 이중 테두리(합집합)로 보인다. */
 function buildSample() {
   var members = [
-    { id: 'm1', nick: '단풍잎사냥꾼' },
-    { id: 'm2', nick: '새벽의불꽃' },
-    { id: 'm3', nick: '은빛발걸음' },
-    { id: 'm4', nick: '고요한칼날' },
-    { id: 'm5', nick: '강철의방패' },
-    { id: 'm6', nick: '달빛여우' }
+    { id: 'm1', nick: '가을단풍' },
+    { id: 'm2', nick: '새벽불꽃' },
+    { id: 'm3', nick: '은빛걸음' },
+    { id: 'm4', nick: '고요칼날' },
+    { id: 'm5', nick: '강철방패' }
   ];
   var pattern = {
-    m1: ['0:b2', '0:b3', '1:b2', '2:b2', '3:b2', '4:b1', '4:b2', '5:b1', '5:b2', '6:b2'],
-    m2: ['0:b3', '1:b2', '1:b3', '2:b2', '2:b3', '3:b2', '3:b3', '4:b1', '5:b2', '5:b3', '6:b3'],
-    m3: ['0:b2', '1:b2', '2:b2', '3:b2', '4:b2', '5:b1', '5:b2', '6:b2', '6:b3'],
-    m4: ['0:b3', '1:b3', '1:b4', '2:b2', '2:b3', '3:b2', '3:b3', '4:b3', '5:b2', '5:b3', '6:b4'],
-    m5: ['1:b2', '2:b2', '3:b2', '4:b2', '5:b3', '6:b3'],
-    m6: ['2:b1', '2:b2', '3:b2', '4:b2', '4:b3', '5:b1', '5:b2', '5:b3', '6:b1', '6:b2']
+    m1: ['0:b2', '0:b3', '1:b2', '3:b2', '4:b2', '5:b2'],
+    m2: ['0:b2', '0:b3', '1:b2', '2:b3', '3:b2', '4:b2', '5:b1', '5:b2'],
+    m3: ['0:b3', '1:b2', '2:b3', '3:b3', '4:b2', '5:b2', '6:b2'],
+    m4: ['0:b3', '2:b3', '3:b3', '4:b2', '5:b2'],
+    m5: ['1:b2', '3:b2', '6:b2']
   };
   var availability = {};
   var thisWeek = ymd(startOfWeek(new Date()));
@@ -1129,10 +1308,8 @@ function buildSample() {
   for (i = 0; i < members.length; i++) {
     var id = members[i].id;
     availability[thisWeek][id] = pattern[id].slice();
-    /* 다음 주는 조금 덜 되는 날도 있어요 (늦은 시간 위주로 빠짐) */
-    availability[nextWeek][id] = pattern[id].filter(function (slot) {
-      return slot.indexOf(':b3') < 0 || slot.indexOf('4:') === 0 || slot.indexOf('5:') === 0;
-    });
+    /* 다음 주는 이른 시간은 빠지고 늦은 시간 위주로 */
+    availability[nextWeek][id] = pattern[id].filter(function (slot) { return slot.indexOf(':b1') < 0; });
     if (!availability[nextWeek][id].length) availability[nextWeek][id] = pattern[id].slice(0, 3);
   }
 
@@ -1146,7 +1323,7 @@ function buildSample() {
       date: ymd(p1Date),
       startTime: '21:00',
       durationMin: 60,
-      members: ['단풍잎사냥꾼', '새벽의불꽃', '은빛발걸음', '고요한칼날', '강철의방패', '달빛여우'],
+      members: ['가을단풍', '새벽불꽃', '은빛걸음', '고요칼날', '강철방패'],
       memo: '21시 정각에 모여서 바로 입장해요. 물약·길드 버프 챙겨 주세요.',
       alarmTime: '09:00'
     },
@@ -1156,7 +1333,7 @@ function buildSample() {
       date: ymd(p2Date),
       startTime: '22:00',
       durationMin: 90,
-      members: ['단풍잎사냥꾼', '은빛발걸음', '고요한칼날', '강철의방패', '새벽의불꽃'],
+      members: ['가을단풍', '새벽불꽃', '은빛걸음', '고요칼날'],
       memo: '1페이즈 브레스 타이밍 맞춰서 진행 / 늦으면 디스코드로 연락 주세요.',
       alarmTime: '21:00'
     }
@@ -1165,17 +1342,19 @@ function buildSample() {
   var groups = [
     {
       id: 'g1',
-      name: '하드 세렌 고정팟',
-      boss: '하드 세렌',
-      memberIds: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'],
-      memo: '6인 고정 · 날짜는 매주 자동 매칭으로 정해요'
+      name: '1팟 · 세렌·칼로스',
+      bossList: ['하드 세렌', '노말 칼로스'],
+      memberIds: ['m1', 'm2'],
+      memo: '같은 파티로 두 보스 연속 진행',
+      color: PARTY_COLORS[0]
     },
     {
       id: 'g2',
-      name: '노말 칼로스 파티',
-      boss: '노말 칼로스',
-      memberIds: ['m1', 'm2', 'm3', 'm4', 'm6'],
-      memo: '5인 파티 · 서포터 없이 딜로 밀기'
+      name: '2팟 · 림보·흉성',
+      bossList: ['하드 림보', '노말 흉성'],
+      memberIds: ['m2', 'm3', 'm4'],
+      memo: '새벽불꽃 님이 1팟과 겹칩니다 — 같은 시간에 둘 다는 불가',
+      color: PARTY_COLORS[1]
     }
   ];
 
@@ -1195,7 +1374,7 @@ function buildSample() {
     },
     {
       id: 'r2',
-      name: '달빛여우',
+      name: '고요칼날',
       boss: '노말 칼로스',
       job: '보우마스터',
       spec: '환산 3.6 · 무릉 62층',
@@ -1219,7 +1398,7 @@ function buildSample() {
     },
     {
       id: 'r4',
-      name: '고요한칼날',
+      name: '은빛걸음',
       boss: '노말 카링',
       job: '나이트로드',
       spec: '환산 4.5 · 카링 1페이즈 클리어',
@@ -1231,7 +1410,10 @@ function buildSample() {
     }
   ];
 
-  return { members: members, availability: availability, parties: parties, groups: groups, recruits: recruits };
+  return {
+    members: members, availability: availability, parties: parties, groups: groups, recruits: recruits,
+    settings: { myMemberId: 'm2', setupDone: false }
+  };
 }
 
 /* ---------------- 공통 헬퍼 ---------------- */
@@ -1258,6 +1440,38 @@ function getRecruit(id) {
 function getBlock(id) {
   for (var i = 0; i < BLOCKS.length; i++) if (BLOCKS[i].id === id) return BLOCKS[i];
   return BLOCKS[0];
+}
+/* ---------- 고정 파티 도우미 ---------- */
+function shortenBoss(name) {
+  return String(name || '').replace(/^(익스트림|하드|노말|카오스|이지)\s+/, '').trim();
+}
+function groupBossList(g) {
+  if (g && isArr(g.bossList) && g.bossList.length) return g.bossList.slice();
+  if (g && g.boss) return [String(g.boss)];
+  return [];
+}
+function groupColor(g, idx) {
+  if (g && /^#[0-9a-f]{6}$/i.test(String(g.color || ''))) return g.color;
+  var i = typeof idx === 'number' ? idx : state.groups.indexOf(g);
+  return PARTY_COLORS[(i < 0 ? 0 : i) % PARTY_COLORS.length];
+}
+function groupShortBossText(g) {
+  var b = groupBossList(g).map(shortenBoss);
+  return b.length ? b.join('·') : '보스 미정';
+}
+function autoGroupName(bosses) {
+  var n = state.groups.length + 1;
+  var b = bosses.map(shortenBoss).filter(function (x) { return x.length; });
+  return n + '팟' + (b.length ? ' · ' + b.join('·') : '');
+}
+function bossTags(g, soft) {
+  var list = groupBossList(g);
+  if (!list.length) return '<span class="boss-tag soft">보스 미정</span>';
+  var out = '';
+  for (var i = 0; i < list.length; i++) {
+    out += '<span class="boss-tag' + (soft ? ' soft' : '') + '">' + esc(shortenBoss(list[i])) + '</span>';
+  }
+  return out;
 }
 function uid(prefix) {
   return prefix + '_' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
@@ -1314,6 +1528,41 @@ function membersAvailable(day, blockId) {
   return out;
 }
 function slotCount(day, blockId) { return membersAvailable(day, blockId).length; }
+
+/* ---------- 칸마다: 전원이 모이는 고정 파티 + 겹치는 파티원 ---------- */
+function groupFullIn(weekKey, day, blockId, g) {
+  var ms = groupMembers(g);
+  if (!ms.length) return null;
+  for (var i = 0; i < ms.length; i++) if (!hasSlotIn(weekKey, ms[i].id, day, blockId)) return null;
+  return { group: g, members: ms };
+}
+function runnableGroupsIn(weekKey, day, blockId, exceptId) {
+  var out = [];
+  for (var i = 0; i < state.groups.length; i++) {
+    var g = state.groups[i];
+    if (exceptId && g.id === exceptId) continue;
+    var hit = groupFullIn(weekKey, day, blockId, g);
+    if (hit) out.push(hit);
+  }
+  return out;
+}
+function sharedMembersOf(list) {
+  var counts = {}, out = [];
+  for (var i = 0; i < list.length; i++) {
+    for (var k = 0; k < list[i].members.length; k++) {
+      var id = list[i].members[k].id;
+      counts[id] = (counts[id] || 0) + 1;
+    }
+  }
+  for (var j = 0; j < state.members.length; j++) {
+    if ((counts[state.members[j].id] || 0) >= 2) out.push(state.members[j]);
+  }
+  return out;
+}
+function slotParties(day, blockId) {
+  var runnable = runnableGroupsIn(weekKeyFor(ui.weekOffset), day, blockId, '');
+  return { runnable: runnable, shared: sharedMembersOf(runnable) };
+}
 function toggleSlot(day, blockId) {
   var m = getMember(ui.activeMemberId);
   if (!m) { toast('먼저 위에서 길드원을 선택해 주세요'); return; }
@@ -1325,7 +1574,8 @@ function toggleSlot(day, blockId) {
   renderGrid();
   renderHeat();
   renderSlotDetail();
-  if (ui.tab === 'parties') renderGroups();
+  renderUnion();
+  renderGroups();
 }
 function selectSlot(day, blockId) {
   if (ui.selectedSlot && ui.selectedSlot.day === day && ui.selectedSlot.block === blockId) {
@@ -1346,13 +1596,17 @@ function groupMembers(g) {
   }
   return out;
 }
-function partyConflict(dateStr, startTime, durMin) {
+function partyConflictFor(dateStr, startTime, durMin, nicks) {
   var s1 = timeToMin(startTime), e1 = s1 + (Number(durMin) || 120);
+  var who = isArr(nicks) ? nicks : [];
   for (var i = 0; i < state.parties.length; i++) {
     var p = state.parties[i];
     if (p.date !== dateStr) continue;
     var s2 = timeToMin(p.startTime), e2 = s2 + (Number(p.durationMin) || 120);
-    if (s1 < e2 && s2 < e1) return p;
+    if (!(s1 < e2 && s2 < e1)) continue;
+    var hit = [];
+    for (var k = 0; k < who.length; k++) if ((p.members || []).indexOf(who[k]) >= 0) hit.push(who[k]);
+    if (hit.length) return { party: p, names: hit };
   }
   return null;
 }
@@ -1365,6 +1619,7 @@ function matchesForGroup(g) {
   for (mi = 0; mi < members.length; mi++) {
     if (!memberAnySlot(members[mi].id)) res.noSlot.push(members[mi]);
   }
+  var nicks = members.map(function (m) { return m.nick; });
   var now = new Date();
   var curWeek = ymd(startOfWeek(now));
   var weekKeys = Object.keys(state.availability).sort();
@@ -1391,13 +1646,23 @@ function matchesForGroup(g) {
         }
         if (!avail.length) continue;
         var dateStr = ymd(slotDate);
-        if (partyConflict(dateStr, blk.start, blk.dur)) continue;
+        if (partyConflictFor(dateStr, blk.start, blk.dur, nicks)) continue;
         var item = {
           date: dateStr, block: blk.id, avail: avail, missing: missing,
-          count: avail.length, total: total
+          count: avail.length, total: total, week: wk, day: day, overlaps: []
         };
-        if (!missing.length) res.full.push(item);
-        else if (missing.length === 1 && total >= 3) res.near.push(item);
+        if (!missing.length) {
+          var others = runnableGroupsIn(wk, day, blk.id, g.id);
+          for (var oi = 0; oi < others.length; oi++) {
+            item.overlaps.push({
+              group: others[oi].group,
+              shared: sharedMembersOf([{ members: members }, { members: others[oi].members }])
+            });
+          }
+          res.full.push(item);
+        } else if (missing.length === 1 && total >= 3) {
+          res.near.push(item);
+        }
       }
     }
   }
@@ -1423,35 +1688,69 @@ function renderWeekBar() {
     else pills[i].classList.remove('is-active');
   }
 }
-function renderMembers() {
-  var host = byId('memberChips');
+function renderSetupMembers() {
+  var host = byId('setupMemberChips');
   if (!host) return;
   if (!state.members.length) {
-    host.innerHTML = '<div class="empty" style="width:100%">아직 등록된 길드원이 없습니다. 아래에서 첫 길드원을 추가해 주세요.</div>';
-    return;
+    host.innerHTML = '<div class="empty" style="width:100%">아직 등록된 길드원이 없습니다. 위에 닉네임을 넣고 <b>한 번에 추가</b>를 누르면 됩니다.</div>';
+  } else {
+    var html = '';
+    for (var i = 0; i < state.members.length; i++) {
+      var m = state.members[i];
+      var mine = m.id === state.settings.myMemberId;
+      html += '<div class="member-item' + (mine ? ' is-mine' : '') + '">' +
+        '<button type="button" class="chip-member' + (m.id === ui.activeMemberId ? ' is-active' : '') + '" data-action="select-member" data-id="' + esc(m.id) + '" title="' + esc(m.nick) + ' 가능 시간표 보기">' +
+        esc(m.nick) + (mine ? ' ★' : '') +
+        '</button>' +
+        '<button type="button" class="mini" data-action="rename-member" data-id="' + esc(m.id) + '" title="닉네임 수정" aria-label="' + esc(m.nick) + ' 닉네임 수정">✎</button>' +
+        '<button type="button" class="mini del" data-action="delete-member" data-id="' + esc(m.id) + '" title="삭제" aria-label="' + esc(m.nick) + ' 삭제">×</button>' +
+        '</div>';
+    }
+    host.innerHTML = html;
   }
-  var html = '';
-  for (var i = 0; i < state.members.length; i++) {
-    var m = state.members[i];
-    var active = m.id === ui.activeMemberId;
-    html += '<div class="member-item">' +
-      '<button type="button" class="chip-member' + (active ? ' is-active' : '') + '" data-action="select-member" data-id="' + esc(m.id) + '" title="' + esc(m.nick) + ' 가능 시간표 보기">' +
-      esc(m.nick) +
-      '</button>' +
-      '<button type="button" class="mini" data-action="edit-member" data-id="' + esc(m.id) + '" title="수정" aria-label="' + esc(m.nick) + ' 수정">✎</button>' +
-      '<button type="button" class="mini del" data-action="delete-member" data-id="' + esc(m.id) + '" title="삭제" aria-label="' + esc(m.nick) + ' 삭제">×</button>' +
-      '</div>';
+  var mySel = byId('myMemberSelect');
+  if (mySel) {
+    var opts = '<option value="">— 내 캐릭터 선택 —</option>';
+    for (var j = 0; j < state.members.length; j++) {
+      opts += '<option value="' + esc(state.members[j].id) + '"' + (state.members[j].id === state.settings.myMemberId ? ' selected' : '') + '>' + esc(state.members[j].nick) + '</option>';
+    }
+    mySel.innerHTML = opts;
   }
-  host.innerHTML = html;
+}
+function renderActiveSelect() {
+  var sel = byId('activeMemberSelect');
+  if (!sel) return;
+  if (!state.members.length) {
+    sel.innerHTML = '<option value="">길드원을 먼저 추가해 주세요</option>';
+    sel.value = '';
+  } else {
+    if (!getMember(ui.activeMemberId)) ui.activeMemberId = state.members[0].id;
+    var html = '';
+    for (var i = 0; i < state.members.length; i++) {
+      var m = state.members[i];
+      html += '<option value="' + esc(m.id) + '"' + (m.id === ui.activeMemberId ? ' selected' : '') + '>' + esc(m.nick) + (m.id === state.settings.myMemberId ? ' ★' : '') + '</option>';
+    }
+    sel.innerHTML = html;
+    sel.value = ui.activeMemberId;
+  }
+  var star = byId('myStarBtn');
+  if (star) {
+    var isMine = !!ui.activeMemberId && ui.activeMemberId === state.settings.myMemberId;
+    star.textContent = isMine ? '★ 내 캐릭터' : '☆ 내 캐릭터로 지정';
+    if (isMine) star.classList.add('is-on'); else star.classList.remove('is-on');
+    star.disabled = !ui.activeMemberId;
+  }
 }
 function renderGridHint() {
   var el = byId('gridHint');
   if (!el) return;
   var m = getMember(ui.activeMemberId);
   if (!m) {
-    el.innerHTML = '길드원을 선택한 뒤 칸을 눌러 가능한 시간을 표시하세요.';
+    el.innerHTML = '<b>내 캐릭터</b>를 고르면, 다음부터는 가능한 시간 칸만 누르면 됩니다.';
   } else {
-    el.innerHTML = '<b>' + esc(m.nick) + '</b> 님의 ' + weekLabelFor(ui.weekOffset) + ' 가능 시간 — 칸을 누르면 표시/해제됩니다.';
+    var mine = m.id === state.settings.myMemberId;
+    el.innerHTML = '<b>' + esc(m.nick) + '</b>' + (mine ? ' <span class="week-tag">내 캐릭터</span>' : '') +
+      ' 님의 ' + weekLabelFor(ui.weekOffset) + ' 가능 시간 — 칸을 누르면 표시/해제됩니다.';
   }
 }
 function renderGrid() {
@@ -1487,7 +1786,7 @@ function gridMarkup(mode, mobile) {
     for (d = 0; d < 7; d++) html += dayHeaderCell(d, ws);
     for (b = 0; b < BLOCKS.length; b++) {
       html += '<div class="rh"><span>' + BLOCKS[b].label + '</span><small>' + BLOCKS[b].time + '</small></div>';
-      for (day = 0; day < 7; day++) html += cellMarkup(mode, day, BLOCKS[b], m);
+      for (day = 0; day < 7; day++) html += cellMarkup(mode, day, BLOCKS[b], m, false);
     }
   } else {
     for (b = 0; b < BLOCKS.length; b++) {
@@ -1496,7 +1795,7 @@ function gridMarkup(mode, mobile) {
     for (d = 0; d < 7; d++) {
       var dd = addDays(ws, d);
       html += '<div class="rh"><span>' + DAY_NAMES[d] + '</span><small>' + (dd.getMonth() + 1) + '/' + dd.getDate() + '</small></div>';
-      for (b = 0; b < BLOCKS.length; b++) html += cellMarkup(mode, d, BLOCKS[b], m);
+      for (b = 0; b < BLOCKS.length; b++) html += cellMarkup(mode, d, BLOCKS[b], m, true);
     }
   }
   return html;
@@ -1506,7 +1805,7 @@ function dayHeaderCell(d, ws) {
   var isToday = ymd(dd) === ymd(new Date());
   return '<div class="gh"><b style="' + (isToday ? 'color:#c96a0c' : '') + '">' + DAY_NAMES[d] + '</b><small>' + (dd.getMonth() + 1) + '/' + dd.getDate() + '</small></div>';
 }
-function cellMarkup(mode, day, blk, m) {
+function cellMarkup(mode, day, blk, m, mobile) {
   if (mode === 'edit') {
     var on = m ? hasSlot(m.id, day, blk.id) : false;
     return '<button type="button" class="cell' + (on ? ' on' : '') + '" data-action="cell" data-day="' + day + '" data-block="' + blk.id + '"' +
@@ -1517,39 +1816,118 @@ function cellMarkup(mode, day, blk, m) {
   var list = membersAvailable(day, blk.id);
   var n = list.length;
   var sel = ui.selectedSlot && ui.selectedSlot.day === day && ui.selectedSlot.block === blk.id;
+  var st = slotParties(day, blk.id);
+  var rn = st.runnable.length;
+  var partyCls = '';
+  var styleAttr = '';
+  if (rn) {
+    partyCls = ' has-party party-' + Math.min(rn, 3) + (rn >= 2 ? ' union' : '');
+    styleAttr = ' style="--pc1:' + groupColor(st.runnable[0].group) +
+      ';--pc2:' + groupColor(rn > 1 ? st.runnable[1].group : st.runnable[0].group) +
+      ';--pc3:' + groupColor(rn > 2 ? st.runnable[2].group : st.runnable[0].group) + '"';
+  }
+  var dots = '';
+  for (var d2 = 0; d2 < rn && d2 < 4; d2++) dots += '<i style="--pc:' + groupColor(st.runnable[d2].group) + '"></i>';
   var names = '';
-  for (var i = 0; i < list.length; i++) names += '<i>' + esc(list[i].nick) + '</i>';
-  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + '" data-action="heat" data-day="' + day + '" data-block="' + blk.id + '"' +
-    ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' ' + n + '명 가능' + (n ? ' — ' + esc(nickList(list)) : '') + '">' +
-    '<span class="c-top"><span class="c-n">' + (n > 0 ? n + '명' : '·') + '</span></span>' +
+  var limit = mobile ? 2 : 4;
+  var shownList = list.length > limit ? list.slice(0, limit) : list;
+  for (var i = 0; i < shownList.length; i++) {
+    var hit = false;
+    for (var s = 0; s < st.shared.length; s++) if (st.shared[s].id === shownList[i].id) hit = true;
+    names += '<i' + (hit ? ' class="hit"' : '') + '>' + esc(shownList[i].nick) + '</i>';
+  }
+  if (list.length > limit) names += '<i class="more">+' + (list.length - limit) + '</i>';
+  var runnableNames = '';
+  for (var r2 = 0; r2 < rn; r2++) runnableNames += (r2 ? ', ' : '') + st.runnable[r2].group.name;
+  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls + '"' + styleAttr +
+    ' data-action="heat" data-day="' + day + '" data-block="' + blk.id + '"' +
+    ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' ' + n + '명 가능' + (n ? ' — ' + esc(nickList(list)) : '') +
+    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') + '">' +
+    '<span class="c-top"><span class="c-dots">' + dots + '</span><span class="c-n">' + (n > 0 ? n + '명' : '·') + '</span></span>' +
     (n > 0 ? '<span class="c-names">' + names + '</span>' : '') +
     '</button>';
+}
+function slotConfirmMarkup(rg, members, dateStr, blk) {
+  var bosses = groupBossList(rg);
+  var dur = Number(blk.dur) * Math.max(1, bosses.length);
+  var nicks = [];
+  for (var i = 0; i < members.length; i++) nicks.push(members[i].nick);
+  var cf = partyConflictFor(dateStr, blk.start, dur, nicks);
+  if (cf) {
+    return '<span class="sd-conflict">이미 ' + esc(cf.party.boss) + ' 확정</span>';
+  }
+  return '<button type="button" class="btn btn-sm btn-ghost sd-confirm" data-action="confirm-match" data-id="' + esc(rg.id) + '" data-date="' + esc(dateStr) + '" data-block="' + esc(blk.id) + '">이 팟으로 확정</button>';
 }
 function renderSlotDetail() {
   var host = byId('slotDetail');
   if (!host) return;
   if (!ui.selectedSlot) {
-    host.innerHTML = '<div class="slot-detail"><p class="hint" style="margin:0">칸을 누르면 그 시간에 가능한 길드원과 <b>이 시간으로 파티 만들기</b> 버튼이 나타납니다.</p></div>';
+    host.innerHTML = '<div class="slot-detail"><p class="hint" style="margin:0">칸을 누르면 그 시간에 가능한 길드원과 <b>고정 파티</b>, <b>이 시간으로 파티 만들기</b> 버튼이 나타납니다.</p></div>';
     return;
   }
   var ws = weekStartFor(ui.weekOffset);
   var day = ui.selectedSlot.day;
   var blk = getBlock(ui.selectedSlot.block);
   var list = membersAvailable(day, blk.id);
+  var st = slotParties(day, blk.id);
+  var dateObj = addDays(ws, day);
+  if (blk.afterMidnight) dateObj = addDays(dateObj, 1);
+  var dateStr = ymd(dateObj);
+  var dd = dayDiffFromToday(dateStr);
+  var dayText = dd === 0 ? ' · 오늘' : (dd === 1 ? ' · 내일' : (dd > 1 ? ' · D-' + dd : ''));
   var html = '<div class="slot-detail">' +
-    '<div class="sd-head"><b>' + DAY_NAMES[day] + '요일 ' + esc(blk.label) + '</b>' +
-    '<span class="badge-n' + (list.length ? '' : ' zero') + '">' + list.length + '명 가능</span></div>';
+    '<div class="sd-head"><b>' + fmtMDW(addDays(ws, day)) + ' ' + esc(blk.label) + '</b>' +
+    '<span class="badge-n' + (list.length ? '' : ' zero') + '">' + list.length + '명 가능</span>' +
+    (st.runnable.length >= 2 ? '<span class="badge-union">합집합 ' + st.runnable.length + '팟</span>' : '') +
+    '</div>';
   if (list.length) {
     html += '<div class="who">';
     for (var i = 0; i < list.length; i++) {
-      html += '<span>' + esc(list[i].nick) + '</span>';
+      var hit = false;
+      for (var s = 0; s < st.shared.length; s++) if (st.shared[s].id === list[i].id) hit = true;
+      var mine = list[i].id === state.settings.myMemberId;
+      html += '<span' + (hit ? ' class="hit"' : '') + '>' + esc(list[i].nick) + (mine ? ' ★' : '') + '</span>';
     }
     html += '</div>';
   } else {
     html += '<p class="hint" style="margin:0 0 10px">이 시간에 가능하다고 표시한 길드원이 없습니다.</p>';
   }
+
+  if (st.runnable.length) {
+    html += '<div class="sd-parties">';
+    for (var r = 0; r < st.runnable.length; r++) {
+      var rg = st.runnable[r].group;
+      var memHtml = '';
+      for (var k = 0; k < st.runnable[r].members.length; k++) {
+        var mm = st.runnable[r].members[k];
+        var mhit = false;
+        for (var s2 = 0; s2 < st.shared.length; s2++) if (st.shared[s2].id === mm.id) mhit = true;
+        memHtml += '<span' + (mhit ? ' class="hit"' : '') + '>' + esc(mm.nick) + '</span>';
+      }
+      html += '<div class="sd-p" style="--pc:' + groupColor(rg) + '">' +
+        '<b>' + esc(rg.name) + '</b>' +
+        bossTags(rg, true) +
+        '<span class="sd-mem">' + memHtml + '</span>' +
+        slotConfirmMarkup(rg, st.runnable[r].members, dateStr, blk) +
+        '</div>';
+    }
+    html += '</div>';
+  }
+
+  if (st.runnable.length >= 2) {
+    if (st.shared.length) {
+      html += '<p class="sd-note warn">⚠ <b>' + esc(nickList(st.shared)) + '</b> 님이 ' + st.runnable.length +
+        '개 파티에 모두 있어요. 같은 시간에 두 파티를 같이 돌릴 수는 없으니 <b>파티별로 시간을 나눠</b> 잡아 주세요.</p>';
+    } else {
+      html += '<p class="sd-note ok">✓ 겹치는 파티원이 없어서 이 시간에 두 파티를 <b>동시에</b> 진행할 수 있어요.</p>';
+    }
+  } else if (st.runnable.length === 1) {
+    html += '<p class="sd-note ok" style="background:#f6f0e2;border-color:#e6d8c0;color:#6b563a">' +
+      '<b style="color:' + groupColor(st.runnable[0].group) + '">' + esc(st.runnable[0].group.name) + '</b> 전원이 이 시간에 가능해요.</p>';
+  }
+
   html += '<button type="button" class="btn btn-primary btn-sm" data-action="make-party"' + (list.length ? '' : ' disabled') + '>⚔ 이 시간으로 파티 만들기</button>';
-  html += '<p class="hint">' + fmtMDW(addDays(ws, day)) + ' ' + esc(blk.time) + ' 기준' + (blk.afterMidnight ? ' (자정 이후라 날짜는 다음 날로 들어갑니다)' : '') + '</p>';
+  html += '<p class="hint">' + fmtMDW(addDays(ws, day)) + (dayText ? dayText : '') + ' ' + esc(blk.time) + ' 기준' + (blk.afterMidnight ? ' (자정 이후라 날짜는 다음 날로 들어갑니다)' : '') + '</p>';
   html += '</div>';
   host.innerHTML = html;
 }
@@ -1568,29 +1946,53 @@ function matchRowMarkup(g, it, isFull) {
   if (it.missing.length) {
     miss = '<span class="m-miss">1명 부족 · ' + esc(it.missing[0].nick) + ' 님이 이 시간에 불가</span>';
   }
-  return '<div class="match ' + (isFull ? 'is-full' : 'is-near') + '">' +
+  var over = '';
+  if (it.overlaps && it.overlaps.length) {
+    var o = it.overlaps[0];
+    over = '<span class="m-over">⚠ ' + esc(o.group.name) + '도 이 시간 전원 가능' +
+      (o.shared.length ? ' · ' + esc(nickList(o.shared)) + ' 겹침' : ' · 겹치는 파티원 없음') +
+      (it.overlaps.length > 1 ? ' 외 ' + (it.overlaps.length - 1) + '팟' : '') + '</span>';
+  }
+  return '<div class="match ' + (isFull ? 'is-full' : 'is-near') + '" style="border-left:4px solid ' + groupColor(g) + '">' +
     '<div class="m-when"><b>' + fmtMDW(d) + (dayText ? ' · ' + dayText : '') + '</b><span>' + esc(blk.label) + '</span></div>' +
     '<div class="m-info">' +
       '<span class="m-cnt">' + it.count + '/' + it.total + '명</span>' +
       '<span class="m-names">' + who + '</span>' +
       miss +
+      over +
     '</div>' +
     '<button type="button" class="btn btn-sm ' + (isFull ? 'btn-primary' : 'btn-ghost') + '" data-action="confirm-match" data-id="' + esc(g.id) + '" data-date="' + esc(it.date) + '" data-block="' + esc(it.block) + '">' +
       (isFull ? '✅ 이 날짜로 확정하기' : '이 날짜로 확정') +
     '</button>' +
     '</div>';
 }
+function weekFullSlotsText(g) {
+  var wk = weekKeyFor(ui.weekOffset);
+  var items = [];
+  for (var day = 0; day < 7; day++) {
+    for (var b = 0; b < BLOCKS.length; b++) {
+      if (groupFullIn(wk, day, BLOCKS[b].id, g)) items.push(DAY_NAMES[day] + ' ' + BLOCKS[b].short);
+    }
+  }
+  return items;
+}
 function groupCardMarkup(g) {
   var mem = groupMembers(g);
   var m = matchesForGroup(g);
+  var c = groupColor(g);
   var showAll = !!ui.showAllMatches[g.id];
   var fullShown = showAll ? m.full : m.full.slice(0, 4);
   var nearShown = showAll ? m.near : m.near.slice(0, 2);
   var i, html = '';
+  var unionCount = 0;
+  for (i = 0; i < m.full.length; i++) if (m.full[i].overlaps && m.full[i].overlaps.length) unionCount++;
+  var thisWeek = weekFullSlotsText(g);
 
-  html += '<article class="group" data-group="' + esc(g.id) + '">';
-  html += '<div class="g-head"><div class="g-title">' + esc(g.name) + '</div>' +
-    '<span class="g-boss">' + esc(g.boss) + '</span>' +
+  html += '<article class="group" data-group="' + esc(g.id) + '" style="border-left-color:' + c + '">';
+  html += '<div class="g-head">' +
+    '<span class="pc-dot" style="--pc:' + c + '"></span>' +
+    '<div class="g-title">' + esc(g.name) + '</div>' +
+    bossTags(g) +
     '<span class="g-size">' + mem.length + '명</span>' +
     '<span style="margin-left:auto; display:flex; gap:5px">' +
       '<button type="button" class="mini" data-action="edit-group" data-id="' + esc(g.id) + '" title="수정" aria-label="' + esc(g.name) + ' 수정">✎</button>' +
@@ -1598,17 +2000,31 @@ function groupCardMarkup(g) {
     '</span></div>';
   if (mem.length) {
     html += '<div class="g-members">';
-    for (i = 0; i < mem.length; i++) html += '<span>' + esc(mem[i].nick) + '</span>';
+    for (i = 0; i < mem.length; i++) {
+      var isShared = false;
+      for (var gi = 0; gi < state.groups.length; gi++) {
+        if (state.groups[gi].id === g.id) continue;
+        for (var mi = 0; mi < (state.groups[gi].memberIds || []).length; mi++) {
+          if (state.groups[gi].memberIds[mi] === mem[i].id) isShared = true;
+        }
+      }
+      html += '<span' + (isShared ? ' title="다른 고정 파티에도 있음" style="background:#ffe6c2;color:#8a4d05"' : '') + '>' + esc(mem[i].nick) + (isShared ? ' ⇄' : '') + '</span>';
+    }
     html += '</div>';
   } else {
-    html += '<p class="g-warn">파티원이 없습니다. 파티원을 골라 주세요.</p>';
+    html += '<p class="g-warn">파티원이 없습니다. 초기 세팅에서 파티원을 골라 주세요.</p>';
   }
   if (g.memo) html += '<p class="g-memo">' + esc(g.memo) + '</p>';
+  if (thisWeek.length) {
+    html += '<p class="g-memo" style="margin-top:-3px"><b style="color:' + c + '">' + weekLabelFor(ui.weekOffset) + ' 전원 가능</b> · ' +
+      esc(thisWeek.slice(0, 6).join(' · ')) + (thisWeek.length > 6 ? ' 외 ' + (thisWeek.length - 6) + '칸' : '') + '</p>';
+  }
 
   if (mem.length) {
     html += '<div class="g-sum">' +
       '<span class="badge-full">전원 가능 ' + m.full.length + '개</span>' +
       '<span class="badge-near">1명 부족 ' + m.near.length + '개</span>' +
+      (unionCount ? '<span class="badge-union">합집합 ' + unionCount + '개</span>' : '') +
       (m.best ? '<span class="g-best">가장 빠른 전원 가능 · ' + fmtMDW(parseYmd(m.best.date)) + ' ' + esc(getBlock(m.best.block).label) + '</span>' : '') +
       '</div>';
     if (m.noSlot.length) {
@@ -1627,7 +2043,7 @@ function groupCardMarkup(g) {
     }
   }
   html += '<div class="g-actions">' +
-    '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-group" data-id="' + esc(g.id) + '">파티원 수정</button>' +
+    '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-group" data-id="' + esc(g.id) + '">파티원·보스 수정</button>' +
     '</div>';
   html += '</article>';
   return html;
@@ -1636,7 +2052,7 @@ function renderGroups() {
   var host = byId('groupList');
   if (!host) return;
   if (!state.groups.length) {
-    host.innerHTML = '<div class="empty">등록된 고정 파티가 없습니다. 위에서 파티명과 파티원을 등록해 보세요.</div>';
+    host.innerHTML = '<div class="empty">등록된 고정 파티가 없습니다. <b>초기 세팅</b>에서 파티명·파티원·보스를 등록해 주세요.</div>';
     return;
   }
   var html = '';
@@ -1648,7 +2064,7 @@ function renderGroupChecks(selected) {
   if (!host) return;
   if (selected) ui.groupChecked = selected.slice(); else ui.groupChecked = [];
   if (!state.members.length) {
-    host.innerHTML = '<span class="hint">등록된 길드원이 없습니다. 주간 가능 시간표 탭에서 길드원을 먼저 추가해 주세요.</span>';
+    host.innerHTML = '<span class="hint">등록된 길드원이 없습니다. 위 <b>1번 길드원</b>에서 먼저 추가해 주세요.</span>';
     return;
   }
   var html = '';
@@ -1660,42 +2076,129 @@ function renderGroupChecks(selected) {
   }
   host.innerHTML = html;
 }
+function renderGroupBossChecks() {
+  var host = byId('groupBossChecks');
+  if (!host) return;
+  var chosen = ui.groupBosses.slice();
+  var list = BOSS_PICKS.slice();
+  for (var i = 0; i < chosen.length; i++) if (list.indexOf(chosen[i]) < 0) list.push(chosen[i]);
+  var html = '';
+  for (var j = 0; j < list.length; j++) {
+    var on = chosen.indexOf(list[j]) >= 0;
+    html += '<label class="check' + (on ? ' is-on' : '') + '"><input type="checkbox" data-scope="gboss" value="' + esc(list[j]) + '"' + (on ? ' checked' : '') + '>' +
+      '<span>' + esc(list[j]) + '</span></label>';
+  }
+  host.innerHTML = html;
+}
+function renderSetupGroupList() {
+  var host = byId('setupGroupList');
+  if (!host) return;
+  if (!state.groups.length) {
+    host.innerHTML = '<div class="empty">아직 고정 파티가 없습니다. 아래 <b>＋ 고정 파티 추가</b>로 1팟부터 만들어 주세요.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.groups.length; i++) {
+    var g = state.groups[i];
+    var mem = groupMembers(g);
+    html += '<div class="setup-group-row" style="--pc:' + groupColor(g, i) + '">' +
+      '<span class="pc-dot"></span>' +
+      '<span class="sgr-name">' + esc(g.name) + '</span>' +
+      bossTags(g) +
+      '<span class="sgr-act">' +
+        '<button type="button" class="mini" data-action="edit-group" data-id="' + esc(g.id) + '" title="수정" aria-label="' + esc(g.name) + ' 수정">✎</button>' +
+        '<button type="button" class="mini del" data-action="delete-group" data-id="' + esc(g.id) + '" title="삭제" aria-label="' + esc(g.name) + ' 삭제">×</button>' +
+      '</span>' +
+      '<span class="sgr-mem">' + (mem.length ? esc(nickList(mem)) : '<span style="color:#a8482e">파티원 없음</span>') + '</span>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+function renderSetup() {
+  renderSetupMembers();
+  renderSetupGroupList();
+  var sum = byId('setupSummary');
+  if (sum) {
+    var mine = getMember(state.settings.myMemberId);
+    sum.innerHTML = '<span>내 캐릭터 <b>' + esc(mine ? mine.nick : '미지정') + '</b> · 길드원 <b>' + state.members.length +
+      '명</b> · 고정 파티 <b>' + state.groups.length + '개</b></span>' +
+      '<button type="button" class="btn btn-sm btn-ghost" data-action="toggle-setup">세팅 수정</button>';
+  }
+}
+function applySetupOpen(open) {
+  ui.setupOpen = !!open;
+  var body = byId('setupBody');
+  var sum = byId('setupSummary');
+  var btn = byId('setupFoldBtn');
+  if (body) body.style.display = open ? '' : 'none';
+  if (sum) sum.style.display = open ? 'none' : '';
+  if (btn) {
+    btn.textContent = open ? '접기' : '펼치기';
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+}
+function openGroupEditor(id) {
+  var g = id ? getGroup(id) : null;
+  ui.editingGroupId = g ? g.id : null;
+  if (byId('gName')) byId('gName').value = g ? g.name : '';
+  if (byId('gMemo')) byId('gMemo').value = g ? (g.memo || '') : '';
+  if (byId('gBossCustom')) byId('gBossCustom').value = '';
+  ui.groupBosses = g ? groupBossList(g) : [];
+  ui.groupChecked = g ? (g.memberIds || []).slice() : [];
+  renderGroupChecks(ui.groupChecked);
+  renderGroupBossChecks();
+  if (byId('groupSaveBtn')) byId('groupSaveBtn').textContent = g ? '수정 저장' : '고정 파티 저장';
+  if (byId('groupEditor')) byId('groupEditor').style.display = '';
+  applySetupOpen(true);
+  var ed = byId('groupEditor');
+  if (ed && ed.scrollIntoView) setTimeout(function () { ed.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 70);
+}
 function resetGroupForm() {
   ui.editingGroupId = null;
-  byId('gName').value = '';
-  byId('gBoss').selectedIndex = 0;
-  byId('gMemo').value = '';
-  byId('groupSaveBtn').textContent = '고정 파티 등록';
-  byId('groupCancelBtn').style.display = 'none';
-  renderGroupChecks(null);
+  if (byId('gName')) byId('gName').value = '';
+  if (byId('gMemo')) byId('gMemo').value = '';
+  if (byId('gBossCustom')) byId('gBossCustom').value = '';
+  ui.groupBosses = [];
+  ui.groupChecked = [];
+  renderGroupChecks([]);
+  renderGroupBossChecks();
+  if (byId('groupEditor')) byId('groupEditor').style.display = 'none';
+  if (byId('groupSaveBtn')) byId('groupSaveBtn').textContent = '고정 파티 저장';
 }
-function fillGroupForm(g) {
-  ui.editingGroupId = g.id;
-  byId('gName').value = g.name;
-  byId('gBoss').value = g.boss;
-  byId('gMemo').value = g.memo || '';
-  byId('groupSaveBtn').textContent = '수정 저장';
-  byId('groupCancelBtn').style.display = '';
-  renderGroupChecks(g.memberIds || []);
-}
+function fillGroupForm(g) { openGroupEditor(g ? g.id : null); }
 function saveGroup() {
-  var name = String(byId('gName').value || '').trim();
-  var boss = byId('gBoss').value || '기타';
-  var memo = String(byId('gMemo').value || '').trim();
   var ids = ui.groupChecked.slice();
-  if (!name) { toast('파티명을 입력해 주세요'); byId('gName').focus(); return; }
+  var bosses = ui.groupBosses.slice();
+  var custom = String((byId('gBossCustom') && byId('gBossCustom').value) || '');
+  var parts = custom.split(',');
+  for (var ci = 0; ci < parts.length; ci++) {
+    var nm = parts[ci].trim();
+    if (nm && bosses.indexOf(nm) < 0) bosses.push(nm);
+  }
+  var memo = String((byId('gMemo') && byId('gMemo').value) || '').trim();
+  var name = String((byId('gName') && byId('gName').value) || '').trim();
   if (!ids.length) { toast('고정 파티원을 한 명 이상 골라 주세요'); return; }
+  if (!bosses.length) { toast('목표 보스를 하나 이상 골라 주세요'); return; }
+  if (!name) name = autoGroupName(bosses);
   if (ui.editingGroupId) {
     var g = getGroup(ui.editingGroupId);
-    if (g) { g.name = name; g.boss = boss; g.memo = memo; g.memberIds = ids; }
-    toast('고정 파티를 수정했어요');
+    if (g) { g.name = name; g.bossList = bosses; g.memo = memo; g.memberIds = ids; }
+    toast(g.name + ' 고정 파티를 수정했어요');
   } else {
-    state.groups.push({ id: uid('g'), name: name, boss: boss, memo: memo, memberIds: ids });
-    toast(name + ' 등록 완료 — 겹치는 시간을 찾아 볼게요');
+    var ng = {
+      id: uid('g'), name: name, bossList: bosses, memo: memo, memberIds: ids,
+      color: PARTY_COLORS[state.groups.length % PARTY_COLORS.length]
+    };
+    state.groups.push(ng);
+    toast(name + ' 등록 완료 — 가능한 시간에 테두리로 표시할게요');
   }
   save();
   resetGroupForm();
+  renderSetup();
   renderGroups();
+  renderUnion();
+  renderHeat();
+  renderSlotDetail();
 }
 function deleteGroup(id) {
   var g = getGroup(id);
@@ -1704,7 +2207,11 @@ function deleteGroup(id) {
   state.groups = state.groups.filter(function (x) { return x.id !== id; });
   if (ui.editingGroupId === id) resetGroupForm();
   save();
+  renderSetup();
   renderGroups();
+  renderUnion();
+  renderHeat();
+  renderSlotDetail();
   toast('고정 파티를 삭제했어요');
 }
 function confirmFromMatch(groupId, dateStr, blockId) {
@@ -1713,22 +2220,31 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   var blk = getBlock(blockId);
   var members = groupMembers(g);
   if (!members.length) { toast('파티원이 없습니다'); return; }
-  var conflict = partyConflict(dateStr, blk.start, blk.dur);
+  var bosses = groupBossList(g);
+  if (!bosses.length) { toast('목표 보스가 없어요. 고정 파티를 수정해 주세요'); return; }
+  var nicks = members.map(function (m) { return m.nick; });
+  var dur = Number(blk.dur) * bosses.length;
+  var conflict = partyConflictFor(dateStr, blk.start, dur, nicks);
   if (conflict) {
-    toast('이미 같은 시간에 확정된 파티가 있어요 (' + conflict.boss + ')');
+    toast(conflict.names.join(', ') + ' 님이 이미 ' + conflict.party.boss + ' 파티에 있어요');
     renderGroups();
     return;
   }
   var np = {
-    id: uid('p'), boss: g.boss, date: dateStr, startTime: blk.start, durationMin: blk.dur,
-    alarmTime: '09:00', memo: g.name + ' 자동 매칭으로 확정 · ' + members.length + '명 전원 가능',
-    members: members.map(function (m) { return m.nick; }), groupId: g.id
+    id: uid('p'), boss: bosses.join(' · '), date: dateStr, startTime: blk.start,
+    durationMin: dur, alarmTime: '09:00',
+    memo: g.name + ' 자동 매칭으로 확정 · ' + members.length + '명 전원 가능' +
+      (bosses.length > 1 ? ' · 보스 ' + bosses.length + '개 연속(' + dur + '분)' : ''),
+    members: nicks, groupId: g.id
   };
   state.parties.push(np);
   save();
   ui.freshPartyId = np.id;
   renderParties();
   renderGroups();
+  renderUnion();
+  renderHeat();
+  renderSlotDetail();
   toast(g.name + ' — ' + fmtMDW(parseYmd(dateStr)) + ' ' + blk.label + '로 확정했어요. 아래에서 캘린더로 내보내세요');
   var card = byId('partyList');
   if (card && card.scrollIntoView) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
@@ -1991,15 +2507,83 @@ function deleteRecruit(id) {
   toast('모집 글을 삭제했어요');
 }
 
+/* ---------------- 렌더 : 합집합 (두 파티 이상 같은 시간) ---------------- */
+function unionSlots() {
+  var out = [];
+  var curWeek = ymd(startOfWeek(new Date()));
+  var weekKeys = Object.keys(state.availability).sort();
+  for (var wi = 0; wi < weekKeys.length; wi++) {
+    var wk = weekKeys[wi];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(wk)) continue;
+    if (wk < curWeek) continue;
+    var ws = parseYmd(wk);
+    if (!ws) continue;
+    if (Math.round((ws.getTime() - parseYmd(curWeek).getTime()) / 604800000) > 8) continue;
+    for (var day = 0; day < 7; day++) {
+      for (var b = 0; b < BLOCKS.length; b++) {
+        var runnable = runnableGroupsIn(wk, day, BLOCKS[b].id, '');
+        if (runnable.length < 2) continue;
+        var dateObj = addDays(ws, day);
+        if (BLOCKS[b].afterMidnight) dateObj = addDays(dateObj, 1);
+        out.push({
+          date: ymd(dateObj), block: BLOCKS[b], week: wk,
+          runnable: runnable, shared: sharedMembersOf(runnable)
+        });
+      }
+    }
+  }
+  out.sort(function (a, b) {
+    return (a.date + ' ' + a.block.start).localeCompare(b.date + ' ' + b.block.start);
+  });
+  return out;
+}
+function renderUnion() {
+  var host = byId('unionList');
+  if (!host) return;
+  if (!state.groups.length) {
+    host.innerHTML = '<div class="empty">고정 파티를 먼저 등록하면, 두 파티가 같은 시간에 모일 수 있는 칸을 여기에 모아 드려요.</div>';
+    return;
+  }
+  var items = unionSlots();
+  if (!items.length) {
+    host.innerHTML = '<div class="empty">아직 두 파티가 동시에 모일 수 있는 시간이 없습니다. <b>길드 전체 가능 시간</b>에서 칸을 더 칠해 보세요.</div>';
+    return;
+  }
+  var shown = items.slice(0, 12);
+  var html = '';
+  for (var i = 0; i < shown.length; i++) {
+    var it = shown[i];
+    var dd = dayDiffFromToday(it.date);
+    var dayText = dd === 0 ? ' · 오늘' : (dd === 1 ? ' · 내일' : (dd > 1 ? ' · D-' + dd : ''));
+    var tags = '';
+    for (var r = 0; r < it.runnable.length; r++) {
+      var g = it.runnable[r].group;
+      tags += '<span class="u-tag" style="--pc:' + groupColor(g) + '">' + esc(g.name) + '</span>';
+    }
+    var note = it.shared.length
+      ? '<span class="u-warn">⚠ ' + esc(nickList(it.shared)) + ' 겹침 — 한 파티씩 따로 잡아 주세요</span>'
+      : '<span class="u-ok">✓ 겹치는 파티원 없음 — 동시 진행 가능</span>';
+    html += '<div class="union-row">' +
+      '<div class="u-when">' + fmtMDW(parseYmd(it.date)) + dayText + '<br><span style="font-weight:600;color:#6b5a46">' + esc(it.block.label) + '</span></div>' +
+      '<div class="u-parties">' + tags + '</div>' + note + '</div>';
+  }
+  if (items.length > shown.length) {
+    html += '<p class="hint">외 ' + (items.length - shown.length) + '개 시간이 더 있어요 — 가능 시간표에서 테두리로 확인할 수 있습니다.</p>';
+  }
+  host.innerHTML = html;
+}
+
 /* ---------------- 렌더 : 전체 ---------------- */
 function renderAll() {
   renderWeekBar();
-  renderMembers();
+  renderSetup();
+  renderActiveSelect();
   renderGridHint();
   renderGrid();
   renderHeat();
   renderSlotDetail();
   renderGroups();
+  renderUnion();
   renderParties();
   renderRecruits();
   renderMemberChecks(currentChecked());
@@ -2018,7 +2602,7 @@ function switchTab(tab) {
     if (panels[j].id === 'panel-' + tab) panels[j].classList.add('is-active');
     else panels[j].classList.remove('is-active');
   }
-  if (tab === 'parties') renderGroups();
+  if (tab === 'parties') { renderGroups(); renderUnion(); }
 }
 function changeWeek(delta) {
   ui.weekOffset += delta;
@@ -2035,6 +2619,7 @@ function afterWeekChange() {
   renderGrid();
   renderHeat();
   renderSlotDetail();
+  renderGroups();
 }
 
 /* ---------------- 접기 ---------------- */
@@ -2051,54 +2636,109 @@ function setFolded(cardId, collapsed) {
 }
 
 /* ---------------- 길드원 CRUD ---------------- */
-function startMemberEdit(id) {
-  var m = getMember(id);
-  if (!m) return;
-  ui.editingMemberId = id;
-  ui.activeMemberId = id;
-  byId('mNick').value = m.nick;
-  byId('memberSaveBtn').textContent = '수정 저장';
-  byId('memberCancelBtn').style.display = '';
-  renderMembers();
-  renderGridHint();
-  renderGrid();
-  byId('mNick').focus();
-}
-function cancelMemberEdit() {
-  ui.editingMemberId = null;
-  byId('mNick').value = '';
-  byId('memberSaveBtn').textContent = '길드원 추가';
-  byId('memberCancelBtn').style.display = 'none';
-}
-function saveMember() {
-  var nick = String(byId('mNick').value || '').trim();
-  if (!nick) { toast('닉네임을 입력해 주세요'); byId('mNick').focus(); return; }
-  var dup = null;
-  for (var i = 0; i < state.members.length; i++) {
-    if (state.members[i].nick === nick && state.members[i].id !== ui.editingMemberId) dup = state.members[i];
+function bulkAddMembers() {
+  var raw = String((byId('bulkNicks') && byId('bulkNicks').value) || '');
+  var parts = raw.split(/[,，、\n]+/);
+  var added = 0, skipped = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var nick = parts[i].trim();
+    if (!nick) continue;
+    if (nick.length > 20) nick = nick.slice(0, 20);
+    var dup = false;
+    for (var j = 0; j < state.members.length; j++) if (state.members[j].nick === nick) dup = true;
+    if (dup) { skipped++; continue; }
+    state.members.push({ id: uid('m'), nick: nick });
+    added++;
   }
-  if (dup) { toast('이미 등록된 닉네임입니다'); return; }
-  if (ui.editingMemberId) {
-    var m = getMember(ui.editingMemberId);
-    if (m) { m.nick = nick; }
-    toast('길드원 정보를 수정했어요');
-    cancelMemberEdit();
-  } else {
-    var nm = { id: uid('m'), nick: nick };
-    state.members.push(nm);
-    ui.activeMemberId = nm.id;
-    byId('mNick').value = '';
-    toast(nick + ' 님을 추가했어요. 이제 가능한 시간을 칠해 주세요');
-  }
+  if (!added && !skipped) { toast('닉네임을 입력해 주세요'); return; }
+  if (!ui.activeMemberId && state.members.length) ui.activeMemberId = state.members[0].id;
+  if (byId('bulkNicks')) byId('bulkNicks').value = '';
   save();
-  renderMembers();
+  renderSetup();
+  renderActiveSelect();
   renderGridHint();
   renderGrid();
   renderHeat();
   renderSlotDetail();
-  renderMemberChecks(currentChecked());
   renderGroupChecks(ui.groupChecked);
   renderGroups();
+  renderUnion();
+  toast(added ? added + '명 추가했어요' + (skipped ? ' (중복 ' + skipped + '명 제외)' : '') : '이미 등록된 닉네임이에요');
+}
+function renameMember(id) {
+  var m = getMember(id);
+  if (!m) return;
+  var v = window.prompt('닉네임을 고쳐 주세요', m.nick);
+  if (v === null) return;
+  v = String(v).trim().slice(0, 20);
+  if (!v) return;
+  for (var i = 0; i < state.members.length; i++) {
+    if (state.members[i].nick === v && state.members[i].id !== id) { toast('이미 등록된 닉네임입니다'); return; }
+  }
+  var old = m.nick;
+  m.nick = v;
+  for (var p = 0; p < state.parties.length; p++) {
+    var arr = state.parties[p].members || [];
+    for (var k = 0; k < arr.length; k++) if (arr[k] === old) arr[k] = v;
+  }
+  save();
+  renderSetup();
+  renderActiveSelect();
+  renderGridHint();
+  renderGroups();
+  renderParties();
+  renderUnion();
+  renderSlotDetail();
+  toast('닉네임을 바꿨어요');
+}
+function setMyMember(id) {
+  if (!id) { toast('먼저 길드원을 골라 주세요'); return; }
+  var m = getMember(id);
+  if (!m) return;
+  state.settings.myMemberId = id;
+  ui.activeMemberId = id;
+  save();
+  renderSetup();
+  renderActiveSelect();
+  renderGridHint();
+  renderGrid();
+  renderHeat();
+  renderSlotDetail();
+  toast(m.nick + ' 님을 내 캐릭터로 지정했어요 — 다음에도 자동으로 선택됩니다');
+}
+function finishSetup() {
+  if (!state.members.length) {
+    applySetupOpen(true);
+    toast('길드원을 먼저 추가해 주세요');
+    if (byId('bulkNicks')) byId('bulkNicks').focus();
+    return;
+  }
+  if (!state.settings.myMemberId && ui.activeMemberId) state.settings.myMemberId = ui.activeMemberId;
+  state.settings.setupDone = true;
+  save();
+  applySetupOpen(false);
+  renderSetup();
+  renderAll();
+  toast('초기 세팅을 저장했어요 — 이제 가능한 시간 칸만 눌러 주세요');
+  var grid = byId('gridHost');
+  if (grid && grid.scrollIntoView) setTimeout(function () { grid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 90);
+}
+function resetEmpty() {
+  if (!confirm('샘플 데이터를 모두 지우고 빈 상태로 시작할까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글도 함께 지워집니다.')) return;
+  state = { members: [], availability: {}, parties: [], groups: [], recruits: [], settings: { myMemberId: '', setupDone: false } };
+  ui.activeMemberId = null;
+  ui.selectedSlot = null;
+  ui.weekOffset = 0;
+  ui.showAllMatches = {};
+  ui.freshPartyId = null;
+  save();
+  resetPartyForm();
+  resetGroupForm();
+  resetRecruitForm();
+  applySetupOpen(true);
+  renderAll();
+  toast('샘플을 지웠어요. 길드원부터 넣어 주세요');
+  if (byId('bulkNicks')) byId('bulkNicks').focus();
 }
 function deleteMember(id) {
   var m = getMember(id);
@@ -2112,18 +2752,19 @@ function deleteMember(id) {
   for (var gi = 0; gi < state.groups.length; gi++) {
     state.groups[gi].memberIds = (state.groups[gi].memberIds || []).filter(function (x) { return x !== id; });
   }
+  if (state.settings.myMemberId === id) state.settings.myMemberId = '';
   if (ui.activeMemberId === id) ui.activeMemberId = state.members.length ? state.members[0].id : null;
-  if (ui.editingMemberId === id) cancelMemberEdit();
   ui.groupChecked = (ui.groupChecked || []).filter(function (x) { return x !== id; });
   save();
-  renderMembers();
+  renderSetup();
+  renderActiveSelect();
   renderGridHint();
   renderGrid();
   renderHeat();
   renderSlotDetail();
-  renderMemberChecks(currentChecked());
   renderGroupChecks(ui.groupChecked);
   renderGroups();
+  renderUnion();
   toast('길드원을 삭제했어요');
 }
 
@@ -2302,7 +2943,6 @@ function buildSelects() {
   for (var j = 0; j < BOSSES.length; j++) bossHtml += '<option value="' + esc(BOSSES[j]) + '">' + esc(BOSSES[j]) + '</option>';
   bossHtml += '<option value="' + esc(BOSS_CUSTOM) + '">' + esc(BOSS_CUSTOM) + '</option>';
   byId('bossSelect').innerHTML = bossHtml;
-  byId('gBoss').innerHTML = bossHtml;
   byId('rBoss').innerHTML = bossHtml;
 
   var jobHtml = '<option value="">직업 선택</option>';
@@ -2310,11 +2950,11 @@ function buildSelects() {
   byId('rJob').innerHTML = jobHtml;
 }
 function resetSample() {
-  if (!confirm('샘플 데이터로 초기화할까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글이 모두 사라집니다.')) return;
+  if (!confirm('샘플 데이터로 되돌릴까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글이 모두 사라집니다.')) return;
   state = buildSample();
   ui.weekOffset = 0;
   ui.selectedSlot = null;
-  ui.activeMemberId = state.members.length ? state.members[0].id : null;
+  ui.activeMemberId = state.settings.myMemberId || (state.members.length ? state.members[0].id : null);
   ui.showAllMatches = {};
   ui.filterBoss = '';
   ui.filterJob = '';
@@ -2324,8 +2964,9 @@ function resetSample() {
   resetPartyForm();
   resetGroupForm();
   resetRecruitForm();
+  applySetupOpen(!state.settings.setupDone);
   renderAll();
-  toast('샘플 데이터로 초기화했어요');
+  toast('샘플 데이터로 되돌렸어요');
 }
 
 function handleAction(action, el) {
@@ -2335,13 +2976,27 @@ function handleAction(action, el) {
     case 'week-next': changeWeek(1); break;
     case 'week-goto': gotoWeek(Number(el.getAttribute('data-offset'))); break;
     case 'select-member':
-      ui.activeMemberId = (ui.activeMemberId === el.getAttribute('data-id')) ? null : el.getAttribute('data-id');
-      renderMembers(); renderGridHint(); renderGrid();
+      ui.activeMemberId = el.getAttribute('data-id');
+      renderSetup();
+      renderActiveSelect(); renderGridHint(); renderGrid();
       break;
-    case 'edit-member': startMemberEdit(el.getAttribute('data-id')); break;
+    case 'rename-member': renameMember(el.getAttribute('data-id')); break;
     case 'delete-member': deleteMember(el.getAttribute('data-id')); break;
-    case 'save-member': saveMember(); break;
-    case 'cancel-member': cancelMemberEdit(); break;
+    case 'set-my-member': setMyMember(el.getAttribute('data-id') || ui.activeMemberId); break;
+    case 'toggle-setup': applySetupOpen(!ui.setupOpen); break;
+    case 'bulk-add-members': bulkAddMembers(); break;
+    case 'finish-setup': finishSetup(); break;
+    case 'reset-empty': resetEmpty(); break;
+    case 'new-group': openGroupEditor(null); break;
+    case 'open-setup':
+    case 'new-group-jump': {
+      switchTab('availability');
+      applySetupOpen(true);
+      if (action === 'new-group-jump') openGroupEditor(null);
+      var sc = byId('setupCard');
+      if (sc && sc.scrollIntoView) setTimeout(function () { sc.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+      break;
+    }
     case 'cell': toggleSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
     case 'heat': selectSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
     case 'make-party': makePartyFromSlot(); break;
@@ -2352,20 +3007,17 @@ function handleAction(action, el) {
     case 'ics': downloadICS(el.getAttribute('data-id')); break;
     case 'reset-sample': resetSample(); break;
     case 'toggle-fold':
-      var cardId = el.getAttribute('data-target') === 'groupForm' ? 'groupFormCard' :
-        (el.getAttribute('data-target') === 'partyFormBody' ? 'partyFormCard' :
-          (el.getAttribute('data-target') === 'recruitFormBody' ? 'recruitFormCard' : ''));
-      if (cardId) setFolded(cardId, !byId(cardId).classList.contains('is-collapsed'));
+      var cardId = el.getAttribute('data-target') === 'partyFormBody' ? 'partyFormCard' :
+        (el.getAttribute('data-target') === 'recruitFormBody' ? 'recruitFormCard' : '');
+      if (cardId && byId(cardId)) setFolded(cardId, !byId(cardId).classList.contains('is-collapsed'));
       break;
     case 'save-group': saveGroup(); break;
     case 'cancel-group': resetGroupForm(); toast('수정을 취소했어요'); break;
     case 'edit-group': {
       var g = getGroup(el.getAttribute('data-id'));
       if (g) {
-        setFolded('groupFormCard', false);
+        switchTab('availability');
         fillGroupForm(g);
-        var gf = byId('groupFormCard');
-        if (gf && gf.scrollIntoView) gf.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       break;
     }
@@ -2412,6 +3064,16 @@ function bindEvents() {
     var t = e.target;
     if (!t) return;
     if (t.id === 'bossSelect') { toggleBossCustom(); return; }
+    if (t.id === 'activeMemberSelect') {
+      ui.activeMemberId = t.value || null;
+      renderGridHint(); renderGrid(); renderSetup();
+      return;
+    }
+    if (t.id === 'myMemberSelect') {
+      if (t.value) { setMyMember(t.value); }
+      else { state.settings.myMemberId = ''; save(); renderSetup(); renderActiveSelect(); renderGridHint(); }
+      return;
+    }
     if (t.id === 'rBoss') {
       var rc = byId('rBossCustom');
       if (rc) rc.style.display = t.value === BOSS_CUSTOM ? '' : 'none';
@@ -2421,10 +3083,17 @@ function bindEvents() {
     if (t.id === 'filterJob') { ui.filterJob = t.value; renderRecruits(); return; }
     if (t.type === 'checkbox') {
       var scope = t.getAttribute('data-scope');
-      var arr = scope === 'group' ? ui.groupChecked : ui.formMembers;
-      var val = t.value;
-      var at = arr.indexOf(val);
-      if (t.checked) { if (at < 0) arr.push(val); } else { if (at >= 0) arr.splice(at, 1); }
+      if (scope === 'gboss') {
+        var bv = t.value;
+        var bat = ui.groupBosses.indexOf(bv);
+        if (t.checked) { if (bat < 0) ui.groupBosses.push(bv); }
+        else { if (bat >= 0) ui.groupBosses.splice(bat, 1); }
+      } else {
+        var arr = scope === 'group' ? ui.groupChecked : ui.formMembers;
+        var val = t.value;
+        var at = arr.indexOf(val);
+        if (t.checked) { if (at < 0) arr.push(val); } else { if (at >= 0) arr.splice(at, 1); }
+      }
       if (t.parentNode && t.parentNode.classList) {
         if (t.checked) t.parentNode.classList.add('is-on');
         else t.parentNode.classList.remove('is-on');
@@ -2434,24 +3103,28 @@ function bindEvents() {
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter') return;
     var id = e.target && e.target.id;
-    if (id === 'mNick') { e.preventDefault(); saveMember(); }
+    if (id === 'bulkNicks') { e.preventDefault(); bulkAddMembers(); }
     if (id === 'gName') { e.preventDefault(); saveGroup(); }
+    if (id === 'gBossCustom') { e.preventDefault(); saveGroup(); }
     if (id === 'rName') { e.preventDefault(); saveRecruit(); }
   });
 }
 
 function init() {
   load();
-  if (!ui.activeMemberId && state.members.length) ui.activeMemberId = state.members[0].id;
+  if (!getMember(ui.activeMemberId)) {
+    ui.activeMemberId = getMember(state.settings.myMemberId) ? state.settings.myMemberId : (state.members.length ? state.members[0].id : null);
+  }
+  ui.setupOpen = !state.settings.setupDone;
   buildSelects();
   resetPartyForm();
   resetGroupForm();
   resetRecruitForm();
   renderAll();
+  applySetupOpen(ui.setupOpen);
   bindEvents();
-  /* 등록 폼은 접어 두고, 고정 파티·모집 글 목록이 먼저 보이게 한다 */
+  /* 등록 폼은 접어 두고, 목록이 먼저 보이게 한다 */
   setFolded('partyFormCard', true);
-  setFolded('groupFormCard', true);
   setFolded('recruitFormCard', true);
 }
 
