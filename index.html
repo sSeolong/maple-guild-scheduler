@@ -306,6 +306,27 @@
     border:1px solid #e4d6c0; font-size:12px; color:#4a3626; font-weight:600;
   }
 
+  /* ---------- 카톡 붙여넣어 자동 입력 ---------- */
+  .paste-box textarea{min-height:86px; font-size:13px; line-height:1.6}
+  .paste-actions{display:flex; gap:7px; flex-wrap:wrap; margin-top:9px}
+  .paste-mode{display:flex; gap:7px; flex-wrap:wrap; margin-top:10px}
+  .paste-prev{margin-top:12px; padding:12px; border-radius:14px; background:#f2e8d7; border:1px solid #e3d3ba}
+  .pv-head{display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px; color:#6b5a46; font-weight:800; margin-bottom:9px; line-height:1.4}
+  .pv-row{background:#fffdf8; border:1px solid #e4d6c0; border-radius:12px; padding:9px 10px; margin-bottom:8px}
+  .pv-row:last-of-type{margin-bottom:0}
+  .pv-name{display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:13px; font-weight:800; color:#2a2018}
+  .pv-new{padding:1px 7px; border-radius:8px; background:var(--amber-soft); color:#9a5406; font-size:10.5px; font-weight:800; border:1px solid #f2d3a6}
+  .pv-why{padding:1px 7px; border-radius:8px; background:#e7ded0; color:#6b5a46; font-size:10.5px; font-weight:800}
+  .pv-lines{margin-top:7px; display:flex; flex-direction:column; gap:5px}
+  .pv-line{display:flex; align-items:flex-start; gap:7px; font-size:12px; color:#4a3626}
+  .pv-line b{flex:0 0 auto; width:17px; text-align:center; font-size:12.5px; font-weight:800; color:#8a4d05; padding-top:1px}
+  .pv-blocks{display:flex; gap:4px; flex-wrap:wrap}
+  .pv-blocks span{padding:1px 8px; border-radius:999px; background:#ffe6c2; border:1px solid #f0cfa0; color:#8a4d05; font-size:11px; font-weight:800}
+  .pv-warn{margin-top:9px; padding:8px 10px; border-radius:10px; background:#fbe7d2; border:1px solid #eec9a0; color:#8a4a10; font-size:11.5px; line-height:1.5}
+  .pv-foot{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:11px}
+  .pv-sum{font-size:11.5px; font-weight:700; color:#6b5a46}
+  .pv-note{margin-top:9px; font-size:11.5px; font-weight:700; color:#2f7d4f; line-height:1.5}
+
   /* ---------- party cards ---------- */
   .party{
     position:relative; background:linear-gradient(180deg,#fffdf8,#faf3e6);
@@ -730,6 +751,30 @@
         <div class="grid-wrap" id="gridHost"></div>
       </div>
 
+      <!-- ===== 카톡 채팅 붙여넣어 자동 입력 ===== -->
+      <div class="card" id="pasteCard">
+        <div class="form-head">
+          <h2>📋 카톡 채팅 붙여넣어 자동 입력</h2>
+          <button type="button" class="fold-btn" data-action="toggle-paste" id="pasteFoldBtn" aria-expanded="true" aria-controls="pasteBody">접기</button>
+        </div>
+        <div id="pasteBody" data-fold-body="1">
+          <p class="sub">카톡에서 <b>가능한 시간</b> 얘기를 복사해 그대로 붙여넣으세요. 이름·요일·시간을 읽어서 <b>표에 바로</b> 넣어 드립니다. 여러 명이 한꺼번에 있어도 됩니다.</p>
+          <div class="paste-box">
+            <textarea id="pasteBox" rows="4" placeholder="예)&#10;서롱&#10;월,금,토&#10;10시 이후" autocomplete="off" spellcheck="false"></textarea>
+          </div>
+          <div class="paste-actions">
+            <button type="button" class="btn btn-primary btn-sm" data-action="paste-parse" id="pasteParseBtn">🔍 미리보기 / 해석하기</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-action="paste-clear">지우기</button>
+          </div>
+          <div class="paste-mode" role="group" aria-label="표에 넣는 방식">
+            <button type="button" class="pill is-active" data-action="paste-mode" data-mode="add" id="pasteModeAdd">기존 시간 유지하고 추가</button>
+            <button type="button" class="pill" data-action="paste-mode" data-mode="replace" id="pasteModeReplace">해당 멤버 시간 덮어쓰기</button>
+          </div>
+          <p class="hint">‘10시 이후’는 <b>밤 10시</b>로 읽습니다. 오전에 하겠다면 ‘오전 10시’처럼 적어 주세요. ‘주말’·‘평일’·‘매일’, 카톡 시간 표시(<b>오후 9:12</b>)도 알아서 걸러 냅니다.</p>
+          <div id="pastePreview"></div>
+        </div>
+      </div>
+
       <div class="card">
         <h2>길드 전체 가능 시간</h2>
         <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다. <b>테두리</b>는 고정 파티가 전원 모일 수 있는 시간이에요. 칸을 누르면 자세히 보고 바로 확정할 수 있습니다.</p>
@@ -947,10 +992,11 @@
 
 <script>
 /* =========================================================
-   메이플스토리 길드 스케줄 — 단일 파일 (v3)
+   메이플스토리 길드 스케줄 — 단일 파일 (v7)
    1) 초기 세팅: 길드원 한 번에 추가 · 고정 파티(보스 여러 개) · 내 캐릭터 저장
    2) 합집합 테두리: 전원 가능 파티 / 두 파티 이상 겹치는 칸 구분 · 파티원 겹침 표시
    3) 가능 시간 칸에 길드원 닉네임 표시 · '파티 구함' 탭 · 자동 매칭 · .ics 내보내기
+   4) 카톡 채팅 붙여넣어 자동 입력: 이름·요일·시간을 읽어 표에 바로 반영
    ========================================================= */
 
 var STORE_KEY = 'mapleGuildScheduler.v4';
@@ -1017,7 +1063,11 @@ var ui = {
   filterBoss: '',
   filterJob: '',
   openOnly: false,
-  freshPartyId: null
+  freshPartyId: null,
+  pasteMode: 'add',      /* add: 기존 시간 유지하고 추가 / replace: 해당 멤버 시간 덮어쓰기 */
+  pasteParsed: null,
+  pasteNote: '',
+  pasteTimer: null
 };
 
 /* ---------------- 날짜 유틸 ---------------- */
@@ -2699,6 +2749,470 @@ function renderUnion() {
   host.innerHTML = html;
 }
 
+/* =========================================================
+   📋 카톡 채팅 붙여넣어 자동 입력
+   ---------------------------------------------------------
+   카톡에서 복사한 글에서 이름 · 요일 · 시간을 읽어
+   '주 / 길드원 / 칸(b0~b4)'으로 바꾼다. 저장은 기존과 같이
+   state.availability[주][길드원] 에만 하고 Firebase에는 칸 단위로 써진다.
+   ========================================================= */
+var PASTE_DOW = { '목': 0, '금': 1, '토': 2, '일': 3, '월': 4, '화': 5, '수': 6 };
+var PASTE_BSTART = [10, 18, 20, 22, 24];   /* BLOCKS 의 시작 시각(시) */
+var PASTE_BID = ['b0', 'b1', 'b2', 'b3', 'b4'];
+var PASTE_QUAL = '(오전|오후|아침|점심|낮|저녁|밤|새벽|자정)';
+var PASTE_STOPWORD = ['네', '넵', '넵넵', '응', '웅', '어', '오', '오키', '콜', '확인', '고마워', '감사', '굿', '좋아', '좋아요', '가능', '불가', '모름', '몰라', 'ㅇㅇ', 'ㅇ', 'ok', 'OK', '예', '아니'];
+
+function pasteNorm(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/\r\n?/g, '\n')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\u200b/g, '')
+    .replace(/[，、]/g, ',')
+    .replace(/／/g, '/')
+    .replace(/[～∼〜]/g, '~')
+    .replace(/[：]/g, ':')
+    .replace(/ㅡ/g, '-');
+}
+function pasteCleanNick(raw) {
+  var s = String(raw === null || raw === undefined ? '' : raw);
+  s = s.replace(/^[\s\[\(【@#★]+/, '').replace(/[\s\]\)】]+$/, '');
+  s = s.replace(/\s*님$/, '').replace(/\s*씨$/, '').replace(/\s+/g, '');
+  return s;
+}
+function pasteNickKey(s) {
+  return String(s === null || s === undefined ? '' : s).toLowerCase().replace(/[\s★@._\-]/g, '');
+}
+function pasteIsNick(raw, loose) {
+  var s = pasteCleanNick(raw);
+  if (!s) return false;
+  if (s.length < 2 || s.length > 16) return false;
+  if (PASTE_STOPWORD.indexOf(s) >= 0) return false;
+  if (!loose && /\d/.test(s)) return false;
+  if (!/^[가-힣A-Za-z0-9_@.·★\-]+$/.test(s)) return false;
+  if (/^[월화수목금토일요\s]+$/.test(s)) return false;
+  if (/\d\s*시|\d\s*분|오전|오후|아침|저녁|새벽|자정|이후|이전|부터|까지|가능|합니다|해요|입니다|제외|주말|평일|매일|시간|요일|정도|쯤/.test(s)) return false;
+  return true;
+}
+function pasteDaySpan(a, b) {
+  var out = [], cur = a, guard = 0;
+  while (guard++ < 8) {
+    out.push(cur);
+    if (cur === b) break;
+    cur = (cur + 1) % 7;
+  }
+  return out;
+}
+/* 시(hour) + 오전/오후 → '그 날의 절대 시각' (18, 22, 25(새벽 1시) …) */
+function pasteAbsHour(h, qual) {
+  var q = qual || '';
+  if (q === '오전' || q === '아침') {
+    if (h === 12) return 24;      /* 오전 12시 = 자정 */
+    if (h <= 4) return h + 24;    /* 오전 1~4시 = 새벽 */
+    return h;
+  }
+  if (q === '오후' || q === '점심' || q === '낮') {
+    if (h === 12) return q === '오후' ? 12 : 24;
+    return h < 12 ? h + 12 : h;
+  }
+  /* 오전/오후를 안 적었으면 게임 시간대(저녁·밤)로 읽는다 */
+  if (h === 0 || h === 12) return 24;   /* 0시 · 12시 = 자정 */
+  if (h <= 4) return h + 24;            /* 1~4시 = 새벽 */
+  if (h <= 11) return h + 12;           /* 5~11시 = 오후 5~11시 */
+  return h;                             /* 13~23시 */
+}
+function pasteBlockForAbs(abs) {
+  if (abs >= 24 || abs < 5) return 'b4';
+  if (abs >= 22) return 'b3';
+  if (abs >= 20) return 'b2';
+  if (abs >= 18) return 'b1';
+  return 'b0';
+}
+/* '이후' — 그 시각이 속한 칸부터 끝까지 */
+function pasteBlocksFrom(abs, qual) {
+  var q = qual || '';
+  if (q === '오전' || q === '아침' || q === '점심' || q === '낮') return ['b0'];
+  var start = pasteBlockForAbs(abs);
+  if (start === 'b0') return ['b1', 'b2', 'b3', 'b4'];   /* 낮부터 '이후'라면 저녁부터 */
+  var idx = PASTE_BID.indexOf(start);
+  var out = [];
+  for (var i = idx; i < PASTE_BID.length; i++) out.push(PASTE_BID[i]);
+  return out;
+}
+/* '이전' — 처음부터 그 시각이 속한 칸까지 */
+function pasteBlocksUntil(abs) {
+  var idx = PASTE_BID.indexOf(pasteBlockForAbs(abs));
+  var out = [];
+  for (var i = 0; i <= idx; i++) out.push(PASTE_BID[i]);
+  return out;
+}
+/* '6~8시' — 시작 칸부터 끝 칸까지 */
+function pasteBlocksBetween(s, e) {
+  if (e <= s) e += 24;
+  var out = [];
+  for (var i = 0; i < PASTE_BID.length; i++) {
+    if (PASTE_BSTART[i] >= s && PASTE_BSTART[i] < e) out.push(PASTE_BID[i]);
+  }
+  if (!out.length) out.push(pasteBlockForAbs(s));
+  return out;
+}
+function pasteWordBlocks(word) {
+  if (word === '오전' || word === '아침' || word === '점심' || word === '낮') return ['b0'];
+  if (word === '오후' || word === '저녁') return ['b1', 'b2', 'b3', 'b4'];
+  if (word === '밤') return ['b2', 'b3', 'b4'];
+  if (word === '새벽' || word === '자정') return ['b4'];
+  return [];
+}
+
+/* 한 사람의 글을 요일 · 시간 토큰으로 쪼갠다 */
+function pasteTokenize(text) {
+  var s = String(text === null || text === undefined ? '' : text);
+  var toks = [];
+  var i = 0, n = s.length, buf = '';
+  var rangeRe = new RegExp('^' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시\\s*(?:\\d{1,2}\\s*분)?\\s*(?:~|-|에서|부터)\\s*' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시\\s*(?:\\d{1,2}\\s*분)?(?:\\s*까지)?');
+  var hourRe = new RegExp('^' + PASTE_QUAL + '?\\s*(\\d{1,2})\\s*시(?:\\s*(\\d{1,2})\\s*분)?(?:\\s*(이후로|이후부터|이후|부터는|부터|이전|전|까지|쯤|정도))?');
+  function flush() { if (buf) { toks.push({ k: 'text', v: buf }); buf = ''; } }
+  while (i < n) {
+    var ch = s.charAt(i);
+    var restS = s.slice(i);
+    var m;
+    if (/\s/.test(ch)) { i++; continue; }
+    if (/[,;\/\n|]/.test(ch) || ch === '·' || ch === '•' || ch === '∙') { flush(); toks.push({ k: 'sep' }); i++; continue; }
+    /* 요일 범위: 월~금 · 월요일부터 금요일까지 */
+    m = restS.match(/^(월|화|수|목|금|토|일)(?:요일|욜)?\s*(?:~|-|부터)\s*(월|화|수|목|금|토|일)(?:요일|욜)?(?:까지)?/);
+    if (m) {
+      flush();
+      toks.push({ k: 'day', days: pasteDaySpan(PASTE_DOW[m[1]], PASTE_DOW[m[2]]) });
+      i += m[0].length; continue;
+    }
+    /* 주말 · 평일 · 매일 */
+    m = restS.match(/^(주말|주중|평일|매일|매주|모든날|모든\s*날|전부|전일)/);
+    if (m) {
+      flush();
+      var ds;
+      if (m[1] === '주말') ds = [PASTE_DOW['토'], PASTE_DOW['일']];
+      else if (m[1] === '주중' || m[1] === '평일') ds = [0, 1, 4, 5, 6];
+      else ds = [0, 1, 2, 3, 4, 5, 6];
+      toks.push({ k: 'day', days: ds });
+      i += m[0].length; continue;
+    }
+    /* 시간 범위: 6~8시 · 오후 6시~오후 8시 · 10시부터 12시까지 */
+    m = restS.match(rangeRe);
+    if (m) {
+      flush();
+      var sa = pasteAbsHour(Number(m[2]), m[1] || '');
+      var ea = pasteAbsHour(Number(m[4]), m[3] || '');
+      toks.push({ k: 'time', blocks: pasteBlocksBetween(sa, ea) });
+      i += m[0].length; continue;
+    }
+    /* 22:00 처럼 숫자:숫자 */
+    m = restS.match(/^(\d{1,2})\s*:\s*(\d{2})(?!\d)\s*(이후로|이후부터|이후|부터는|부터|이전|전|까지)?/);
+    if (m) {
+      flush();
+      var absH = pasteAbsHour(Number(m[1]), '') + (Number(m[2]) || 0) / 60;
+      var sfx = m[3] || '';
+      var blk;
+      if (/이후|부터/.test(sfx)) blk = pasteBlocksFrom(absH, '');
+      else if (/이전|전$|까지/.test(sfx)) blk = pasteBlocksUntil(absH);
+      else blk = [pasteBlockForAbs(absH)];
+      toks.push({ k: 'time', blocks: blk });
+      i += m[0].length; continue;
+    }
+    /* 숫자 + 시: 10시 · 8시 이후 · 10시 30분부터 · 6시까지 */
+    m = restS.match(hourRe);
+    if (m) {
+      flush();
+      var q1 = m[1] || '';
+      var ab = pasteAbsHour(Number(m[2]), q1) + (Number(m[3]) || 0) / 60;
+      var sf1 = m[4] || '';
+      var bks;
+      if (/이후|부터/.test(sf1)) bks = pasteBlocksFrom(ab, q1);
+      else if (/이전|전$|까지/.test(sf1)) bks = pasteBlocksUntil(ab);
+      else bks = [pasteBlockForAbs(ab)];
+      toks.push({ k: 'time', blocks: bks });
+      i += m[0].length; continue;
+    }
+    /* 오전 · 저녁 처럼 낱말만 */
+    m = restS.match(/^(오전|오후|아침|점심|낮|저녁|밤|새벽|자정)(?:에는|엔|에|때|쯤|은|는|도)?(?![가-힣])/);
+    if (m) {
+      flush();
+      toks.push({ k: 'time', blocks: pasteWordBlocks(m[1]) });
+      i += m[0].length; continue;
+    }
+    /* 요일 하나 */
+    m = restS.match(/^(월|화|수|목|금|토|일)(?:요일|욜)/);
+    if (m) {
+      flush();
+      toks.push({ k: 'day', days: [PASTE_DOW[m[1]]] });
+      i += m[0].length; continue;
+    }
+    m = restS.match(/^(월|화|수|목|금|토|일)(?:에는|엔|은|는|도|에|만|과|와)?(?![가-힣0-9])/);
+    if (m) {
+      flush();
+      toks.push({ k: 'day', days: [PASTE_DOW[m[1]]] });
+      i += m[0].length; continue;
+    }
+    buf += ch; i++;
+  }
+  flush();
+  return toks;
+}
+
+/* 카톡 복사본의 머리글(날짜 · 시각 · 대화방 이름)을 걷어내고 줄만 남긴다 */
+function pasteLines(text) {
+  var lines = pasteNorm(text).split('\n');
+  var out = [];
+  for (var i = 0; i < lines.length; i++) {
+    var L = lines[i];
+    if (/^\s*$/.test(L)) continue;
+    if (/카카오톡\s*대화/.test(L)) continue;
+    if (/^\s*-{2,}/.test(L)) continue;
+    if (/^\s*\[?\s*(오전|오후)\s*\d{1,2}\s*:\s*\d{2}\s*\]?\s*$/.test(L)) continue;
+    if (/^\s*\d{4}\s*[년.\/]\s*\d{1,2}\s*[월.\/]\s*\d{1,2}\s*일?/.test(L)) {
+      var st = L.replace(/^\s*\d{4}\s*[년.\/]\s*\d{1,2}\s*[월.\/]\s*\d{1,2}\s*일?\s*[.,]?\s*(?:\(?\s*(?:월|화|수|목|금|토|일)\s*요일\s*\)?)?\s*[.,]?\s*(?:오전|오후)?\s*\d{0,2}\s*:?\s*\d{0,2}\s*[.,]?\s*/, '');
+      st = st.replace(/^\s*(?:월|화|수|목|금|토|일)요일\s*[.,]?\s*/, '');
+      if (!st.replace(/\s/g, '')) continue;
+      L = st;
+    }
+    L = L.replace(/[\[\(（]\s*(?:오전|오후)\s*\d{1,2}\s*:\s*\d{2}\s*[\]\)）]/g, ' ');
+    L = L.replace(/\s+/g, ' ').trim();
+    if (L) out.push(L);
+  }
+  return out;
+}
+
+/* 한 줄이 '이름' 줄인지 본다 (이름: 내용 / [이름] 내용 / 이름만) */
+function pasteNameOf(line) {
+  var L = String(line).trim();
+  var m;
+  m = L.match(/^\[([^\[\]]{1,20})\]\s*(.*)$/);
+  if (m && pasteIsNick(m[1], true)) return { name: pasteCleanNick(m[1]), rest: m[2] || '' };
+  m = L.match(/^([^:\[\]]{1,24})\s*:\s*(.*)$/);
+  if (m && pasteIsNick(m[1], true)) return { name: pasteCleanNick(m[1]), rest: m[2] || '' };
+  if (pasteIsNick(L, false)) return { name: pasteCleanNick(L), rest: '' };
+  return null;
+}
+function pasteChunks(lines) {
+  var chunks = [], cur = null;
+  for (var i = 0; i < lines.length; i++) {
+    var L = lines[i];
+    var nm = pasteNameOf(L);
+    if (nm) {
+      cur = { name: nm.name, text: nm.rest || '' };
+      chunks.push(cur);
+      continue;
+    }
+    if (!cur) { cur = { name: '', text: '' }; chunks.push(cur); }
+    cur.text += (cur.text ? ' ' : '') + L;
+  }
+  return chunks;
+}
+/* 같은 사람이 여러 번 나오면 한 덩어리로 */
+function pasteGroupChunks(chunks) {
+  var out = [], byKey = {};
+  for (var i = 0; i < chunks.length; i++) {
+    var c = chunks[i];
+    var key = c.name ? pasteNickKey(c.name) : '__none__';
+    if (!byKey[key]) { byKey[key] = { name: c.name, text: '' }; out.push(byKey[key]); }
+    byKey[key].text += (byKey[key].text ? ' ' : '') + c.text;
+  }
+  return out;
+}
+/* 한 덩어리 → [{days:[요일번호], blocks:[칸]}] */
+function pasteParseChunk(text) {
+  var toks = pasteTokenize(text);
+  var rules = [], pending = [], last = [], sawDay = false, sawTime = false;
+  for (var i = 0; i < toks.length; i++) {
+    var t = toks[i];
+    if (t.k === 'day') {
+      sawDay = true;
+      for (var d = 0; d < t.days.length; d++) if (pending.indexOf(t.days[d]) < 0) pending.push(t.days[d]);
+      continue;
+    }
+    if (t.k !== 'time') continue;
+    sawTime = true;
+    var days = pending.slice();
+    if (!days.length) {
+      /* 시간이 먼저 나왔으면 뒤에 나오는 요일을 모아 쓴다 */
+      for (var j = i + 1; j < toks.length; j++) {
+        if (toks[j].k === 'time') break;
+        if (toks[j].k === 'day') {
+          for (var a = 0; a < toks[j].days.length; a++) if (days.indexOf(toks[j].days[a]) < 0) days.push(toks[j].days[a]);
+        }
+      }
+    }
+    if (!days.length) days = last.slice();
+    if (!days.length) continue;
+    rules.push({ days: days, blocks: t.blocks.slice() });
+    last = days.slice();
+    pending = [];
+  }
+  return { rules: rules, sawDay: sawDay, sawTime: sawTime };
+}
+function pasteMergeRules(byDay, rules) {
+  for (var i = 0; i < rules.length; i++) {
+    var r = rules[i];
+    for (var d = 0; d < r.days.length; d++) {
+      var day = r.days[d];
+      if (!byDay[day]) byDay[day] = [];
+      for (var b = 0; b < r.blocks.length; b++) {
+        if (byDay[day].indexOf(r.blocks[b]) < 0) byDay[day].push(r.blocks[b]);
+      }
+      byDay[day].sort(function (x, y) { return PASTE_BID.indexOf(x) - PASTE_BID.indexOf(y); });
+    }
+  }
+}
+function pasteFindMemberByNick(nick) {
+  var key = pasteNickKey(nick);
+  if (!key) return null;
+  for (var i = 0; i < state.members.length; i++) {
+    if (pasteNickKey(state.members[i].nick) === key) return state.members[i];
+  }
+  return null;
+}
+function pasteShorten(s) {
+  var t = String(s || '').replace(/\s+/g, ' ').trim();
+  return t.length > 20 ? t.slice(0, 20) + '…' : t;
+}
+function parsePaste(text) {
+  var res = { members: [], warnings: [], empty: true };
+  var raw = String(text === null || text === undefined ? '' : text);
+  if (!raw.replace(/\s/g, '')) return res;
+  res.empty = false;
+  var chunks = pasteGroupChunks(pasteChunks(pasteLines(raw)));
+  for (var i = 0; i < chunks.length; i++) {
+    var c = chunks[i];
+    var body = String(c.text || '').trim();
+    if (!body) {
+      if (c.name) res.warnings.push('‘' + c.name + '’ 님의 요일·시간을 찾지 못했어요.');
+      continue;
+    }
+    var pr = pasteParseChunk(body);
+    if (!pr.rules.length) {
+      res.warnings.push('‘' + (c.name ? c.name + ' · ' : '') + pasteShorten(body) + '’ 에서 요일과 시간을 함께 읽지 못했어요.');
+      continue;
+    }
+    var who;
+    if (c.name) {
+      var hit = pasteFindMemberByNick(c.name);
+      who = hit ? { memberId: hit.id, nick: hit.nick, isNew: false, fallback: false }
+                : { memberId: '', nick: c.name, isNew: true, fallback: false };
+    } else {
+      var mine = getMember(ui.activeMemberId) || getMember(state.settings.myMemberId);
+      if (!mine) { res.warnings.push('이름 없이 적힌 시간은 어느 길드원인지 알 수 없어 건너뛰었어요.'); continue; }
+      who = { memberId: mine.id, nick: mine.nick, isNew: false, fallback: true };
+    }
+    var key = pasteNickKey(who.nick);
+    var entry = null;
+    for (var k = 0; k < res.members.length; k++) if (res.members[k].key === key) entry = res.members[k];
+    if (!entry) {
+      entry = { key: key, nick: who.nick, memberId: who.memberId, isNew: who.isNew, fallback: who.fallback, byDay: {}, slots: [] };
+      res.members.push(entry);
+    } else {
+      entry.memberId = who.memberId; entry.isNew = who.isNew; entry.fallback = who.fallback;
+    }
+    pasteMergeRules(entry.byDay, pr.rules);
+  }
+  for (var mi = 0; mi < res.members.length; mi++) {
+    var mem = res.members[mi];
+    mem.slots = [];
+    for (var day = 0; day < 7; day++) {
+      var bl = mem.byDay[day];
+      if (!bl || !bl.length) continue;
+      for (var bi = 0; bi < bl.length; bi++) mem.slots.push(day + ':' + bl[bi]);
+    }
+  }
+  if (/제외|빼고|빼주|안\s*됨|안됨|불가/.test(raw)) {
+    res.warnings.push('‘제외’·‘불가’ 같은 표현은 자동으로 해석하지 않아요 — 미리보기를 꼭 확인해 주세요.');
+  }
+  return res;
+}
+
+/* ---------- 미리보기 ---------- */
+function renderPastePreview() {
+  var host = byId('pastePreview');
+  if (!host) return;
+  var res = ui.pasteParsed;
+  if (!res || res.empty) { host.innerHTML = ''; return; }
+  var ws = weekStartFor(ui.weekOffset), we = addDays(ws, 6);
+  var total = 0, rows = '';
+  for (var i = 0; i < res.members.length; i++) {
+    var mem = res.members[i];
+    total += mem.slots.length;
+    var lines = '';
+    for (var day = 0; day < 7; day++) {
+      var bl = mem.byDay[day];
+      if (!bl || !bl.length) continue;
+      var chips = '';
+      for (var b = 0; b < bl.length; b++) chips += '<span>' + esc(getBlock(bl[b]).short) + '</span>';
+      lines += '<div class="pv-line"><b>' + DAY_NAMES[day] + '</b><div class="pv-blocks">' + chips + '</div></div>';
+    }
+    rows += '<div class="pv-row"><div class="pv-name">' + esc(mem.nick) +
+      (mem.fallback ? '<span class="pv-why">이름 없음 → 내 캐릭터</span>' : (mem.isNew ? '<span class="pv-new">새 길드원 자동 추가</span>' : '')) +
+      '</div><div class="pv-lines">' + lines + '</div></div>';
+  }
+  var warn = '';
+  if (res.warnings.length) {
+    var w = '';
+    for (var x = 0; x < res.warnings.length; x++) w += (x ? '<br>' : '') + '⚠ ' + esc(res.warnings[x]);
+    warn = '<div class="pv-warn">' + w + '</div>';
+  }
+  var out = '<div class="paste-prev">';
+  out += '<div class="pv-head">📅 ' + esc(weekLabelFor(ui.weekOffset)) + ' (' + fmtMD(ws) + ' ~ ' + fmtMD(we) + ') 에 ' +
+    (ui.pasteMode === 'replace' ? '<b>덮어쓸 내용</b>' : '<b>추가할 내용</b>') + '</div>';
+  out += rows || '<p class="hint" style="margin:0">읽어낸 내용이 없습니다. 이름과 요일·시간을 함께 적어 주세요.</p>';
+  out += warn;
+  out += '<div class="pv-foot">' +
+    '<button type="button" class="btn btn-primary btn-sm" data-action="paste-apply"' + (res.members.length && total ? '' : ' disabled') + '>✅ 표에 바로 반영</button>' +
+    '<span class="pv-sum">' + (res.members.length && total ? res.members.length + '명 · ' + total + '칸' : '반영할 내용 없음') + '</span>' +
+    '</div>';
+  if (ui.pasteNote) out += '<div class="pv-note">' + esc(ui.pasteNote) + '</div>';
+  out += '</div>';
+  host.innerHTML = out;
+}
+function setPasteMode(mode) {
+  ui.pasteMode = mode === 'replace' ? 'replace' : 'add';
+  var a = byId('pasteModeAdd'), r = byId('pasteModeReplace');
+  if (a) a.className = 'pill' + (ui.pasteMode === 'add' ? ' is-active' : '');
+  if (r) r.className = 'pill' + (ui.pasteMode === 'replace' ? ' is-active' : '');
+  renderPastePreview();
+}
+function parsePasteNow() {
+  var box = byId('pasteBox');
+  ui.pasteParsed = parsePaste(box ? box.value : '');
+  ui.pasteNote = '';
+  renderPastePreview();
+}
+/* ---------- 표에 반영 (Firebase에는 기존과 같이 칸 단위로) ---------- */
+function applyPaste() {
+  var res = ui.pasteParsed;
+  if (!res || !res.members.length) { toast('먼저 붙여넣은 내용을 해석해 주세요'); return; }
+  var wk = weekKeyFor(ui.weekOffset);
+  if (!state.availability[wk]) state.availability[wk] = {};
+  var names = [], added = 0, slots = 0;
+  for (var i = 0; i < res.members.length; i++) {
+    var pm = res.members[i];
+    var m = pm.memberId ? getMember(pm.memberId) : pasteFindMemberByNick(pm.nick);
+    if (!m) {
+      m = { id: uid('m'), nick: pm.nick };
+      state.members.push(m);
+      added++;
+    }
+    var list = isArr(state.availability[wk][m.id]) ? state.availability[wk][m.id].slice() : [];
+    if (ui.pasteMode === 'replace') list = [];
+    for (var s = 0; s < pm.slots.length; s++) if (list.indexOf(pm.slots[s]) < 0) list.push(pm.slots[s]);
+    state.availability[wk][m.id] = list;
+    slots += pm.slots.length;
+    names.push(m.nick);
+    if (i === 0) ui.activeMemberId = m.id;
+  }
+  save();
+  if (!getMember(ui.activeMemberId) && state.members.length) ui.activeMemberId = state.members[0].id;
+  ui.pasteNote = '✅ ' + weekLabelFor(ui.weekOffset) + ' 표에 반영했어요 — ' + names.join(', ') +
+    (added ? ' (새 길드원 ' + added + '명 추가)' : '');
+  renderAll();
+  toast('표에 반영했어요 — ' + names.length + '명 · ' + slots + '칸');
+}
+
 /* ---------------- 렌더 : 전체 ---------------- */
 function renderAll() {
   renderWeekBar();
@@ -2713,6 +3227,7 @@ function renderAll() {
   renderParties();
   renderRecruits();
   renderMemberChecks(currentChecked());
+  renderPastePreview();
 }
 
 /* ---------------- 탭 / 주 이동 ---------------- */
@@ -2740,12 +3255,14 @@ function gotoWeek(offset) {
 }
 function afterWeekChange() {
   ui.selectedSlot = null;
+  ui.pasteNote = '';
   renderWeekBar();
   renderGridHint();
   renderGrid();
   renderHeat();
   renderSlotDetail();
   renderGroups();
+  renderPastePreview();
 }
 
 /* ---------------- 접기 ---------------- */
@@ -3180,6 +3697,21 @@ function handleAction(action, el) {
       ui.openOnly = !ui.openOnly;
       renderRecruits();
       break;
+    case 'toggle-paste': {
+      var pasteCard = byId('pasteCard');
+      if (pasteCard) setFolded('pasteCard', !pasteCard.classList.contains('is-collapsed'));
+      break;
+    }
+    case 'paste-parse': parsePasteNow(); break;
+    case 'paste-clear':
+      if (byId('pasteBox')) byId('pasteBox').value = '';
+      ui.pasteParsed = null;
+      ui.pasteNote = '';
+      renderPastePreview();
+      if (byId('pasteBox')) byId('pasteBox').focus();
+      break;
+    case 'paste-mode': setPasteMode(el.getAttribute('data-mode')); break;
+    case 'paste-apply': applyPaste(); break;
   }
 }
 
@@ -3230,6 +3762,12 @@ function bindEvents() {
         if (t.checked) t.parentNode.classList.add('is-on');
         else t.parentNode.classList.remove('is-on');
       }
+    }
+  });
+  document.addEventListener('input', function (e) {
+    if (e.target && e.target.id === 'pasteBox') {
+      if (ui.pasteTimer) clearTimeout(ui.pasteTimer);
+      ui.pasteTimer = setTimeout(function () { ui.pasteTimer = null; parsePasteNow(); }, 220);
     }
   });
   document.addEventListener('keydown', function (e) {
