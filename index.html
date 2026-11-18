@@ -3030,7 +3030,8 @@ function downloadICS(id) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 1500);
-    toast('캘린더 파일을 내려받았어요 — 열어서 추가하면 ' + (alarmLabel(p) === '알림 없음' ? '일정만 등록됩니다' : alarmLabel(p) + '에 알림이 울립니다'));
+    var alLabel = alarmLabel(p);
+    toast('캘린더 파일을 내려받았어요 — 열어서 추가하면 ' + (alLabel === '알림 없음' ? '일정만 등록됩니다' : alLabel.replace(' 알림', '') + '에 알림이 울립니다'));
   } catch (err) {
     var a2 = document.createElement('a');
     a2.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(text);
