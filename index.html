@@ -615,6 +615,36 @@
   }
   .toast.show{opacity:1; transform:translate(-50%,0)}
 
+  /* ---------- 확인 모달 (같은 고정 파티 시간 변경) ---------- */
+  .modal-wrap{
+    position:fixed; inset:0; z-index:120; display:none;
+    align-items:center; justify-content:center; padding:18px;
+    background:rgba(9,8,12,.62); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  }
+  .modal-wrap.is-open{display:flex}
+  .modal-card{
+    width:100%; max-width:392px; padding:17px 17px 14px; border-radius:18px;
+    background:var(--card); color:var(--ink); border:1px solid #ecd9ba;
+    box-shadow:0 26px 60px rgba(0,0,0,.55); animation:m-pop .18s ease-out;
+  }
+  @keyframes m-pop{from{opacity:0; transform:translateY(10px) scale(.98)} to{opacity:1; transform:none}}
+  .modal-kicker{margin:0 0 5px; font-size:11px; font-weight:900; color:var(--amber-deep); letter-spacing:.01em}
+  .modal-card h3{margin:0 0 9px; font-size:16.5px; font-weight:900; color:#33261a; letter-spacing:-.02em; line-height:1.35}
+  .modal-body{
+    margin:0 0 8px; font-size:13px; line-height:1.62; color:#4a3626; font-weight:600;
+    white-space:pre-line; word-break:keep-all;
+  }
+  .modal-sub{margin:0; font-size:11.5px; line-height:1.55; color:#8a7560; word-break:keep-all}
+  .modal-acts{display:flex; gap:7px; margin-top:14px}
+  .modal-acts .btn{flex:1 1 auto; justify-content:center; font-size:12.5px; padding:10px 12px}
+  .modal-acts .btn-move{background:linear-gradient(160deg,#f5a63f,#d97706); color:#2f1d05; box-shadow:0 7px 16px rgba(217,119,6,.30)}
+  .modal-acts .btn-move:hover{background:linear-gradient(160deg,#ffb356,#e0820e)}
+
+  /* 이미 확정된 시간 표시 */
+  .sd-done{margin-left:auto; font-size:10.5px; font-weight:900; color:#22603d; white-space:nowrap}
+  .m-done{display:inline-flex; align-items:center; font-size:11px; font-weight:900; color:#22603d; background:#e8f5ec; border:1px solid #c6e3cf; border-radius:999px; padding:5px 10px}
+  .badge-done{display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:900; background:#e8f5ec; border:1px solid #c6e3cf; color:#22603d; white-space:nowrap}
+
   .empty{
     text-align:center; padding:20px 10px; color:#a89478; font-size:12.5px;
     border:1px dashed #ddcdb4; border-radius:13px; background:#faf4e8;
@@ -1211,6 +1241,20 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- 같은 고정 파티가 같은 주에 이미 확정되어 있을 때 — 새로 만들지 않고 시간을 바꿀지 묻는다 -->
+<div class="modal-wrap" id="reschedModal" role="dialog" aria-modal="true" aria-labelledby="reschedTitle" aria-describedby="reschedBody">
+  <div class="modal-card">
+    <p class="modal-kicker">⏰ 시간 변경 확인</p>
+    <h3 id="reschedTitle">이미 확정된 파티가 있어요</h3>
+    <p class="modal-body" id="reschedBody"></p>
+    <p class="modal-sub" id="reschedSub"></p>
+    <div class="modal-acts">
+      <button type="button" class="btn btn-ghost" data-action="resched-no">그대로 두기</button>
+      <button type="button" class="btn btn-move" data-action="resched-yes">시간 변경하기</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase (Realtime Database) — 실시간 동기화 -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
@@ -1305,7 +1349,8 @@ var ui = {
   pasteMode: 'add',      /* add: 기존 시간 유지하고 추가 / replace: 해당 멤버 시간 덮어쓰기 */
   pasteParsed: null,
   pasteNote: '',
-  pasteTimer: null
+  pasteTimer: null,
+  pendingResched: null   /* 시간 변경 확인 모달에서 결정을 기다리는 확정 파티 */
 };
 
 /* ---------------- 날짜 유틸 ---------------- */
@@ -2100,11 +2145,12 @@ function groupMembers(g) {
   }
   return out;
 }
-function partyConflictFor(dateStr, startTime, durMin, nicks) {
+function partyConflictFor(dateStr, startTime, durMin, nicks, excludeId) {
   var s1 = timeToMin(startTime), e1 = s1 + (Number(durMin) || 120);
   var who = isArr(nicks) ? nicks : [];
   for (var i = 0; i < state.parties.length; i++) {
     var p = state.parties[i];
+    if (excludeId && p.id === excludeId) continue; /* 시간 변경: 자기 자신과는 겁치지 않는다 */
     if (p.date !== dateStr) continue;
     var s2 = timeToMin(p.startTime), e2 = s2 + (Number(p.durationMin) || 120);
     if (!(s1 < e2 && s2 < e1)) continue;
@@ -2429,9 +2475,21 @@ function slotConfirmMarkup(rg, members, dateStr, blk) {
   var dur = Number(blk.dur) * Math.max(1, bosses.length);
   var nicks = [];
   for (var i = 0; i < members.length; i++) nicks.push(members[i].nick);
+  /* 이 고정 파티가 이번 주에 이미 확정되어 있으면 그 사실을 먼저 보여 준다 */
+  var inWeek = confirmedOfGroupInWeek(rg.id, dateStr);
+  for (var w = 0; w < inWeek.length; w++) {
+    if (inWeek[w].date === dateStr && inWeek[w].startTime === blk.start) {
+      return '<span class="sd-done">✅ 이 시간으로 확정됨</span>';
+    }
+  }
+  var own = inWeek.length ? inWeek[0] : null;
   var cf = partyConflictFor(dateStr, blk.start, dur, nicks);
-  if (cf) {
+  if (cf && !(own && cf.party.id === own.id)) {
     return '<span class="sd-conflict">이미 ' + esc(cf.party.boss) + ' 확정</span>';
+  }
+  if (own) {
+    return '<button type="button" class="btn btn-ghost btn-sm sd-confirm" data-action="confirm-match" data-id="' + esc(rg.id) +
+      '" data-date="' + esc(dateStr) + '" data-block="' + esc(blk.id) + '">🔄 이 시간으로 변경</button>';
   }
   return '<button type="button" class="btn btn-primary btn-sm sd-confirm" data-action="confirm-match" data-id="' + esc(rg.id) + '" data-date="' + esc(dateStr) + '" data-block="' + esc(blk.id) + '">이 팟으로 확정</button>';
 }
@@ -2524,6 +2582,7 @@ function matchRowMarkup(g, it, isFull) {
   var blk = getBlock(it.block);
   var d = parseYmd(it.date);
   var dd = dayDiffFromToday(it.date);
+  var inWeek = confirmedOfGroupInWeek(g.id, it.date);
   var dayText = dd === 0 ? '오늘' : (dd === 1 ? '내일' : (dd > 1 ? 'D-' + dd : ''));
   var who = '';
   for (var i = 0; i < it.avail.length; i++) {
@@ -2540,6 +2599,19 @@ function matchRowMarkup(g, it, isFull) {
       (o.shared.length ? ' · ' + esc(nickList(o.shared)) + ' 겹침' : ' · 겹치는 파티원 없음') +
       (it.overlaps.length > 1 ? ' 외 ' + (it.overlaps.length - 1) + '팟' : '') + '</span>';
   }
+  var btnHtml, exact = null;
+  for (var q = 0; q < inWeek.length; q++) {
+    if (inWeek[q].date === it.date && inWeek[q].startTime === blk.start) exact = inWeek[q];
+  }
+  if (exact) {
+    btnHtml = '<span class="m-done">✅ 이 시간으로 확정됨</span>';
+  } else if (inWeek.length) {
+    btnHtml = '<button type="button" class="btn btn-ghost btn-sm" data-action="confirm-match" data-id="' + esc(g.id) + '" data-date="' + esc(it.date) + '" data-block="' + esc(it.block) + '">🔄 이 시간으로 변경</button>';
+  } else {
+    btnHtml = '<button type="button" class="btn btn-sm ' + (isFull ? 'btn-primary' : 'btn-ghost') + '" data-action="confirm-match" data-id="' + esc(g.id) + '" data-date="' + esc(it.date) + '" data-block="' + esc(it.block) + '">' +
+      (isFull ? '✅ 이 날짜로 확정하기' : '이 날짜로 확정') +
+    '</button>';
+  }
   return '<div class="match ' + (isFull ? 'is-full' : 'is-near') + '" style="border-left:4px solid ' + groupColor(g) + '">' +
     '<div class="m-when"><b>' + fmtMDW(d) + (dayText ? ' · ' + dayText : '') + '</b><span>' + esc(blk.label) + '</span></div>' +
     '<div class="m-info">' +
@@ -2548,9 +2620,7 @@ function matchRowMarkup(g, it, isFull) {
       miss +
       over +
     '</div>' +
-    '<button type="button" class="btn btn-sm ' + (isFull ? 'btn-primary' : 'btn-ghost') + '" data-action="confirm-match" data-id="' + esc(g.id) + '" data-date="' + esc(it.date) + '" data-block="' + esc(it.block) + '">' +
-      (isFull ? '✅ 이 날짜로 확정하기' : '이 날짜로 확정') +
-    '</button>' +
+    btnHtml +
     '</div>';
 }
 function weekFullSlotsInfo(g) {
@@ -2613,7 +2683,10 @@ function groupCardMarkup(g) {
   }
 
   if (mem.length) {
+    var wkConf = confirmedOfGroupInWeek(g.id, weekKeyFor(ui.weekOffset));
     html += '<div class="g-sum">' +
+      (wkConf.length ? '<span class="badge-done">✅ ' + esc(weekLabelFor(ui.weekOffset)) + ' 확정 · ' +
+        esc(mdShort(parseYmd(wkConf[0].date)) + ' ' + wkConf[0].startTime) + '</span>' : '') +
       '<span class="badge-full">전원 가능 ' + m.full.length + '개</span>' +
       '<span class="badge-near">1명 부족 ' + m.near.length + '개</span>' +
       (m.best ? '<span class="g-best">가장 빠른 전원 가능 · ' + fmtMDW(parseYmd(m.best.date)) + ' ' + esc(getBlock(m.best.block).label) + '</span>' : '') +
@@ -2935,6 +3008,91 @@ function deleteGroup(id) {
   renderSlotDetail();
   toast('고정 파티를 삭제했어요');
 }
+/* ---------------- 확정 파티 중복 방지 · 시간 변경 ----------------
+   같은 고정 파티(groupId)는 한 보스 주(목~수)에 하나만 확정한다.
+   - 같은 날짜·같은 시작 시각을 다시 누르면: 새로 만들지 않고 안내만 한다.
+   - 같은 주의 다른 날짜·다른 시각을 누르면: 새로 만들지 않고
+     기존 확정의 날짜·시작 시각을 옮길지 물어본다(확정 파티 일정에 그대로 하나만 남는다). */
+function confirmedOfGroupInWeek(groupId, dateStr) {
+  var out = [];
+  if (!groupId) return out;
+  var d = parseYmd(dateStr);
+  if (!d) return out;
+  var wk = ymd(startOfWeek(d));
+  for (var i = 0; i < state.parties.length; i++) {
+    var p = state.parties[i];
+    if (!p || String(p.groupId || '') !== String(groupId)) continue;
+    var pd = parseYmd(p.date);
+    if (!pd || ymd(startOfWeek(pd)) !== wk) continue;
+    out.push(p);
+  }
+  return out;
+}
+function blockForStart(start) {
+  for (var i = 0; i < BLOCKS.length; i++) if (BLOCKS[i].start === start) return BLOCKS[i];
+  return null;
+}
+/* '11월 19일 (목) 22:00' */
+function whenClock(dateStr, startTime) {
+  var d = parseYmd(dateStr);
+  return (d ? fmtMDW(d) : String(dateStr || '')) + ' ' + String(startTime || '');
+}
+/* '11월 19일 (목) 22:00 (오후 10시~자정)' — 칸 이름까지 붙인 표기 */
+function whenFull(dateStr, startTime) {
+  var b = blockForStart(startTime);
+  return whenClock(dateStr, startTime) + (b ? ' (' + (b.noTime ? '오전' : b.time) + ')' : '');
+}
+function openReschedModal(groupId, dateStr, blockId, partyId, count) {
+  var g = getGroup(groupId), blk = getBlock(blockId);
+  if (!g || !blk) return;
+  var hits = confirmedOfGroupInWeek(groupId, dateStr);
+  var old = null, i;
+  for (i = 0; i < hits.length; i++) if (hits[i].id === partyId) old = hits[i];
+  if (!old) old = hits[0];
+  if (!old) return;
+  ui.pendingResched = { groupId: groupId, dateStr: dateStr, blockId: blk.id, partyId: old.id };
+  byId('reschedBody').textContent = '이미 ' + g.name + ' 파티가 ' + whenFull(old.date, old.startTime) +
+    '에 확정되어 있습니다.\n' + whenFull(dateStr, blk.start) + '으로 시간을 변경할까요?';
+  byId('reschedSub').textContent = (count > 1 ? '이번 주에 ' + g.name + ' 파티 확정이 ' + count + '개 있어요. 그중 ' +
+      whenClock(old.date, old.startTime) + ' 확정을 새 시간으로 옮깁니다.\n' : '') +
+    '새로 추가하지 않고 기존 확정 하나만 옮겨요. 그대로 두려면 \'그대로 두기\'를 눌러 주세요.';
+  var wrap = byId('reschedModal');
+  wrap.classList.add('is-open');
+  var yes = wrap.querySelector('[data-action="resched-yes"]');
+  if (yes && yes.focus) setTimeout(function () { try { yes.focus(); } catch (err) {} }, 30);
+}
+function closeReschedModal() {
+  var wrap = byId('reschedModal');
+  if (wrap) wrap.classList.remove('is-open');
+  ui.pendingResched = null;
+}
+function applyReschedule() {
+  var req = ui.pendingResched;
+  closeReschedModal();
+  if (!req) return;
+  var g = getGroup(req.groupId), blk = getBlock(req.blockId);
+  if (!g || !blk) return;
+  var hits = confirmedOfGroupInWeek(req.groupId, req.dateStr);
+  var p = null, i;
+  for (i = 0; i < hits.length; i++) if (hits[i].id === req.partyId) p = hits[i];
+  if (!p) p = hits[0];
+  if (!p) { toast('옮길 확정 파티를 찾지 못했어요. 다시 시도해 주세요'); return; }
+  var members = groupMembers(g), bosses = groupBossList(g);
+  if (!members.length || !bosses.length) { toast('고정 파티 정보를 확인해 주세요'); return; }
+  var dur = Number(blk.dur) * Math.max(1, bosses.length);
+  p.date = req.dateStr;
+  p.startTime = blk.start;
+  p.durationMin = dur;
+  p.boss = bosses.join(' · ');
+  p.members = members.map(function (m) { return m.nick; });
+  save();
+  ui.freshPartyId = p.id;
+  renderAll();
+  toast(g.name + ' 일정을 ' + whenClock(req.dateStr, blk.start) + '으로 변경했어요! \'확정 파티 일정\'에서 확인해 주세요');
+  var card = byId('partyList');
+  if (card && card.scrollIntoView) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
+}
+
 function confirmFromMatch(groupId, dateStr, blockId) {
   var g = getGroup(groupId);
   if (!g) return;
@@ -2945,6 +3103,34 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   if (!bosses.length) { toast('목표 보스가 없어요. 고정 파티를 수정해 주세요'); return; }
   var nicks = members.map(function (m) { return m.nick; });
   var dur = Number(blk.dur) * bosses.length;
+
+  /* 같은 고정 파티가 같은 보스 주에 이미 확정되어 있는지 먼저 확인 (중복 생성 방지) */
+  var inWeek = confirmedOfGroupInWeek(g.id, dateStr);
+  var same = null, other = null, wi;
+  for (wi = 0; wi < inWeek.length; wi++) {
+    if (inWeek[wi].date === dateStr && inWeek[wi].startTime === blk.start) { same = inWeek[wi]; break; }
+    if (!other) other = inWeek[wi];
+  }
+  if (same) {
+    toast('이미 ' + whenClock(same.date, same.startTime) + '에 확정된 파티예요' +
+      (inWeek.length > 1 ? ' · 이번 주에 이 파티 확정이 ' + inWeek.length + '개 있어요' : ''));
+    renderGroups();
+    renderSlotDetail();
+    return;
+  }
+  if (other) {
+    var moveConflict = partyConflictFor(dateStr, blk.start, dur, nicks, other.id);
+    if (moveConflict) {
+      toast(moveConflict.names.join(', ') + ' 님이 이미 ' + moveConflict.party.boss + ' 파티에 있어요');
+      renderGroups();
+      return;
+    }
+    renderGroups();
+    renderSlotDetail();
+    openReschedModal(g.id, dateStr, blk.id, other.id, inWeek.length);
+    return;
+  }
+
   var conflict = partyConflictFor(dateStr, blk.start, dur, nicks);
   if (conflict) {
     toast(conflict.names.join(', ') + ' 님이 이미 ' + conflict.party.boss + ' 파티에 있어요');
@@ -4479,6 +4665,11 @@ function handleAction(action, el) {
     case 'confirm-match':
       confirmFromMatch(el.getAttribute('data-id'), el.getAttribute('data-date'), el.getAttribute('data-block'));
       break;
+    case 'resched-yes': applyReschedule(); break;
+    case 'resched-no':
+      closeReschedModal();
+      toast('확정을 그대로 두었어요');
+      break;
     case 'show-all-matches': {
       var gid = el.getAttribute('data-id');
       ui.showAllMatches[gid] = !ui.showAllMatches[gid];
@@ -4579,7 +4770,10 @@ function bindEvents() {
       ui.pasteTimer = setTimeout(function () { ui.pasteTimer = null; parsePasteNow(); }, 220);
     }
   });
+  var rw = byId('reschedModal');
+  if (rw) rw.addEventListener('click', function (e) { if (e.target === rw) closeReschedModal(); });
   document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && ui.pendingResched) { closeReschedModal(); return; }
     if (e.key !== 'Enter') return;
     var ct = e.target, cf = (ct && ct.getAttribute) ? ct.getAttribute('data-cf') : '';
     if (cf === 'nick' || cf === 'text') {
