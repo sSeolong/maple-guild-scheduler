@@ -324,7 +324,7 @@
   .cal .rh{align-items:flex-start; text-align:left; padding-left:3px; color:#6b5a46; font-weight:700; font-size:11px; line-height:1.2}
   .cal .rh small{color:#a89478; font-size:10px; font-weight:600}
   .cal-cell{
-    display:flex; flex-direction:column; gap:3px; min-height:64px;
+    display:flex; flex-direction:column; gap:3px; min-height:58px;
     padding:5px; border-radius:11px; border:1px solid #ece0cc; background:#fffdf8;
   }
   .cal-cell.is-empty{background:#fbf5ea; border-style:dashed; border-color:#e6d9c3}
@@ -2932,11 +2932,18 @@ function confirmFromMatch(groupId, dateStr, blockId) {
 /* ---------------- 렌더 : 확정 파티 주간 캘린더 (목~수 · 5시간대) ---------------- */
 function partyCalTitle(p) {
   var g = p.groupId ? getGroup(p.groupId) : null;
-  var t = (g && g.name ? g.name + ' · ' : '') + (p.boss || '') + ' · ' + p.startTime + ' 시작 · ' + (Number(p.durationMin) || 120) + '분';
+  var t = (g && g.name ? g.name + ' · ' : '') + (p.boss || '') + ' · ' + partyHMRange(p) + ' · ' + (Number(p.durationMin) || 120) + '분';
   if (p.members && p.members.length) t += ' · ' + p.members.join('·');
   return t;
 }
-function calChipMarkup(p, isStart) {
+/* 시작~끝 시각 (600분짜리처럼 자정을 넘기면 06:00처럼 나온다) */
+function partyHMRange(p) {
+  var s = timeToMin(p.startTime);
+  var e = s + (Number(p.durationMin) || 120);
+  var h = Math.floor((e % 1440) / 60), mi = e % 60;
+  return (p.startTime || '00:00') + '–' + pad2(h) + ':' + pad2(mi);
+}
+function calChipMarkup(p, isStart, mobile) {
   var g = p.groupId ? getGroup(p.groupId) : null;
   var cc = g ? groupColor(g) : '#2f7a4a';
   var name = partyShortLabel(p);
@@ -2945,7 +2952,7 @@ function calChipMarkup(p, isStart) {
     ' title="' + esc(title) + '" aria-label="' + esc(title) + ' — 확정된 파티 카드로 이동"';
   if (isStart) {
     return '<button type="button" class="cal-chip is-start"' + attr + '><b>' + esc(name) + '</b>' +
-      '<small>' + esc(p.startTime) + '</small></button>';
+      '<small>' + esc(mobile ? p.startTime : partyHMRange(p)) + '</small></button>';
   }
   return '<button type="button" class="cal-chip is-cont"' + attr + '><span class="ar">↳</span><b>' + esc(name) + '</b></button>';
 }
@@ -2957,7 +2964,7 @@ function calCellMarkup(day, blk, mobile) {
   var html = '<div class="cal-cell' + (list.length ? '' : ' is-empty') + (isToday ? ' is-today' : '') + '">';
   var limit = mobile ? 2 : 3;
   for (var i = 0; i < list.length && i < limit; i++) {
-    html += calChipMarkup(list[i], partyStartCell(list[i]) === key);
+    html += calChipMarkup(list[i], partyStartCell(list[i]) === key, mobile);
   }
   if (list.length > limit) html += '<span class="cal-more">+' + (list.length - limit) + '</span>';
   html += '</div>';
@@ -3031,7 +3038,7 @@ function renderConfirmedCalendar() {
   if (note) {
     var range = weekLabelFor(ui.weekOffset) + '(' + weekRangeShort(ui.weekOffset) + ')';
     if (n) {
-      note.innerHTML = '<div class="cal-sum">' + range + ' 확정 파티 <b>' + n + '개</b> · 카드를 누르면 아래에서 바로 내보낼 수 있어요</div>';
+      note.innerHTML = '<div class="cal-sum">' + range + ' · 확정 파티 <b>' + n + '건</b></div>';
     } else {
       var goOff = nearestPartyWeekOffset();
       var go = '';
