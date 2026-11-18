@@ -3083,12 +3083,11 @@ function applyReschedule() {
   if (!p) { toast('옮길 확정 파티를 찾지 못했어요. 다시 시도해 주세요'); return; }
   var members = groupMembers(g), bosses = groupBossList(g);
   if (!members.length || !bosses.length) { toast('고정 파티 정보를 확인해 주세요'); return; }
-  var dur = Number(blk.dur) * Math.max(1, bosses.length);
+  /* 옮기는 것은 날짜·시각(+보스 개수만큼의 길이)뿐 — 적어 둔 보스 이름·파티원·메모는 그대로 둔다 */
+  var bossCount = String(p.boss || '').split('·').filter(function (x) { return x.trim(); }).length;
   p.date = req.dateStr;
   p.startTime = blk.start;
-  p.durationMin = dur;
-  p.boss = bosses.join(' · ');
-  p.members = members.map(function (m) { return m.nick; });
+  p.durationMin = Number(blk.dur) * Math.max(1, bossCount);
   save();
   ui.freshPartyId = p.id;
   renderAll();
