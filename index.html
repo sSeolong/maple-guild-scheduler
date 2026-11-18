@@ -2985,6 +2985,32 @@ function calGridMarkup(mobile) {
   }
   return html;
 }
+/* 확정 파티가 걸려 있는 주(offset)들 — 지금 보고 있는 주에 아무것도 없을 때 어느 주로 갈지 고른다 */
+function partyWeekOffsets() {
+  var out = [];
+  for (var off = -8; off <= 12; off++) {
+    var ws = weekStartFor(off);
+    var s = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate()).getTime();
+    var e = s + 7 * 86400000;
+    for (var i = 0; i < state.parties.length; i++) {
+      var pr = partyRangeFor(state.parties[i]);
+      if (pr && s < pr.e && pr.s < e) { out.push(off); break; }
+    }
+  }
+  return out;
+}
+function nearestPartyWeekOffset() {
+  var list = partyWeekOffsets();
+  if (!list.length) return null;
+  var best = null;
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] === ui.weekOffset) continue;
+    if (best === null) { best = list[i]; continue; }
+    var d1 = Math.abs(list[i]), d0 = Math.abs(best);
+    if (d1 < d0 || (d1 === d0 && list[i] > best)) best = list[i];
+  }
+  return best;
+}
 function renderConfirmedCalendar() {
   var host = byId('calHost');
   if (!host) return;
@@ -3007,7 +3033,13 @@ function renderConfirmedCalendar() {
     if (n) {
       note.innerHTML = '<div class="cal-sum">' + range + ' 확정 파티 <b>' + n + '개</b> · 카드를 누르면 아래에서 바로 내보낼 수 있어요</div>';
     } else {
-      note.innerHTML = '<div class="cal-sum is-none">' + range + '에는 확정된 파티가 없습니다. 주를 넘겨 보거나 아래 자동 매칭에서 날짜를 골라 확정해 보세요.</div>';
+      var goOff = nearestPartyWeekOffset();
+      var go = '';
+      if (goOff !== null) {
+        go = ' <button type="button" class="wk-go" data-action="week-goto" data-offset="' + goOff + '">' +
+          weekLabelFor(goOff) + '(' + weekRangeShort(goOff) + ') 보기 →</button>';
+      }
+      note.innerHTML = '<div class="cal-sum is-none">' + range + '에는 확정된 파티가 없습니다. 주를 넘겨 보거나 아래 자동 매칭에서 날짜를 골라 확정해 보세요.' + go + '</div>';
     }
   }
   renderCalWeekBar();
