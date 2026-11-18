@@ -560,13 +560,13 @@
 
     /* 모바일: 요일을 행으로 돌려 7일이 한 화면에 다 보이게 */
     .grid-d{display:none}
-    .grid-m{display:grid; min-width:0; grid-template-columns:44px repeat(4,minmax(0,1fr)); gap:4px}
-    .grid-m .cell{min-height:44px; border-radius:10px; font-size:13.5px}
-    .grid-m .cell.heat{height:70px; min-height:70px; overflow:hidden; padding:4px 5px 5px; gap:1px}
-    .grid-m .cell.has-party{height:70px; padding:7px 6px}
-    .grid-m .c-names i{font-size:8.6px; padding:1px 3px}
-    .grid-m .c-n{font-size:8.5px}
-    .grid-m .c-dots i{width:5px; height:5px}
+    .grid-m{display:grid; min-width:0; grid-template-columns:38px repeat(5,minmax(0,1fr)); gap:3px}
+    .grid-m .cell{min-height:44px; border-radius:9px; font-size:13px}
+    .grid-m .cell.heat{height:72px; min-height:72px; overflow:hidden; padding:4px 4px 5px; gap:1px}
+    .grid-m .cell.has-party{height:72px; padding:6px 5px}
+    .grid-m .c-names i{font-size:8.2px; padding:1px 2px}
+    .grid-m .c-n{font-size:8px}
+    .grid-m .c-dots i{width:4.5px; height:4.5px}
     .step{gap:8px}
     .step-no{width:20px; height:20px; font-size:11px}
     .setup-group-row{padding:7px 8px}
@@ -574,11 +574,11 @@
     .u-when{flex:1 1 100%}
     .member-pick select{flex:1 1 100%}
     .member-pick .btn{flex:1 1 auto; justify-content:center}
-    .grid-m .rh{align-items:center; font-size:12px; font-weight:800; color:#3a2c20; padding-left:2px; line-height:1.15}
-    .grid-m .rh small{font-size:9.5px; font-weight:600}
+    .grid-m .rh{align-items:center; font-size:11.5px; font-weight:800; color:#3a2c20; padding-left:1px; line-height:1.15}
+    .grid-m .rh small{font-size:9px; font-weight:600}
     .grid-m .gh{padding:2px 0}
-    .grid-m .gb b{font-size:10px; color:#3a2c20; white-space:nowrap}
-    .grid-m .gb small{font-size:8.5px}
+    .grid-m .gb b{font-size:9.5px; color:#3a2c20; white-space:nowrap; letter-spacing:-.3px}
+    .grid-m .gb small{font-size:8px; letter-spacing:-.2px}
 
     .chip-member{font-size:11.5px; padding:5px 8px; max-width:200px}
     .mini{width:21px; height:21px; font-size:11px}
@@ -706,6 +706,7 @@
           <button type="button" class="pill is-active" data-action="week-goto" data-offset="0">이번 주</button>
           <button type="button" class="pill" data-action="week-goto" data-offset="1">다음 주</button>
         </div>
+        <p class="hint" style="margin:8px 0 0">보스 리셋이 목요일이라 주간은 <b>목요일 ~ 수요일</b>로 셉니다.</p>
       </div>
 
       <div class="card">
@@ -929,16 +930,18 @@
    3) 가능 시간 칸에 길드원 닉네임 표시 · '파티 구함' 탭 · 자동 매칭 · .ics 내보내기
    ========================================================= */
 
-var STORE_KEY = 'mapleGuildScheduler.v3';
-var LEGACY_KEYS = ['mapleGuildScheduler.v2', 'mapleGuildScheduler.v1'];
+var STORE_KEY = 'mapleGuildScheduler.v4';
+var LEGACY_KEYS = ['mapleGuildScheduler.v3', 'mapleGuildScheduler.v2', 'mapleGuildScheduler.v1'];
 var GUILD_NAME = '메이플 길드';
-var DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
+/* 보스 리셋이 목요일이라 주간도 목요일~수요일 (목 = 0) */
+var DAY_NAMES = ['목', '금', '토', '일', '월', '화', '수'];
 
 var BLOCKS = [
-  { id: 'b1', label: '오후 6~8시', short: '6~8시', time: '18:00–20:00', start: '18:00', dur: 120 },
-  { id: 'b2', label: '오후 8~10시', short: '8~10시', time: '20:00–22:00', start: '20:00', dur: 120 },
-  { id: 'b3', label: '오후 10시~자정', short: '10~자정', time: '22:00–24:00', start: '22:00', dur: 120 },
-  { id: 'b4', label: '자정 이후', short: '자정~2시', time: '00:00–02:00', start: '00:00', dur: 120, afterMidnight: true }
+  { id: 'b0', label: '오전 10~12시', short: '10~12시', mini: '10–12', time: '10:00–12:00', start: '10:00', dur: 120 },
+  { id: 'b1', label: '오후 6~8시', short: '6~8시', mini: '6–8', time: '18:00–20:00', start: '18:00', dur: 120 },
+  { id: 'b2', label: '오후 8~10시', short: '8~10시', mini: '8–10', time: '20:00–22:00', start: '20:00', dur: 120 },
+  { id: 'b3', label: '오후 10시~자정', short: '10~자정', mini: '10–자정', time: '22:00–24:00', start: '22:00', dur: 120 },
+  { id: 'b4', label: '자정 이후', short: '자정~2시', mini: '자정–2', time: '00:00–02:00', start: '00:00', dur: 120, afterMidnight: true }
 ];
 
 var JOBS = [
@@ -1010,11 +1013,11 @@ function addDays(d, n) {
 }
 function startOfWeek(d) {
   var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  var off = (x.getDay() + 6) % 7; /* 월요일 = 0 */
+  var off = (x.getDay() + 3) % 7; /* 목요일 = 0 (보스 리셋 주간) */
   x.setDate(x.getDate() - off);
   return x;
 }
-function dowIndex(d) { return (d.getDay() + 6) % 7; }
+function dowIndex(d) { return (d.getDay() + 3) % 7; }
 function fmtMD(d) { return (d.getMonth() + 1) + '월 ' + d.getDate() + '일'; }
 function fmtMDW(d) { return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + DAY_NAMES[dowIndex(d)] + ')'; }
 function fmtYMDW(d) { return d.getFullYear() + '년 ' + fmtMDW(d); }
@@ -1258,10 +1261,50 @@ function looksLikeV2Sample(s) {
   for (var j = 0; j < V2_SAMPLE_NICKS.length; j++) if (!seen[V2_SAMPLE_NICKS[j]]) return false;
   return true;
 }
+/* v1~v3 데이터는 '월요일 = 0' 기준이라, 칸을 실제 날짜로 풀어서 목요일 주간 키·요일 번호로 옮긴다 */
+function remapLegacyAvailability(av) {
+  var out = {};
+  if (!av || typeof av !== 'object') return out;
+  var validBlocks = {};
+  for (var bi = 0; bi < BLOCKS.length; bi++) validBlocks[BLOCKS[bi].id] = 1;
+  var weeks = Object.keys(av);
+  for (var wi = 0; wi < weeks.length; wi++) {
+    var wk = weeks[wi];
+    var src = av[wk];
+    if (!src || typeof src !== 'object') continue;
+    var wsd = parseYmd(wk);
+    var mids = Object.keys(src);
+    for (var mi = 0; mi < mids.length; mi++) {
+      var id = mids[mi];
+      var list = src[id];
+      if (!isArr(list)) continue;
+      for (var li = 0; li < list.length; li++) {
+        var parts = String(list[li]).split(':');
+        var day = Number(parts[0]);
+        var blockId = parts[1];
+        if (parts.length < 2 || !validBlocks[blockId] || isNaN(day)) continue;
+        var nkey = null;
+        var target = wk;
+        if (wsd) {
+          var slotDate = addDays(wsd, day);
+          target = ymd(startOfWeek(slotDate));
+          nkey = dowIndex(slotDate) + ':' + blockId;
+        } else {
+          nkey = day + ':' + blockId; /* 날짜가 아닌 키는 그대로 둔다 */
+        }
+        if (!out[target]) out[target] = {};
+        if (!out[target][id]) out[target][id] = [];
+        if (out[target][id].indexOf(nkey) < 0) out[target][id].push(nkey);
+      }
+    }
+  }
+  return out;
+}
 function migrateLegacy(old) {
   var s = normalize(old);
   /* v2 샘플을 그대로 쓰던 경우에만 새 샘플로 교체 (직접 넣은 닉네임이 있으면 그대로 둠) */
   if (looksLikeV2Sample(s)) return buildSample();
+  s.availability = remapLegacyAvailability(s.availability);
   if (!s.groups.length) {
     var sample = buildSample();
     s.groups = sample.groups.filter(function (g) {
@@ -1308,11 +1351,11 @@ function buildSample() {
     { id: 'm5', nick: '강철방패' }
   ];
   var pattern = {
-    m1: ['0:b2', '0:b3', '1:b2', '3:b2', '4:b2', '5:b2'],
-    m2: ['0:b2', '0:b3', '1:b2', '2:b3', '3:b2', '4:b2', '5:b1', '5:b2'],
-    m3: ['0:b3', '1:b2', '2:b3', '3:b3', '4:b2', '5:b2', '6:b2'],
-    m4: ['0:b3', '2:b3', '3:b3', '4:b2', '5:b2'],
-    m5: ['1:b2', '3:b2', '6:b2']
+    m1: ['0:b2', '0:b3', '1:b2', '2:b0', '3:b2', '4:b2', '5:b2'],
+    m2: ['0:b2', '0:b3', '1:b2', '2:b0', '2:b3', '3:b0', '3:b2', '4:b2', '5:b1', '5:b2'],
+    m3: ['0:b3', '1:b2', '2:b0', '2:b3', '3:b0', '3:b3', '4:b2', '5:b2', '6:b2'],
+    m4: ['0:b3', '2:b3', '3:b0', '3:b3', '4:b2', '5:b2'],
+    m5: ['1:b2', '2:b0', '2:b2', '3:b0', '6:b2']
   };
   var availability = {};
   var thisWeek = ymd(startOfWeek(new Date()));
@@ -1323,14 +1366,14 @@ function buildSample() {
   for (i = 0; i < members.length; i++) {
     var id = members[i].id;
     availability[thisWeek][id] = pattern[id].slice();
-    /* 다음 주는 이른 시간은 빠지고 늦은 시간 위주로 */
-    availability[nextWeek][id] = pattern[id].filter(function (slot) { return slot.indexOf(':b1') < 0; });
+    /* 다음 주는 이른 시간(오전·6~8시)은 빠지고 늦은 시간 위주로 */
+    availability[nextWeek][id] = pattern[id].filter(function (slot) { return slot.indexOf(':b0') < 0 && slot.indexOf(':b1') < 0; });
     if (!availability[nextWeek][id].length) availability[nextWeek][id] = pattern[id].slice(0, 3);
   }
 
   var today = new Date();
-  var p1Date = nextWeekday(today, 5);        /* 다가오는 금요일 */
-  var p2Date = addDays(nextWeekday(today, 2), 7); /* 다음 주 화요일 */
+  var p1Date = nextWeekday(today, 4);        /* 다가오는 목요일 — 보스 리셋일 */
+  var p2Date = addDays(p1Date, 5);           /* 같은 주 화요일 */
   var parties = [
     {
       id: 'p1',
@@ -1766,6 +1809,7 @@ function renderGridHint() {
     var mine = m.id === state.settings.myMemberId;
     el.innerHTML = '<b>' + esc(m.nick) + '</b>' + (mine ? ' <span class="week-tag">내 캐릭터</span>' : '') +
       ' 님의 ' + weekLabelFor(ui.weekOffset) + ' 가능 시간 — 칸을 누르면 표시/해제됩니다.';
+    if (ui.weekOffset === 0) el.innerHTML += ' <span class="week-tag">목~수 주간</span>';
   }
 }
 function renderGrid() {
@@ -1805,7 +1849,7 @@ function gridMarkup(mode, mobile) {
     }
   } else {
     for (b = 0; b < BLOCKS.length; b++) {
-      html += '<div class="gh gb"><b>' + BLOCKS[b].short + '</b><small>' + BLOCKS[b].start + '</small></div>';
+      html += '<div class="gh gb"><b>' + (BLOCKS[b].mini || BLOCKS[b].short) + '</b><small>' + BLOCKS[b].start + '</small></div>';
     }
     for (d = 0; d < 7; d++) {
       var dd = addDays(ws, d);
