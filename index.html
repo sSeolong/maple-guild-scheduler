@@ -65,6 +65,16 @@
   .hero p{margin:3px 0 0; font-size:12.5px; color:#c3b3a0}
   .hero .guild{margin-left:auto; text-align:right; font-size:11.5px; color:#9d8d7b; line-height:1.35}
   .hero .guild b{display:block; color:#f0c48a; font-size:12.5px}
+  /* 실시간 동기화 상태 표시 */
+  .sync-pill{
+    display:inline-flex; align-items:center; gap:5px; margin-top:7px;
+    padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:800;
+    border:1px solid rgba(255,255,255,.14); color:#c3b3a0; background:rgba(255,255,255,.05);
+    white-space:nowrap; letter-spacing:-.01em;
+  }
+  .sync-pill.is-on{color:#93e6b4; border-color:rgba(79,210,135,.38); background:rgba(47,125,79,.18)}
+  .sync-pill.is-busy{color:#f6c882; border-color:rgba(239,139,31,.38); background:rgba(239,139,31,.16)}
+  .sync-pill.is-off{color:#f0b3a2; border-color:rgba(184,69,44,.42); background:rgba(184,69,44,.18)}
 
   /* ---------- tabs ---------- */
   .tabs{
@@ -605,6 +615,7 @@
     <div>
       <h1>메이플스토리 <span class="amp">길드 스케줄</span></h1>
       <p>가능 시간을 모아서, 보스 파티를 캘린더까지 한 번에</p>
+      <div class="sync-pill" id="syncPill" title="길드 공용 데이터는 Firebase에 실시간으로 저장됩니다"><span id="syncLabel">🔄 연결 중...</span></div>
     </div>
     <div class="guild">
       <b>메이플 길드</b>
@@ -922,13 +933,17 @@
   </main>
 
   <footer class="foot">
-    <p>입력한 내용은 이 브라우저 안(localStorage)에만 저장됩니다.<br>다른 기기와 공유하려면 브라우저 데이터를 함께 옮겨 주세요.</p>
+    <p><b>길드 공용 데이터</b>는 Firebase에 실시간으로 저장되어, 같은 주소를 연 길드원 모두 같은 내용을 봅니다.<br>연결이 끊기면 이 브라우저(localStorage)에 남겨 두었다가 다시 연결될 때 올립니다. <b>내 캐릭터</b>는 이 기기에만 저장됩니다.</p>
     <button type="button" class="btn btn-sm" data-action="reset-sample">샘플 데이터로 되돌리기</button>
     <button type="button" class="btn btn-sm" data-action="reset-empty" style="margin-left:6px">샘플 비우고 빈 상태로</button>
   </footer>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Firebase (Realtime Database) — 실시간 동기화 -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
 <script>
 /* =========================================================
@@ -1218,8 +1233,16 @@ function icsFileName(p) {
 }
 
 /* ---------------- 저장 / 불러오기 ---------------- */
+function saveLocalOnly() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    /* 내 캐릭터는 이 기기에만 남긴다 (다른 길드원 화면은 건드리지 않음) */
+    localStorage.setItem(MY_MEMBER_KEY, (state.settings && state.settings.myMemberId) || '');
+  } catch (err) { /* 저장 불가 환경 무시 */ }
+}
 function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (err) { /* 저장 불가 환경 무시 */ }
+  saveLocalOnly();
+  if (typeof FB !== 'undefined' && FB.ref) fbSchedulePush();
 }
 function readRaw(key) {
   try { return localStorage.getItem(key); } catch (err) { return null; }
@@ -2229,6 +2252,7 @@ function renderSetup() {
 }
 function applySetupOpen(open) {
   ui.setupOpen = !!open;
+  try { localStorage.setItem(SETUP_FOLD_KEY, open ? '0' : '1'); } catch (e) { /* 무시 */ }
   var body = byId('setupBody');
   var sum = byId('setupSummary');
   var btn = byId('setupFoldBtn');
@@ -2826,7 +2850,7 @@ function finishSetup() {
   if (grid && grid.scrollIntoView) setTimeout(function () { grid.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 90);
 }
 function resetEmpty() {
-  if (!confirm('샘플 데이터를 모두 지우고 빈 상태로 시작할까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글도 함께 지워집니다.')) return;
+  if (!confirm('샘플 데이터를 모두 지우고 빈 상태로 시작할까요?\n길드원·가능 시간·파티 일정·모집 글이 모두 지워지고, 같은 링크를 연 길드원 전원에게 함께 적용됩니다.')) return;
   state = { members: [], availability: {}, parties: [], groups: [], recruits: [], settings: { myMemberId: '', setupDone: false } };
   ui.activeMemberId = null;
   ui.selectedSlot = null;
@@ -2834,6 +2858,7 @@ function resetEmpty() {
   ui.showAllMatches = {};
   ui.freshPartyId = null;
   save();
+  fbReplaceAll();
   resetPartyForm();
   resetGroupForm();
   resetRecruitForm();
@@ -3056,7 +3081,7 @@ function buildSelects() {
   byId('rJob').innerHTML = jobHtml;
 }
 function resetSample() {
-  if (!confirm('샘플 데이터로 되돌릴까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글이 모두 사라집니다.')) return;
+  if (!confirm('샘플 데이터로 되돌릴까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글이 모두 사라지고, 같은 링크를 연 길드원 전원에게 함께 적용됩니다.')) return;
   state = buildSample();
   ui.weekOffset = 0;
   ui.selectedSlot = null;
@@ -3067,12 +3092,13 @@ function resetSample() {
   ui.openOnly = false;
   ui.freshPartyId = null;
   save();
+  fbReplaceAll();
   resetPartyForm();
   resetGroupForm();
   resetRecruitForm();
   applySetupOpen(!state.settings.setupDone);
   renderAll();
-  toast('샘플 데이터로 되돌렸어요');
+  toast('샘플 데이터로 되돌렸어요 (길드 공용)');
 }
 
 function handleAction(action, el) {
@@ -3218,10 +3244,16 @@ function bindEvents() {
 
 function init() {
   load();
+  /* 이 기기에 저장해 둔 '내 캐릭터'를 우선 사용한다 */
+  var savedMine = readRaw(MY_MEMBER_KEY);
+  if (savedMine && getMemberIn(state.members, savedMine)) state.settings.myMemberId = savedMine;
   if (!getMember(ui.activeMemberId)) {
     ui.activeMemberId = getMember(state.settings.myMemberId) ? state.settings.myMemberId : (state.members.length ? state.members[0].id : null);
   }
-  ui.setupOpen = !state.settings.setupDone;
+  var foldPref = readRaw(SETUP_FOLD_KEY);
+  if (foldPref === '0') ui.setupOpen = true;
+  else if (foldPref === '1') ui.setupOpen = false;
+  else ui.setupOpen = !state.settings.setupDone;
   buildSelects();
   resetPartyForm();
   resetGroupForm();
@@ -3232,6 +3264,420 @@ function init() {
   /* 등록 폼은 접어 두고, 목록이 먼저 보이게 한다 */
   setFolded('partyFormCard', true);
   setFolded('recruitFormCard', true);
+  /* 실시간 동기화 시작 (실패하면 localStorage만으로 조용히 동작) */
+  fbInit();
+}
+
+/* =========================================================
+   Firebase 실시간 동기화 (Realtime Database)
+   ---------------------------------------------------------
+   · 길드 공용 데이터(길드원 · 고정 파티 · 확정 파티 · 모집 글 · 가능 시간)는
+     /guild/v1 아래에만 저장합니다. → 모든 기기/탭이 같은 내용을 봅니다.
+   · 내 캐릭터(myMember)와 세팅 접힘 상태는 이 기기(localStorage)에만 남깁니다.
+   · 가능 시간은 '주 / 길드원 / 칸' 한 칸(leaf) 단위로만 씁니다.
+     두 사람이 동시에 서로 다른 칸을 눌러도 서로 덮어쓰지 않습니다.
+   ========================================================= */
+var FB_CONFIG = {
+  apiKey: "AIzaSyCznd1dNz6JSwx1IFPp7cZio8EbRwaz6Fc",
+  authDomain: "maple-guild.firebaseapp.com",
+  databaseURL: "https://maple-guild-default-rtdb.firebaseio.com",
+  projectId: "maple-guild",
+  storageBucket: "maple-guild.firebasestorage.app",
+  messagingSenderId: "112783816028",
+  appId: "1:112783816028:web:b41577f289cd90531ebd99",
+  measurementId: "G-ZLE6T596G4"
+};
+var FB_ROOT = '/guild/v1';
+var MY_MEMBER_KEY = 'mapleGuildScheduler.myMember';
+var SETUP_FOLD_KEY = 'mapleGuildScheduler.setupCollapsed';
+var FB = {
+  ref: null,
+  db: null,
+  ready: false,
+  connected: false,
+  failed: false,
+  shadow: null,          /* 마지막으로 서버와 맞춘 값 (평평한 경로 → 값) */
+  pending: {},           /* 서버에 아직 반영 확인이 안 된 내 변경 */
+  pushTimer: null,
+  appliedSig: '',
+  lastLocalTs: 0
+};
+
+/* RTDB 키에 쓸 수 없는 문자(. # $ / [ ])를 안전하게 바꾼다 */
+function fbKey(s) {
+  return String(s).replace(/[.#$\/\[\]]/g, function (c) {
+    return '_x' + c.charCodeAt(0).toString(16);
+  });
+}
+function fbObjArr(arr) {
+  var o = {};
+  for (var i = 0; i < (arr || []).length; i++) o[String(i)] = String(arr[i]);
+  return o;
+}
+function fbFromObjArr(v) {
+  var out = [];
+  if (!v) return out;
+  if (isArr(v)) { for (var i = 0; i < v.length; i++) out.push(String(v[i])); return out; }
+  if (typeof v !== 'object') { out.push(String(v)); return out; }
+  var keys = Object.keys(v);
+  keys.sort(function (a, b) { return Number(a) - Number(b); });
+  for (var k = 0; k < keys.length; k++) if (v[keys[k]] !== null && v[keys[k]] !== undefined) out.push(String(v[keys[k]]));
+  return out;
+}
+function fbFlattenTree(obj, prefix, out) {
+  var keys = Object.keys(obj || {});
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i], v = obj[k];
+    if (v === undefined || v === null) continue;
+    var p = prefix ? prefix + '/' + k : k;
+    if (typeof v === 'object' && !isArr(v)) {
+      if (Object.keys(v).length) fbFlattenTree(v, p, out);
+    } else {
+      out[p] = isArr(v) ? v.join(',') : v;
+    }
+  }
+  return out;
+}
+function fbSig(flat) {
+  var keys = Object.keys(flat || {});
+  keys.sort();
+  var parts = [];
+  for (var i = 0; i < keys.length; i++) parts.push(keys[i] + '=' + String(flat[keys[i]]));
+  return parts.join('&');
+}
+function fbSetPath(obj, path, value) {
+  var parts = String(path).split('/');
+  var cur = obj;
+  for (var i = 0; i < parts.length - 1; i++) {
+    if (!cur[parts[i]] || typeof cur[parts[i]] !== 'object') cur[parts[i]] = {};
+    cur = cur[parts[i]];
+  }
+  var last = parts[parts.length - 1];
+  if (value === null) delete cur[last];
+  else cur[last] = value;
+}
+function fbOrderSorter(coll) {
+  return function (a, b) {
+    var oa = Number(coll[a] && coll[a].order);
+    var ob = Number(coll[b] && coll[b].order);
+    if (isNaN(oa)) oa = 1e9;
+    if (isNaN(ob)) ob = 1e9;
+    if (oa !== ob) return oa - ob;
+    return a < b ? -1 : (a > b ? 1 : 0);
+  };
+}
+
+/* 로컬 상태 → 서버에 저장할 모양 (settings 는 기기 전용이라 넣지 않는다) */
+function fbStateToRemote(s) {
+  var out = { members: {}, fixedParties: {}, confirmedParties: {}, recruits: {}, availability: {}, seeded: true };
+  var i;
+  for (i = 0; i < (s.members || []).length; i++) {
+    var m = s.members[i];
+    if (!m || !m.id) continue;
+    out.members[fbKey(m.id)] = { id: String(m.id), nick: String(m.nick || ''), order: i };
+  }
+  for (i = 0; i < (s.groups || []).length; i++) {
+    var g = s.groups[i];
+    if (!g || !g.id) continue;
+    out.fixedParties[fbKey(g.id)] = {
+      id: String(g.id), name: String(g.name || ''), bossList: fbObjArr(g.bossList || []),
+      memberIds: fbObjArr(g.memberIds || []), memo: String(g.memo || ''),
+      color: String(g.color || ''), order: i
+    };
+  }
+  for (i = 0; i < (s.parties || []).length; i++) {
+    var p = s.parties[i];
+    if (!p || !p.id) continue;
+    out.confirmedParties[fbKey(p.id)] = {
+      id: String(p.id), boss: String(p.boss || ''), date: String(p.date || ''),
+      startTime: String(p.startTime || ''), durationMin: Number(p.durationMin) || 120,
+      alarm: String(normalizeAlarm(p.alarm)), memo: String(p.memo || ''),
+      members: fbObjArr(p.members || []), groupId: String(p.groupId || ''), order: i
+    };
+  }
+  for (i = 0; i < (s.recruits || []).length; i++) {
+    var r = s.recruits[i];
+    if (!r || !r.id) continue;
+    out.recruits[fbKey(r.id)] = {
+      id: String(r.id), name: String(r.name || ''), boss: String(r.boss || ''),
+      job: String(r.job || ''), spec: String(r.spec || ''), need: String(r.need || ''),
+      contact: String(r.contact || ''), memo: String(r.memo || ''),
+      status: r.status === 'closed' ? 'closed' : 'open', createdAt: Number(r.createdAt) || 0, order: i
+    };
+  }
+  var weeks = Object.keys(s.availability || {});
+  for (var wi = 0; wi < weeks.length; wi++) {
+    var wk = weeks[wi];
+    var byMem = s.availability[wk];
+    if (!byMem || typeof byMem !== 'object') continue;
+    var mids = Object.keys(byMem);
+    for (var mi = 0; mi < mids.length; mi++) {
+      var slots = byMem[mids[mi]];
+      if (!isArr(slots) || !slots.length) continue;
+      var enc = fbKey(mids[mi]);
+      if (!out.availability[wk]) out.availability[wk] = {};
+      var leaves = {};
+      for (var si = 0; si < slots.length; si++) leaves[String(slots[si])] = true;
+      out.availability[wk][enc] = leaves;
+    }
+  }
+  return out;
+}
+
+/* 서버 값 → 화면이 쓰는 상태 */
+function fbRemoteToState(val) {
+  var raw = { members: [], availability: {}, parties: [], groups: [], recruits: [], settings: { myMemberId: '', setupDone: false } };
+  if (!val || typeof val !== 'object') return normalize(raw);
+
+  var memObj = (val.members && typeof val.members === 'object') ? val.members : {};
+  var mkeys = Object.keys(memObj).filter(function (k) { return memObj[k] && typeof memObj[k] === 'object'; });
+  mkeys.sort(fbOrderSorter(memObj));
+  var encMap = {};
+  for (var i = 0; i < mkeys.length; i++) {
+    var rec = memObj[mkeys[i]];
+    if (!rec.nick) continue;
+    var id = String(rec.id || mkeys[i]);
+    raw.members.push({ id: id, nick: String(rec.nick) });
+    encMap[mkeys[i]] = id;
+    encMap[fbKey(id)] = id;
+  }
+
+  var av = (val.availability && typeof val.availability === 'object') ? val.availability : {};
+  var weekKeys = Object.keys(av);
+  for (var wi = 0; wi < weekKeys.length; wi++) {
+    var wk = weekKeys[wi];
+    var byMem = av[wk];
+    if (!byMem || typeof byMem !== 'object') continue;
+    var ekeys = Object.keys(byMem);
+    for (var ei = 0; ei < ekeys.length; ei++) {
+      var mid = encMap[ekeys[ei]];
+      if (!mid) continue;
+      var leaf = byMem[ekeys[ei]];
+      if (!leaf || typeof leaf !== 'object') continue;
+      var slots = [];
+      var skeys = Object.keys(leaf);
+      for (var si = 0; si < skeys.length; si++) if (leaf[skeys[si]]) slots.push(String(skeys[si]));
+      if (!slots.length) continue;
+      if (!raw.availability[wk]) raw.availability[wk] = {};
+      raw.availability[wk][mid] = slots;
+    }
+  }
+
+  var gp = (val.fixedParties && typeof val.fixedParties === 'object') ? val.fixedParties : {};
+  var gkeys = Object.keys(gp).filter(function (k) { return gp[k] && typeof gp[k] === 'object'; });
+  gkeys.sort(fbOrderSorter(gp));
+  for (var gi = 0; gi < gkeys.length; gi++) {
+    var g = gp[gkeys[gi]];
+    raw.groups.push({
+      id: String(g.id || gkeys[gi]), name: String(g.name || ''), bossList: fbFromObjArr(g.bossList),
+      memberIds: fbFromObjArr(g.memberIds), memo: String(g.memo || ''), color: String(g.color || '')
+    });
+  }
+
+  var cp = (val.confirmedParties && typeof val.confirmedParties === 'object') ? val.confirmedParties : {};
+  var pkeys = Object.keys(cp).filter(function (k) { return cp[k] && typeof cp[k] === 'object'; });
+  pkeys.sort(fbOrderSorter(cp));
+  for (var pi = 0; pi < pkeys.length; pi++) {
+    var p = cp[pkeys[pi]];
+    raw.parties.push({
+      id: String(p.id || pkeys[pi]), boss: String(p.boss || ''), date: String(p.date || ''),
+      startTime: String(p.startTime || ''), durationMin: Number(p.durationMin) || 120,
+      alarm: p.alarm, memo: String(p.memo || ''), members: fbFromObjArr(p.members),
+      groupId: String(p.groupId || '')
+    });
+  }
+
+  var rc = (val.recruits && typeof val.recruits === 'object') ? val.recruits : {};
+  var rkeys = Object.keys(rc).filter(function (k) { return rc[k] && typeof rc[k] === 'object'; });
+  rkeys.sort(fbOrderSorter(rc));
+  for (var ri = 0; ri < rkeys.length; ri++) {
+    var r = rc[rkeys[ri]];
+    raw.recruits.push({
+      id: String(r.id || rkeys[ri]), name: String(r.name || ''), boss: String(r.boss || ''),
+      job: String(r.job || ''), spec: String(r.spec || ''), need: String(r.need || ''),
+      contact: String(r.contact || ''), memo: String(r.memo || ''),
+      status: r.status === 'closed' ? 'closed' : 'open', createdAt: Number(r.createdAt) || 0
+    });
+  }
+  return normalize(raw);
+}
+
+/* ---------- 상태 표시 (헤더) ---------- */
+function setSyncStatus(mode, detail) {
+  var pill = byId('syncPill');
+  var label = byId('syncLabel');
+  if (!pill || !label) return;
+  pill.className = 'sync-pill' + (mode === 'on' ? ' is-on' : mode === 'off' ? ' is-off' : ' is-busy');
+  label.textContent = mode === 'on' ? '🟢 실시간 동기화' : mode === 'off' ? '⚠️ 오프라인 (로컬)' : '🔄 연결 중...';
+  pill.title = mode === 'on'
+    ? '길드 공용 데이터를 Firebase와 실시간으로 맞추고 있어요'
+    : mode === 'off'
+      ? ('Firebase에 연결하지 못해 이 브라우저에만 저장 중입니다' + (detail ? ' — ' + detail : ''))
+      : '실시간 동기화에 연결하는 중입니다';
+}
+
+/* ---------- 서버 → 화면 ---------- */
+function fbApplyRemote(val, force) {
+  if (!val || typeof val !== 'object') return;
+  var flat = fbFlattenTree(val, '', {});
+  /* 서버에 아직 반영 확인이 안 된 내 변경은 서버 값 위에 다시 얹어 유지한다 */
+  var pkeys = Object.keys(FB.pending);
+  for (var i = 0; i < pkeys.length; i++) {
+    var p = pkeys[i], pv = FB.pending[p];
+    var rv = Object.prototype.hasOwnProperty.call(flat, p) ? flat[p] : null;
+    if (pv === rv) { delete FB.pending[p]; continue; }
+    flat[p] = pv;
+  }
+  var sig = fbSig(flat);
+  if (!force && sig === FB.appliedSig) return;
+
+  var nested = {};
+  var keys = Object.keys(flat);
+  for (var k = 0; k < keys.length; k++) fbSetPath(nested, keys[k], flat[keys[k]]);
+
+  var remote = fbRemoteToState(nested);
+  var localSettings = (state && state.settings) ? state.settings : { myMemberId: '', setupDone: false };
+  remote.settings = { myMemberId: localSettings.myMemberId || '', setupDone: !!localSettings.setupDone };
+  if (remote.settings.myMemberId && !getMemberIn(remote.members, remote.settings.myMemberId)) {
+    remote.settings.myMemberId = '';
+  }
+  state = remote;
+  FB.appliedSig = sig;
+  FB.shadow = fbFlattenTree(fbStateToRemote(state), '', {});
+  saveLocalOnly();
+
+  if (!getMember(ui.activeMemberId)) {
+    ui.activeMemberId = getMember(state.settings.myMemberId) ? state.settings.myMemberId : (state.members.length ? state.members[0].id : null);
+  }
+  if (ui.selectedSlot) {
+    var sm = state.availability[weekKeyFor(ui.weekOffset)];
+    if (!sm) ui.selectedSlot = null;
+  }
+  renderAll();
+  if (ui.tab === 'parties') renderGroups();
+}
+
+/* ---------- 화면 → 서버 ---------- */
+function fbSchedulePush() {
+  FB.lastLocalTs = Date.now();
+  if (!FB.ref) return;
+  setSyncStatus('busy');
+  if (FB.pushTimer) clearTimeout(FB.pushTimer);
+  FB.pushTimer = setTimeout(function () { FB.pushTimer = null; fbFlush(); }, 140);
+}
+function fbFlush() {
+  if (!FB.ref) return;
+  var cur = fbFlattenTree(fbStateToRemote(state), '', {});
+  var base = FB.shadow || {};
+  var updates = {};
+  var has = false, k;
+  for (k in cur) {
+    if (!Object.prototype.hasOwnProperty.call(base, k) || cur[k] !== base[k]) { updates[k] = cur[k]; has = true; }
+  }
+  for (k in base) {
+    if (!Object.prototype.hasOwnProperty.call(cur, k)) { updates[k] = null; has = true; }
+  }
+  if (!has) { setSyncStatus(FB.failed ? 'off' : 'on'); return; }
+  FB.shadow = cur;
+  for (k in updates) FB.pending[k] = updates[k];
+  FB.ref.update(updates).then(function () {
+    FB.failed = false;
+    setSyncStatus('on');
+  }, function (err) {
+    FB.shadow = null;
+    FB.failed = true;
+    setSyncStatus('off', (err && err.message) ? err.message : '쓰기 권한을 확인해 주세요');
+  });
+}
+
+/* 초기화 · 재설정은 통째로 덮어쓴다 */
+function fbReplaceAll() {
+  if (!FB.ref) return;
+  var remote = fbStateToRemote(state);
+  remote.seeded = true;
+  var flat = fbFlattenTree(remote, '', {});
+  FB.shadow = flat;
+  FB.pending = {};
+  FB.appliedSig = fbSig(flat);
+  setSyncStatus('busy');
+  FB.ref.set(remote).then(function () {
+    FB.failed = false;
+    setSyncStatus('on');
+  }, function (err) {
+    FB.shadow = null;
+    FB.failed = true;
+    setSyncStatus('off', (err && err.message) ? err.message : '쓰기 권한을 확인해 주세요');
+  });
+}
+
+function fbInit() {
+  if (typeof firebase === 'undefined' || !firebase || !firebase.initializeApp) {
+    FB.failed = true;
+    setSyncStatus('off', 'Firebase SDK를 불러오지 못했습니다');
+    return;
+  }
+  try {
+    if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    FB.db = firebase.database();
+    FB.ref = FB.db.ref(FB_ROOT);
+  } catch (err) {
+    FB.failed = true;
+    setSyncStatus('off', 'Firebase 설정을 읽지 못했습니다');
+    return;
+  }
+
+  try {
+    FB.db.ref('.info/connected').on('value', function (snap) {
+      FB.connected = !!snap.val();
+      if (FB.connected) {
+        if (!FB.failed) setSyncStatus('on');
+      } else if (!FB.failed) {
+        setSyncStatus('busy');
+      }
+    });
+  } catch (err2) { /* 연결 상태를 못 읽어도 동작에는 지장 없음 */ }
+
+  FB.ref.once('value').then(function (snap) {
+    var val = snap.val();
+    FB.ready = true;
+    if (!val || val.seeded !== true) {
+      /* 처음 만든 데이터베이스일 때만 지금 화면(없으면 샘플)을 올린다.
+         이미 누가 쓰고 있는 데이터는 절대 샘플로 덮지 않는다. */
+      var seed = fbStateToRemote(state);
+      seed.seeded = true;
+      var flat = fbFlattenTree(seed, '', {});
+      FB.shadow = flat;
+      FB.appliedSig = fbSig(flat);
+      return FB.ref.set(seed).then(function () {
+        FB.failed = false;
+        setSyncStatus('on');
+        fbListen();
+      }, function (err) {
+        FB.failed = true;
+        setSyncStatus('off', (err && err.message) ? err.message : '쓰기 권한을 확인해 주세요');
+      });
+    }
+    FB.failed = false;
+    fbApplyRemote(val, true);
+    setSyncStatus('on');
+    fbListen();
+  }).catch(function (err) {
+    FB.failed = true;
+    setSyncStatus('off', (err && err.message) ? err.message : '연결할 수 없습니다');
+  });
+}
+
+function fbListen() {
+  if (!FB.ref) return;
+  FB.ref.on('value', function (snap) {
+    var val = snap.val();
+    if (!val) return;
+    fbApplyRemote(val, false);
+    if (!FB.failed) setSyncStatus('on');
+  }, function (err) {
+    FB.failed = true;
+    setSyncStatus('off', (err && err.message) ? err.message : '연결이 끊겼습니다');
+  });
 }
 
 if (document.readyState === 'loading') {
