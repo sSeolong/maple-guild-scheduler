@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15141b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="길드 스케줄">
+<title>메이플스토리 길드 스케줄</title>
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --bg:#141319;
+    --card:#fdf8ef;
+    --card2:#fffdf8;
+    --ink:#241c14;
+    --ink2:#6f5f4d;
+    --ink3:#96836c;
+    --line:#e6d8c0;
+    --amber:#ef8b1f;
+    --amber-deep:#c96a0c;
+    --amber-soft:#ffe6c2;
+    --slate:#2b2936;
+    --danger:#b8452c;
+    --ok:#2f7d4f;
+  }
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:#141319;
+    color:#f4ece0;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic","맑은 고딕",sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:rgba(239,139,31,.12);
+    letter-spacing:-0.01em;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(900px 520px at 12% -8%, rgba(239,139,31,.22), rgba(239,139,31,0) 62%),
+      radial-gradient(760px 460px at 96% 2%, rgba(120,84,200,.16), rgba(120,84,200,0) 60%),
+      radial-gradient(700px 500px at 50% 110%, rgba(239,139,31,.08), rgba(239,139,31,0) 60%);
+  }
+  .app{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:20px 14px 70px}
+
+  /* ---------- hero ---------- */
+  .hero{
+    display:flex; align-items:center; gap:13px;
+    padding:16px 18px; border-radius:20px;
+    background:linear-gradient(135deg,#2c241c,#1c1a22 58%);
+    border:1px solid rgba(239,139,31,.30);
+    box-shadow:0 14px 34px rgba(0,0,0,.42);
+  }
+  .leaf{
+    flex:0 0 auto; width:48px; height:48px; border-radius:15px;
+    display:grid; place-items:center; font-size:25px;
+    background:linear-gradient(160deg,#f8b455,#c96a0c);
+    box-shadow:0 8px 18px rgba(201,106,12,.45), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .hero h1{margin:0; font-size:19.5px; letter-spacing:-0.03em; font-weight:800}
+  .hero h1 .amp{color:#f6ab48}
+  .hero p{margin:3px 0 0; font-size:12.5px; color:#c3b3a0}
+  .hero .guild{margin-left:auto; text-align:right; font-size:11.5px; color:#9d8d7b; line-height:1.35}
+  .hero .guild b{display:block; color:#f0c48a; font-size:12.5px}
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    display:flex; gap:6px; margin:16px 0 14px; padding:5px;
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:15px;
+  }
+  .tab{
+    flex:1 1 0; min-width:0; padding:10px 6px; border:0; border-radius:11px;
+    background:transparent; color:#c4b5a3; font-family:inherit; font-size:13px;
+    font-weight:700; cursor:pointer; transition:background .18s, color .18s, box-shadow .18s;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .tab.is-active{
+    background:linear-gradient(160deg,#f5a63f,#dc7a11); color:#2a1a06;
+    box-shadow:0 8px 18px rgba(220,122,17,.35);
+  }
+  .tab-count{
+    display:inline-block; min-width:18px; padding:1px 5px; margin-left:3px;
+    border-radius:9px; background:rgba(43,41,54,.16); font-size:11px; vertical-align:1px;
+  }
+  .tab.is-active .tab-count{background:rgba(42,26,6,.18)}
+
+  /* ---------- panels / cards ---------- */
+  .panel{display:none}
+  .panel.is-active{display:block}
+  .card{
+    background:linear-gradient(180deg,#fdf8ef,#f6eddd);
+    color:var(--ink);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 12px 26px rgba(0,0,0,.30);
+  }
+  .card h2{
+    margin:0 0 5px; font-size:15px; font-weight:800; letter-spacing:-0.02em;
+    display:flex; align-items:center; gap:8px; color:#2a2018;
+  }
+  .card h2::before{
+    content:""; width:4px; height:16px; border-radius:2px;
+    background:linear-gradient(180deg,#f6a93f,#c96a0c); flex:0 0 auto;
+  }
+  .form-head{display:flex; align-items:center; gap:8px; margin-bottom:5px}
+  .form-head h2{margin:0; flex:1 1 auto}
+  .fold-btn{
+    flex:0 0 auto; border:1px solid #e0d2bb; background:#fffdf8; color:#7a6a58;
+    border-radius:9px; padding:4px 10px; font-family:inherit; font-size:11.5px;
+    font-weight:700; cursor:pointer;
+  }
+  .card.is-collapsed [data-fold-body]{display:none}
+  .card.is-collapsed .form-head{margin-bottom:0}
+  .card .sub{margin:0 0 13px; font-size:12.5px; color:var(--ink2); line-height:1.5}
+  .card .sub b{color:#8a5a1d}
+  .hint{margin:8px 0 0; font-size:11.5px; color:var(--ink3); line-height:1.5}
+  .hint b{color:#8a5a1d}
+
+  /* ---------- week bar ---------- */
+  .week-bar{display:flex; align-items:center; gap:10px}
+  .week-nav{
+    width:38px; height:38px; flex:0 0 auto; border-radius:12px;
+    border:1px solid #dccdb4; background:#fffdf8; color:#6b5a46;
+    font-size:19px; line-height:1; cursor:pointer; padding:0 0 3px;
+    font-family:inherit; transition:background .15s;
+  }
+  .week-nav:hover{background:#f3e8d5}
+  .week-info{flex:1 1 auto; min-width:0; text-align:center}
+  .week-info strong{display:block; font-size:15px; letter-spacing:-0.02em; color:#33261a}
+  .week-tag{
+    display:inline-block; margin-top:2px; padding:1px 8px; border-radius:8px;
+    background:var(--amber-soft); color:#9a5406; font-size:11px; font-weight:700;
+  }
+  .week-quick{display:flex; gap:7px; margin-top:12px; flex-wrap:wrap}
+  .pill{
+    padding:6px 12px; border-radius:999px; border:1px solid #e0d2bb;
+    background:#fffdf8; color:#6b5a46; font-family:inherit; font-size:12px;
+    font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .pill.is-active{background:var(--slate); border-color:var(--slate); color:#ffe6c2}
+
+  /* ---------- member chips ---------- */
+  .chips{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px}
+  .member-item{display:inline-flex; align-items:center; gap:2px; background:#fffdf8; border-radius:999px; border:1px solid #e4d6c0; padding:2px 3px 2px 2px}
+  .chip-member{
+    display:inline-flex; align-items:center; gap:5px; padding:6px 10px;
+    border-radius:999px; border:0; background:transparent; color:#3a2c20;
+    font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+    transition:.15s; max-width:190px;
+  }
+  .chip-member.is-active{background:var(--slate); color:#ffe6c2}
+  .mini{
+    width:22px; height:22px; border-radius:50%; border:0; background:#f0e5d2;
+    color:#8a7660; font-size:12px; line-height:1; cursor:pointer; padding:0;
+    font-family:inherit; transition:.15s;
+  }
+  .mini:hover{background:#e5d5bc; color:#5a4835}
+  .mini.del:hover{background:#f7dfda; color:#a83a24}
+
+  /* ---------- forms ---------- */
+  .field{display:block; font-size:11.5px; font-weight:700; color:var(--ink2); margin-bottom:5px}
+  .field-block{margin-bottom:11px}
+  input[type=text], input[type=date], input[type=time], select, textarea{
+    width:100%; padding:10px 12px; border-radius:11px; border:1px solid #dccdb4;
+    background:#fffdf8; color:#33251a; font-family:inherit; font-size:13.5px;
+    transition:border-color .15s, box-shadow .15s; -webkit-appearance:none; appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a7660'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; padding-right:30px;
+  }
+  textarea{resize:vertical; min-height:56px; line-height:1.5}
+  input:focus, select:focus, textarea:focus{
+    outline:none; border-color:#e39a2c; box-shadow:0 0 0 3px rgba(227,154,44,.20);
+  }
+  input::placeholder, textarea::placeholder{color:#b5a48e}
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:11px}
+  .form-row.one{grid-template-columns:1fr}
+  .form-row.three{grid-template-columns:1fr 1fr 1fr}
+  .form-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:4px}
+  .checks{display:flex; flex-wrap:wrap; gap:6px}
+  .check{
+    display:inline-flex; align-items:center; gap:6px; padding:7px 11px;
+    border-radius:999px; border:1px solid #e0d2bb; background:#fffdf8;
+    font-size:12.5px; color:#5a4835; cursor:pointer; font-weight:600;
+  }
+  .check input{width:auto; margin:0; accent-color:#dc7a11}
+  .check.is-on, .check:has(input:checked){background:var(--amber-soft); border-color:#efb265; color:#8a4d05}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    border:0; border-radius:11px; padding:9px 14px; font-family:inherit;
+    font-size:13px; font-weight:700; cursor:pointer; background:#efe3cd; color:#4a3626;
+    transition:.15s; text-decoration:none; display:inline-flex; align-items:center; gap:5px;
+    line-height:1.35;
+  }
+  .btn:hover{background:#e6d6bb}
+  .btn-primary{
+    background:linear-gradient(160deg,#f5a63f,#d97706); color:#2f1d05;
+    box-shadow:0 7px 16px rgba(217,119,6,.30);
+  }
+  .btn-primary:hover{background:linear-gradient(160deg,#ffb356,#e0820e)}
+  .btn-ghost{background:transparent; border:1px solid #d8c8ae; color:#6b5a46}
+  .btn-ghost:hover{background:#f2e7d4}
+  .btn-danger{background:#f7dfda; color:#a83a24}
+  .btn-danger:hover{background:#f1cdc5}
+  .btn-sm{padding:7px 11px; font-size:12px; border-radius:10px}
+  .btn:disabled{opacity:.45; cursor:not-allowed; box-shadow:none}
+
+  /* ---------- grids ---------- */
+  .grid-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -3px; padding:0 3px 3px}
+  .grid{
+    display:grid; gap:5px; min-width:700px;
+    grid-template-columns:88px repeat(7,minmax(0,1fr));
+  }
+  .grid-m{display:none}
+  .gh, .rh{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:3px 2px; font-size:11.5px; line-height:1.2;
+  }
+  .gh b{font-size:12.5px; color:#3a2c20; font-weight:800}
+  .gh small{font-size:10px; color:#a08c74; font-weight:600}
+  .rh{align-items:flex-start; text-align:left; padding-left:3px; color:#6b5a46; font-weight:700; font-size:11px; line-height:1.2}
+  .rh small{color:#a89478; font-size:10px; font-weight:600}
+  .cell{
+    min-height:40px; border-radius:11px; border:1px dashed #d9c9ae; background:#fffdf8;
+    font-family:inherit; font-size:12.5px; font-weight:800; color:#a89478;
+    cursor:pointer; display:grid; place-items:center; padding:0; transition:.13s;
+  }
+  .cell:hover{border-color:#e0a44f; background:#fff7e8}
+  .cell.on{
+    background:linear-gradient(160deg,#f8ba62,#e08417); border:1px solid #c96a0c;
+    color:#3a2205; box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .cell.heat{border-style:solid; border-color:#eadcc6}
+
+  /* 칸 안에 닉네임 표시 */
+  .cell.heat{
+    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
+    gap:2px; padding:4px 4px 5px; min-height:62px; text-align:left;
+  }
+  .c-top{display:flex; justify-content:flex-end; align-items:center; line-height:1; min-height:11px}
+  .c-n{font-size:9px; font-weight:800; letter-spacing:0}
+  .c-names{display:flex; flex-direction:column; gap:2px; min-width:0}
+  .c-names i{
+    font-style:normal; display:block; font-size:9.5px; font-weight:700; line-height:1.3;
+    padding:1px 4px; border-radius:5px; background:rgba(255,253,248,.93); color:#3a2c20;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cell.heat.h0 .c-names i{background:transparent}
+  .cell.heat.h5 .c-names i, .cell.heat.h6 .c-names i{background:rgba(255,251,244,.95); color:#3a2205}
+  .cell.heat.h6 .c-n{color:#fff3e0}
+
+  .cell.h1{background:rgba(239,139,31,.20); color:#8a4d05}
+  .cell.h2{background:rgba(239,139,31,.34); color:#7d4405}
+  .cell.h3{background:rgba(239,139,31,.48); color:#6a3903}
+  .cell.h4{background:rgba(234,127,18,.64); color:#40220a}
+  .cell.h5{background:rgba(226,120,15,.80); color:#2f1901}
+  .cell.h6{background:linear-gradient(160deg,#e8801a,#ac5806); color:#fff6e6}
+  .cell.h0{background:#f4ebdb; border-color:#e8dcc6; color:#c3b39c}
+  .cell.is-sel{outline:2.5px solid #c96a0c; outline-offset:1px}
+  .legend{display:flex; align-items:center; gap:5px; margin-top:11px; font-size:10.5px; color:var(--ink3); flex-wrap:wrap}
+  .legend i{width:16px; height:12px; border-radius:4px; display:inline-block; border:1px solid #eadcc6}
+  .legend .l0{background:#f4ebdb}
+  .legend .l1{background:rgba(239,139,31,.16)}
+  .legend .l3{background:rgba(239,139,31,.42)}
+  .legend .l5{background:rgba(226,120,15,.74)}
+  .legend .l6{background:linear-gradient(160deg,#e88a1a,#b95f08)}
+
+  /* ---------- slot detail ---------- */
+  .slot-detail{
+    margin-top:13px; padding:13px; border-radius:14px;
+    background:#f2e8d7; border:1px solid #e3d3ba;
+  }
+  .slot-detail .sd-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:9px}
+  .slot-detail .sd-head b{font-size:13.5px; color:#33261a}
+  .badge-n{
+    padding:2px 9px; border-radius:9px; background:#dc7a11; color:#fff6e6;
+    font-size:11.5px; font-weight:800;
+  }
+  .badge-n.zero{background:#cbb9a0; color:#fff}
+  .who{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px}
+  .who span{
+    padding:5px 10px; border-radius:999px; background:#fffdf8;
+    border:1px solid #e4d6c0; font-size:12px; color:#4a3626; font-weight:600;
+  }
+
+  /* ---------- party cards ---------- */
+  .party{
+    position:relative; background:linear-gradient(180deg,#fffdf8,#faf3e6);
+    border:1px solid var(--line); border-radius:16px; padding:14px 14px 13px 17px;
+    margin-bottom:11px; overflow:hidden;
+  }
+  .party::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:5px;
+    background:linear-gradient(180deg,#f6a93f,#c96a0c);
+  }
+  .party.past{opacity:.72}
+  .party.past::before{background:linear-gradient(180deg,#c9bda9,#a89880)}
+  .party.fresh{animation:freshGlow 1.6s ease-out 1}
+  @keyframes freshGlow{0%{box-shadow:0 0 0 3px rgba(239,139,31,.55)}100%{box-shadow:0 0 0 0 rgba(239,139,31,0)}}
+  .party-head{display:flex; align-items:flex-start; gap:8px; margin-bottom:5px}
+  .boss-name{font-size:15.5px; font-weight:800; letter-spacing:-0.025em; color:#2a2018}
+  .dday{
+    margin-left:auto; flex:0 0 auto; padding:3px 9px; border-radius:9px;
+    background:var(--slate); color:#ffe6c2; font-size:11px; font-weight:800; white-space:nowrap;
+  }
+  .dday.soon{background:linear-gradient(160deg,#e88a1a,#b95f08); color:#fff6e6}
+  .dday.past{background:#e5d9c6; color:#8a7a64}
+  .party-when{font-size:12.5px; color:#5f4d3a; font-weight:600; margin-bottom:8px}
+  .party-when b{color:#33261a}
+  .p-members{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px}
+  .p-members span{padding:4px 9px; border-radius:999px; background:#f1e6d3; color:#5a4835; font-size:11.5px; font-weight:600}
+  .p-memo{
+    margin:0 0 9px; padding:8px 10px; border-radius:10px; background:#fff7e6;
+    border:1px dashed #ecd6b0; font-size:12px; color:#6b563c; line-height:1.45;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .p-alarm{
+    display:inline-flex; align-items:center; gap:5px; margin-bottom:10px;
+    font-size:11.5px; font-weight:700; color:#9a5406;
+  }
+  .p-actions{display:flex; flex-wrap:wrap; gap:6px}
+
+  /* ---------- 고정 파티 / 자동 매칭 ---------- */
+  .group{
+    position:relative; background:linear-gradient(180deg,#fffdf8,#f8f0e2);
+    border:1px solid var(--line); border-left:5px solid #5c5348;
+    border-radius:16px; padding:14px; margin-bottom:12px;
+  }
+  .g-head{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:7px}
+  .g-title{font-size:15px; font-weight:800; color:#2a2018; letter-spacing:-0.02em}
+  .g-boss{
+    padding:2px 8px; border-radius:8px; background:var(--slate); color:#ffe6c2;
+    font-size:11px; font-weight:800;
+  }
+  .g-size{padding:2px 8px; border-radius:8px; background:#efe3cd; color:#6b5a46; font-size:11px; font-weight:800}
+  .g-members{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px}
+  .g-members span{padding:4px 9px; border-radius:999px; background:#f1e6d3; color:#5a4835; font-size:11.5px; font-weight:600}
+  .g-members span.none{background:#f7e2dc; color:#a8482e}
+  .g-memo{margin:0 0 9px; font-size:11.5px; color:#7a6852; line-height:1.45}
+  .g-sum{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px}
+  .badge-full{
+    padding:3px 10px; border-radius:9px; font-size:11.5px; font-weight:800;
+    background:linear-gradient(160deg,#f6a93f,#d97706); color:#2f1d05;
+  }
+  .badge-near{padding:3px 10px; border-radius:9px; background:#eaddc8; color:#6b5a46; font-size:11.5px; font-weight:800}
+  .g-best{font-size:11px; color:#96836c; font-weight:600}
+  .g-warn{font-size:11px; color:#a8482e; font-weight:600; margin:0 0 8px}
+  .g-actions{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px}
+
+  .match{
+    display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+    padding:9px 10px; border-radius:12px; margin-bottom:6px;
+    background:#fffdf8; border:1px solid #e6d8c0;
+  }
+  .match.is-full{border-color:#eab263; background:linear-gradient(180deg,#fffaf1,#fff3e0)}
+  .match.is-near{border-style:dashed; background:#fbf6ec}
+  .match.is-last{margin-bottom:0}
+  .m-when{flex:0 0 auto; min-width:118px; line-height:1.3}
+  .m-when b{display:block; font-size:12.5px; color:#33261a; font-weight:800}
+  .m-when span{font-size:11px; color:#8a7660; font-weight:600}
+  .m-info{flex:1 1 170px; min-width:0; line-height:1.45}
+  .m-cnt{
+    display:inline-block; margin-right:5px; padding:1px 7px; border-radius:7px;
+    background:#efe3cd; color:#6b5a46; font-size:10.5px; font-weight:800; vertical-align:1px;
+  }
+  .match.is-full .m-cnt{background:#dc7a11; color:#fff6e6}
+  .m-names{font-size:11.5px; color:#5a4835; font-weight:600; word-break:keep-all}
+  .m-miss{display:block; font-size:10.5px; color:#a8482e; font-weight:700; margin-top:1px}
+  .match .btn{margin-left:auto}
+  .more-btn{
+    width:100%; margin-top:4px; border:1px dashed #d8c8ae; background:transparent;
+    color:#7a6a58; border-radius:11px; padding:7px; font-family:inherit; font-size:11.5px;
+    font-weight:700; cursor:pointer;
+  }
+  .more-btn:hover{background:#f4ead8}
+  .no-match{
+    padding:11px 12px; border-radius:12px; background:#faf4e8; border:1px dashed #ddcdb4;
+    font-size:11.5px; color:#96836c; line-height:1.5;
+  }
+
+  /* ---------- 파티 구함 (모집) ---------- */
+  .filter-bar{display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; margin-bottom:12px}
+  .filter-bar > div{flex:1 1 140px; min-width:0}
+  .filter-bar .pill{flex:0 0 auto}
+  .recruit-list{display:grid; grid-template-columns:1fr 1fr; gap:11px}
+  .recruit{
+    position:relative; display:flex; flex-direction:column;
+    background:linear-gradient(180deg,#fffdf8,#faf3e6);
+    border:1px solid var(--line); border-radius:16px; padding:13px 14px 12px;
+    overflow:hidden;
+  }
+  .recruit::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background:linear-gradient(180deg,#f6a93f,#c96a0c);
+  }
+  .recruit.closed{opacity:.66}
+  .recruit.closed::before{background:linear-gradient(180deg,#c9bda9,#a89880)}
+  .r-top{display:flex; align-items:center; gap:7px; margin-bottom:7px}
+  .r-name{font-size:14.5px; font-weight:800; color:#2a2018; letter-spacing:-0.02em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .r-state{
+    margin-left:auto; flex:0 0 auto; padding:2px 8px; border-radius:8px;
+    font-size:10.5px; font-weight:800;
+  }
+  .r-state.open{background:#e3f2e7; color:#2f7d4f}
+  .r-state.closed{background:#e5d9c6; color:#8a7a64}
+  .r-tags{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px}
+  .r-boss{padding:2px 8px; border-radius:8px; background:var(--slate); color:#ffe6c2; font-size:10.5px; font-weight:800}
+  .r-job{padding:2px 8px; border-radius:8px; background:#ffe6c2; color:#9a5406; font-size:10.5px; font-weight:800}
+  .r-spec{padding:2px 8px; border-radius:8px; background:#efe3cd; color:#6b5a46; font-size:10.5px; font-weight:700}
+  .r-need{
+    margin:0 0 8px; font-size:12px; color:#4a3626; line-height:1.5;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .r-memo{margin:0 0 9px; font-size:11px; color:#8a7660; line-height:1.45}
+  .r-contact{
+    margin-top:auto; display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:7px 9px; border-radius:10px; background:#fff7e6; border:1px dashed #ecd6b0;
+    font-size:11.5px; color:#6b563c; word-break:break-all;
+  }
+  .r-contact span{font-size:10px; font-weight:800; color:#a89478}
+  .r-contact b{font-weight:700; color:#4a3626}
+  .r-actions{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap}
+  .r-actions .btn{flex:1 1 auto; justify-content:center; font-size:11.5px; padding:7px 8px}
+
+  /* ---------- footer ---------- */
+  .foot{margin-top:18px; text-align:center; color:#8b7f70; font-size:11.5px}
+  .foot p{margin:0 0 9px; line-height:1.6}
+  .foot .btn{background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.14); color:#c4b5a3}
+  .foot .btn:hover{background:rgba(255,255,255,.12); color:#f0e2cd}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:26px; transform:translate(-50%,18px);
+    background:#2b2936; color:#ffe9c9; padding:11px 17px; border-radius:13px;
+    font-size:12.5px; font-weight:600; box-shadow:0 16px 34px rgba(0,0,0,.5);
+    border:1px solid rgba(239,139,31,.28);
+    opacity:0; pointer-events:none; transition:opacity .22s, transform .22s;
+    z-index:99; max-width:88vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0)}
+
+  .empty{
+    text-align:center; padding:20px 10px; color:#a89478; font-size:12.5px;
+    border:1px dashed #ddcdb4; border-radius:13px; background:#faf4e8;
+  }
+
+  @media (max-width:760px){
+    .recruit-list{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .app{padding:14px 11px 70px}
+    .hero{padding:14px; gap:11px}
+    .hero h1{font-size:17.5px}
+    .hero .guild{display:none}
+    .card{padding:14px 13px; border-radius:16px}
+    .form-row{grid-template-columns:1fr}
+    .tab{font-size:11.5px; padding:9px 4px}
+    .tab-count{font-size:10px; min-width:15px; padding:1px 4px}
+    .btn{font-size:12.5px; padding:8px 12px}
+    input[type=text], input[type=date], input[type=time], select, textarea{font-size:16px}
+
+    /* 모바일: 요일을 행으로 돌려 7일이 한 화면에 다 보이게 */
+    .grid-d{display:none}
+    .grid-m{display:grid; min-width:0; grid-template-columns:44px repeat(4,minmax(0,1fr)); gap:4px}
+    .grid-m .cell{min-height:44px; border-radius:10px; font-size:13.5px}
+    .grid-m .cell.heat{min-height:56px; padding:3px 3px 4px; gap:1px}
+    .grid-m .c-names i{font-size:8.6px; padding:1px 3px}
+    .grid-m .c-n{font-size:8.5px}
+    .grid-m .rh{align-items:center; font-size:12px; font-weight:800; color:#3a2c20; padding-left:2px; line-height:1.15}
+    .grid-m .rh small{font-size:9.5px; font-weight:600}
+    .grid-m .gh{padding:2px 0}
+    .grid-m .gb b{font-size:10px; color:#3a2c20; white-space:nowrap}
+    .grid-m .gb small{font-size:8.5px}
+
+    .chip-member{font-size:11.5px; padding:5px 8px; max-width:200px}
+    .mini{width:21px; height:21px; font-size:11px}
+
+    .p-actions{display:grid; grid-template-columns:1fr 1fr; gap:6px}
+    .p-actions .btn{justify-content:center; font-size:11.5px; padding:8px 6px; line-height:1.25; text-align:center}
+
+    .filter-bar > div{flex:1 1 calc(50% - 4px)}
+    .filter-bar .pill{flex:1 1 100%}
+    .match{padding:8px 9px}
+    .m-when{min-width:0; flex:1 1 100%; display:flex; align-items:baseline; gap:6px}
+    .m-when b{display:inline}
+    .match .btn{margin-left:0; width:100%; justify-content:center}
+    .g-actions{display:grid; grid-template-columns:1fr 1fr}
+    .g-actions .btn{justify-content:center}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hero">
+    <div class="leaf">🍁</div>
+    <div>
+      <h1>메이플스토리 <span class="amp">길드 스케줄</span></h1>
+      <p>가능 시간을 모아서, 보스 파티를 캘린더까지 한 번에</p>
+    </div>
+    <div class="guild">
+      <b>메이플 길드</b>
+      주간 보스 파티 보드
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab is-active" data-action="tab" data-tab="availability" role="tab">주간 가능 시간표</button>
+    <button type="button" class="tab" data-action="tab" data-tab="parties" role="tab">확정 파티 일정 <span class="tab-count" id="partyCount">0</span></button>
+    <button type="button" class="tab" data-action="tab" data-tab="recruit" role="tab">파티 구함 <span class="tab-count" id="recruitCount">0</span></button>
+  </nav>
+
+  <main>
+    <!-- ============ TAB 1 : 주간 가능 시간표 ============ -->
+    <section class="panel is-active" id="panel-availability">
+
+      <div class="card">
+        <div class="week-bar">
+          <button type="button" class="week-nav" data-action="week-prev" aria-label="이전 주">‹</button>
+          <div class="week-info">
+            <strong id="weekRange">-</strong>
+            <span class="week-tag" id="weekLabel">이번 주</span>
+          </div>
+          <button type="button" class="week-nav" data-action="week-next" aria-label="다음 주">›</button>
+        </div>
+        <div class="week-quick">
+          <button type="button" class="pill is-active" data-action="week-goto" data-offset="0">이번 주</button>
+          <button type="button" class="pill" data-action="week-goto" data-offset="1">다음 주</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>길드원</h2>
+        <p class="sub">닉네임만 등록하고, 아래 표에서 가능한 시간을 눌러 칠해 주세요. 이름을 누르면 그 길드원의 시간표를 편집합니다.</p>
+        <div class="chips" id="memberChips"></div>
+        <div class="form-row">
+          <div>
+            <label class="field" for="mNick">닉네임</label>
+            <input type="text" id="mNick" placeholder="예: 단풍잎사냥꾼" maxlength="20" autocomplete="off">
+          </div>
+          <div style="display:flex; align-items:flex-end; gap:7px; flex-wrap:wrap">
+            <button type="button" class="btn btn-primary" data-action="save-member" id="memberSaveBtn">길드원 추가</button>
+            <button type="button" class="btn btn-ghost" data-action="cancel-member" id="memberCancelBtn" style="display:none">취소</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>가능 시간 입력</h2>
+        <p class="sub" id="gridHint">길드원을 선택한 뒤 칸을 눌러 가능한 시간을 표시하세요.</p>
+        <div class="grid-wrap" id="gridHost"></div>
+      </div>
+
+      <div class="card">
+        <h2>길드 전체 가능 시간</h2>
+        <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다. 칸을 누르면 자세히 보고 바로 파티를 만들 수 있어요.</p>
+        <div class="grid-wrap" id="heatHost"></div>
+        <div class="legend">
+          <span>적음</span>
+          <i class="l0"></i><i class="l1"></i><i class="l3"></i><i class="l5"></i><i class="l6"></i>
+          <span>많음</span>
+          <span style="margin-left:auto">색이 진할수록 가능 인원이 많아요</span>
+        </div>
+        <div id="slotDetail"></div>
+      </div>
+
+    </section>
+
+    <!-- ============ TAB 2 : 확정 파티 일정 ============ -->
+    <section class="panel" id="panel-parties">
+
+      <div class="card" id="groupFormCard">
+        <div class="form-head">
+          <h2>고정 파티 자동 매칭</h2>
+          <button type="button" class="fold-btn" data-action="toggle-fold" data-target="groupForm" data-fold-btn="groupFormBtn" id="groupFormBtn" aria-expanded="true" aria-controls="groupForm">접기</button>
+        </div>
+        <p class="sub">고정 파티원을 미리 등록해 두면 위 <b>주간 가능 시간표</b>와 자동으로 맞춰서, 전원이 가능한 날짜·시간을 찾아 드려요. 날짜를 정하기 전에도 등록할 수 있습니다.</p>
+
+        <div id="groupForm" data-fold-body="1">
+          <div class="form-row">
+            <div>
+              <label class="field" for="gName">파티명</label>
+              <input type="text" id="gName" placeholder="예: 하드 세렌 고정팟" maxlength="30" autocomplete="off">
+            </div>
+            <div>
+              <label class="field" for="gBoss">목표 보스</label>
+              <select id="gBoss"></select>
+            </div>
+          </div>
+          <div class="field-block">
+            <span class="field">고정 파티원 (길드원에서 선택)</span>
+            <div class="checks" id="groupMemberChecks"></div>
+          </div>
+          <div class="field-block">
+            <label class="field" for="gMemo">메모 (선택)</label>
+            <input type="text" id="gMemo" placeholder="예: 매주 목요일 22시, 6인 고정" maxlength="60" autocomplete="off">
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" data-action="save-group" id="groupSaveBtn">고정 파티 등록</button>
+            <button type="button" class="btn btn-ghost" data-action="cancel-group" id="groupCancelBtn" style="display:none">수정 취소</button>
+          </div>
+        </div>
+
+        <div id="groupList" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card">
+        <h2>확정된 파티</h2>
+        <p class="sub" id="partyListSub">다가오는 일정부터 순서대로 보여 드려요.</p>
+        <div id="partyList"></div>
+      </div>
+
+      <div class="card" id="partyFormCard">
+        <div class="form-head">
+          <h2 id="partyFormTitle">확정 파티 직접 추가</h2>
+          <button type="button" class="fold-btn" data-action="toggle-fold" data-target="partyFormBody" data-fold-btn="partyFormToggle" id="partyFormToggle" aria-expanded="true" aria-controls="partyFormBody">접기</button>
+        </div>
+        <div id="partyFormBody" data-fold-body="1">
+        <p class="sub">자동 매칭 없이 직접 일정을 넣고 싶을 때 씁니다. 애플 캘린더(.ics)와 구글 캘린더로 바로 내보낼 수 있어요.</p>
+
+        <div class="form-row">
+          <div>
+            <label class="field" for="bossSelect">보스</label>
+            <select id="bossSelect"></select>
+            <input type="text" id="bossCustom" placeholder="보스 이름 직접 입력" style="display:none; margin-top:6px" autocomplete="off">
+          </div>
+          <div>
+            <label class="field" for="partyDate">날짜</label>
+            <input type="date" id="partyDate">
+          </div>
+        </div>
+
+        <div class="form-row three">
+          <div>
+            <label class="field" for="partyStart">시작 시간</label>
+            <input type="time" id="partyStart" value="22:00">
+          </div>
+          <div>
+            <label class="field" for="partyDuration">예상 소요시간</label>
+            <select id="partyDuration">
+              <option value="30">30분</option>
+              <option value="60">1시간</option>
+              <option value="90">1시간 30분</option>
+              <option value="120" selected>2시간</option>
+              <option value="150">2시간 30분</option>
+              <option value="180">3시간</option>
+              <option value="240">4시간</option>
+            </select>
+          </div>
+          <div>
+            <label class="field" for="partyAlarm">당일 아침 알림</label>
+            <input type="time" id="partyAlarm" value="09:00">
+          </div>
+        </div>
+
+        <div class="field-block">
+          <label class="field" for="partyExtra">추가 참여자 (직접 입력)</label>
+          <input type="text" id="partyExtra" placeholder="길드 외 인원, 쉼표로 구분" autocomplete="off">
+        </div>
+
+        <div class="field-block">
+          <span class="field">참여 파티원</span>
+          <div class="checks" id="partyMemberChecks"></div>
+        </div>
+
+        <div class="field-block">
+          <label class="field" for="partyMemo">메모</label>
+          <textarea id="partyMemo" rows="2" placeholder="모이는 장소, 준비물, 입장 순서 등"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" data-action="save-party" id="partySaveBtn">일정 추가</button>
+          <button type="button" class="btn btn-ghost" data-action="cancel-party" id="partyCancelBtn" style="display:none">수정 취소</button>
+        </div>
+        <p class="hint"><b>당일 아침 알림</b>은 .ics 파일 안에 <b>VALARM</b>으로 들어갑니다. 애플 캘린더에 저장하면 파티 당일 아침에 알림이 울리고, 구글 캘린더는 일정만 추가되니 알림은 캘린더 앱에서 직접 설정해 주세요.</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ TAB 3 : 파티 구함 ============ -->
+    <section class="panel" id="panel-recruit">
+
+      <div class="card">
+        <h2>파티 구함</h2>
+        <p class="sub">파티를 구하거나 파티원을 구할 때 올리는 게시판입니다. 목표 보스와 직업으로 걸러 볼 수 있어요.</p>
+        <div class="filter-bar">
+          <div>
+            <span class="field">보스</span>
+            <select id="filterBoss"></select>
+          </div>
+          <div>
+            <span class="field">직업</span>
+            <select id="filterJob"></select>
+          </div>
+          <button type="button" class="pill" data-action="recruit-open-only" id="openOnlyBtn">모집중만 보기</button>
+        </div>
+        <p class="hint" id="recruitCountHint"></p>
+      </div>
+
+      <div class="card" id="recruitFormCard">
+        <div class="form-head">
+          <h2 id="recruitFormTitle">모집 글 올리기</h2>
+          <button type="button" class="fold-btn" data-action="toggle-fold" data-target="recruitFormBody" data-fold-btn="recruitFormBtn" id="recruitFormBtn" aria-expanded="true" aria-controls="recruitFormBody">접기</button>
+        </div>
+        <div id="recruitFormBody" data-fold-body="1">
+          <div class="form-row">
+            <div>
+              <label class="field" for="rName">닉네임 / 파티명</label>
+              <input type="text" id="rName" placeholder="예: 단풍잎사냥꾼" maxlength="30" autocomplete="off">
+            </div>
+            <div>
+              <label class="field" for="rBoss">목표 보스</label>
+              <select id="rBoss"></select>
+              <input type="text" id="rBossCustom" placeholder="보스 이름 직접 입력" style="display:none; margin-top:6px" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="field" for="rJob">직업</label>
+              <select id="rJob"></select>
+            </div>
+            <div>
+              <label class="field" for="rSpec">스펙 / 환산</label>
+              <input type="text" id="rSpec" placeholder="예: 환산 4.2 · 무릉 62층" maxlength="50" autocomplete="off">
+            </div>
+          </div>
+          <div class="field-block">
+            <label class="field" for="rNeed">구하는 포지션 / 조건</label>
+            <textarea id="rNeed" rows="2" placeholder="예: 비숍 1명 · 평일 22시 이후 가능한 분"></textarea>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="field" for="rContact">연락처 / 디스코드</label>
+              <input type="text" id="rContact" placeholder="예: 디스코드 maple#1234" maxlength="50" autocomplete="off">
+            </div>
+            <div>
+              <label class="field" for="rMemo">한 줄 메모 (선택)</label>
+              <input type="text" id="rMemo" placeholder="예: 주 2회, 초보 환영" maxlength="60" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary" data-action="save-recruit" id="recruitSaveBtn">모집 글 올리기</button>
+            <button type="button" class="btn btn-ghost" data-action="cancel-recruit" id="recruitCancelBtn" style="display:none">수정 취소</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>모집 중인 파티</h2>
+        <p class="sub" id="recruitListSub">최근에 올라온 글부터 보여 드려요.</p>
+        <div class="recruit-list" id="recruitList"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>입력한 내용은 이 브라우저 안(localStorage)에만 저장됩니다.<br>다른 기기와 공유하려면 브라우저 데이터를 함께 옮겨 주세요.</p>
+    <button type="button" class="btn btn-sm" data-action="reset-sample">샘플 데이터로 초기화</button>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   메이플스토리 길드 스케줄 — 단일 파일 프로토타입 (v2)
+   1) 가능 시간 칸에 길드원 닉네임 표시
+   2) '파티 구함' 탭 (모집 게시판)
+   3) 고정 파티원 ↔ 주간 가능 시간 자동 매칭 · 원클릭 확정
+   ========================================================= */
+
+var STORE_KEY = 'mapleGuildScheduler.v2';
+var LEGACY_KEY = 'mapleGuildScheduler.v1';
+var GUILD_NAME = '메이플 길드';
+var DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
+
+var BLOCKS = [
+  { id: 'b1', label: '오후 6~8시', short: '6~8시', time: '18:00–20:00', start: '18:00', dur: 120 },
+  { id: 'b2', label: '오후 8~10시', short: '8~10시', time: '20:00–22:00', start: '20:00', dur: 120 },
+  { id: 'b3', label: '오후 10시~자정', short: '10~자정', time: '22:00–24:00', start: '22:00', dur: 120 },
+  { id: 'b4', label: '자정 이후', short: '자정~2시', time: '00:00–02:00', start: '00:00', dur: 120, afterMidnight: true }
+];
+
+var JOBS = [
+  '히어로', '팔라딘', '다크나이트', '소울마스터', '미하일',
+  '아크메이지(불·독)', '아크메이지(썬·콜)', '비숍', '플레임위자드', '배틀메이지', '에반', '일리움', '라라',
+  '보우마스터', '신궁', '패스파인더', '윈드브레이커', '메르세데스', '와일드헌터',
+  '나이트로드', '섀도어', '듀얼블레이드', '나이트워커', '팬텀', '카데나', '호영', '칼리', '렌',
+  '바이퍼', '캐논슈터', '스트라이커', '아란', '데몬슬레이어', '데몬어벤져', '블래스터', '제로', '키네시스', '엔젤릭버스터', '아델', '카이저', '루미너스', '기타'
+];
+
+var BOSSES = [
+  '하드 세렌', '노말 세렌', '익스트림 세렌',
+  '노말 칼로스', '하드 칼로스', '익스트림 칼로스',
+  '노말 카링', '하드 카링', '익스트림 카링',
+  '하드 검은 마법사', '익스트림 스우', '하드 스우', '노말 스우',
+  '하드 루시드', '하드 윌', '카오스 더스크', '하드 듄켈', '하드 데미안',
+  '카오스 파풀라투스', '하드 매그너스', '하드 힐라', '카오스 자쿰',
+  '하드 가엔슬', '노말 가엔슬', '카오스 핑크빈', '하드 반레온'
+];
+var BOSS_CUSTOM = '기타 (직접 입력)';
+
+/* ---------------- 상태 ---------------- */
+var state = { members: [], availability: {}, parties: [], groups: [], recruits: [] };
+var ui = {
+  weekOffset: 0,
+  activeMemberId: null,
+  editingMemberId: null,
+  selectedSlot: null,
+  editingPartyId: null,
+  formMembers: [],
+  tab: 'availability',
+  editingGroupId: null,
+  groupChecked: [],
+  showAllMatches: {},
+  editingRecruitId: null,
+  filterBoss: '',
+  filterJob: '',
+  openOnly: false,
+  freshPartyId: null
+};
+
+/* ---------------- 날짜 유틸 ---------------- */
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function parseYmd(s) {
+  var p = String(s || '').split('-');
+  if (p.length < 3) return null;
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  if (isNaN(d.getTime())) return null;
+  return d;
+}
+function addDays(d, n) {
+  var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() + n);
+  return x;
+}
+function startOfWeek(d) {
+  var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  var off = (x.getDay() + 6) % 7; /* 월요일 = 0 */
+  x.setDate(x.getDate() - off);
+  return x;
+}
+function dowIndex(d) { return (d.getDay() + 6) % 7; }
+function fmtMD(d) { return (d.getMonth() + 1) + '월 ' + d.getDate() + '일'; }
+function fmtMDW(d) { return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + DAY_NAMES[dowIndex(d)] + ')'; }
+function fmtYMDW(d) { return d.getFullYear() + '년 ' + fmtMDW(d); }
+function weekStartFor(offset) { return addDays(startOfWeek(new Date()), offset * 7); }
+function weekKeyFor(offset) { return ymd(weekStartFor(offset)); }
+function weekLabelFor(offset) {
+  if (offset === 0) return '이번 주';
+  if (offset === 1) return '다음 주';
+  if (offset === -1) return '지난 주';
+  if (offset === 2) return '2주 후';
+  if (offset > 2) return offset + '주 후';
+  return Math.abs(offset) + '주 전';
+}
+function dayDiffFromToday(dateStr) {
+  var today = parseYmd(ymd(new Date()));
+  var target = parseYmd(dateStr);
+  if (!target) return 0;
+  return Math.round((target.getTime() - today.getTime()) / 86400000);
+}
+function nextWeekday(from, dow) {
+  var d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  var diff = (dow - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+function timeToMin(hhmm) {
+  var p = String(hhmm || '00:00').split(':');
+  return (Number(p[0]) || 0) * 60 + (Number(p[1]) || 0);
+}
+
+/* ---------------- iCalendar (RFC 5545) ---------------- */
+function utcStamp(d) {
+  return d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) +
+    'T' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()) + 'Z';
+}
+function icsText(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r\n|\r|\n/g, '\\n');
+}
+/* RFC 5545: 한 줄은 75옥텟 이하, 넘으면 CRLF + 공백으로 접는다 (멀티바이트 문자는 쪼개지 않음) */
+function foldIcsLine(line) {
+  var chars = Array.from(String(line));
+  var out = [];
+  var cur = '';
+  var bytes = 0;
+  for (var i = 0; i < chars.length; i++) {
+    var ch = chars[i];
+    var n = utf8Len(ch);
+    if (bytes + n > 75) {
+      out.push(cur);
+      cur = ' ' + ch;
+      bytes = 1 + n;
+    } else {
+      cur += ch;
+      bytes += n;
+    }
+  }
+  out.push(cur);
+  return out.join('\r\n');
+}
+function utf8Len(ch) {
+  var c = ch.codePointAt(0);
+  if (c < 0x80) return 1;
+  if (c < 0x800) return 2;
+  if (c < 0x10000) return 3;
+  return 4;
+}
+/* KST(UTC+9) 벽시계 시각을 UTC Date로 */
+function kstToUtc(y, m, d, hh, mm) {
+  return new Date(Date.UTC(y, m - 1, d, hh - 9, mm, 0));
+}
+function partyTimes(p) {
+  var d = parseYmd(p.date) || new Date();
+  var st = String(p.startTime || '22:00').split(':');
+  var sh = Number(st[0]) || 0, sm = Number(st[1]) || 0;
+  var startUtc = kstToUtc(d.getFullYear(), d.getMonth() + 1, d.getDate(), sh, sm);
+  var dur = Number(p.durationMin) || 120;
+  var endUtc = new Date(startUtc.getTime() + dur * 60000);
+  var at = String(p.alarmTime || '09:00').split(':');
+  var ah = Number(at[0]) || 0, am = Number(at[1]) || 0;
+  var alarmUtc = kstToUtc(d.getFullYear(), d.getMonth() + 1, d.getDate(), ah, am);
+  /* 자정 파티처럼 시작이 알림 시각보다 이르면 '전날 아침'에 알린다 */
+  var alarmPrevDay = false;
+  if (alarmUtc.getTime() >= startUtc.getTime()) {
+    alarmUtc = new Date(alarmUtc.getTime() - 86400000);
+    alarmPrevDay = true;
+  }
+  return { startUtc: startUtc, endUtc: endUtc, alarmUtc: alarmUtc, alarmPrevDay: alarmPrevDay, kstHour: sh, kstMinute: sm };
+}
+function alarmLabel(p) {
+  var t = partyTimes(p);
+  return (t.alarmPrevDay ? '전날 ' : '당일 ') + (p.alarmTime || '09:00') + ' 알림';
+}
+function partyDescription(p) {
+  var d = parseYmd(p.date) || new Date();
+  var lines = [];
+  lines.push('보스: ' + p.boss);
+  lines.push('일시: ' + fmtYMDW(d) + ' ' + p.startTime + ' (KST)');
+  lines.push('예상 소요: ' + p.durationMin + '분');
+  if (p.members && p.members.length) lines.push('파티원: ' + p.members.join(', '));
+  if (p.memo) lines.push('메모: ' + p.memo);
+  lines.push('알림: ' + alarmLabel(p) + ' (KST)');
+  lines.push('— ' + GUILD_NAME + ' 스케줄에서 만든 일정');
+  return lines.join('\n');
+}
+function buildICS(p) {
+  var t = partyTimes(p);
+  var alarmDesc = p.boss + ' 파티 ' + (t.alarmPrevDay ? '내일' : '오늘') + '입니다 (' + p.startTime + ' 시작)';
+  var lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Maple Guild Scheduler//Guild Boss Party//KO',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    'UID:' + icsText(p.id) + '@maple-guild-scheduler',
+    'DTSTAMP:' + utcStamp(new Date()),
+    'DTSTART:' + utcStamp(t.startUtc),
+    'DTEND:' + utcStamp(t.endUtc),
+    'SUMMARY:' + icsText(p.boss + ' 파티'),
+    'LOCATION:' + icsText('메이플스토리'),
+    'DESCRIPTION:' + icsText(partyDescription(p)),
+    'STATUS:CONFIRMED',
+    'TRANSP:OPAQUE',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:' + icsText(alarmDesc),
+    'TRIGGER;VALUE=DATE-TIME:' + utcStamp(t.alarmUtc),
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ];
+  var out = [];
+  for (var i = 0; i < lines.length; i++) out.push(foldIcsLine(lines[i]));
+  return out.join('\r\n') + '\r\n';
+}
+function buildGoogleUrl(p) {
+  var t = partyTimes(p);
+  var params = [
+    'action=TEMPLATE',
+    'text=' + encodeURIComponent(p.boss + ' 파티'),
+    'dates=' + utcStamp(t.startUtc) + '/' + utcStamp(t.endUtc),
+    'details=' + encodeURIComponent(partyDescription(p)),
+    'location=' + encodeURIComponent('메이플스토리'),
+    'ctz=Asia/Seoul'
+  ];
+  return 'https://calendar.google.com/calendar/render?' + params.join('&');
+}
+function icsFileName(p) {
+  var name = '메이플길드_' + String(p.date).replace(/-/g, '') + '_' + p.boss;
+  return name.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '') + '.ics';
+}
+
+/* ---------------- 저장 / 불러오기 ---------------- */
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (err) { /* 저장 불가 환경 무시 */ }
+}
+function readRaw(key) {
+  try { return localStorage.getItem(key); } catch (err) { return null; }
+}
+function isArr(v) { return Object.prototype.toString.call(v) === '[object Array]'; }
+function normalize(data) {
+  var out = { members: [], availability: {}, parties: [], groups: [], recruits: [] };
+  var i;
+  if (data && isArr(data.members)) {
+    for (i = 0; i < data.members.length; i++) {
+      var m = data.members[i];
+      if (m && m.id && m.nick) out.members.push({ id: String(m.id), nick: String(m.nick) });
+    }
+  }
+  if (data && data.availability && typeof data.availability === 'object') out.availability = data.availability;
+  if (data && isArr(data.parties)) {
+    for (i = 0; i < data.parties.length; i++) {
+      var p = data.parties[i];
+      if (p && p.id && p.date && p.startTime) {
+        out.parties.push({
+          id: String(p.id), boss: String(p.boss || '보스'), date: String(p.date),
+          startTime: String(p.startTime), durationMin: Number(p.durationMin) || 120,
+          alarmTime: String(p.alarmTime || '09:00'), memo: String(p.memo || ''),
+          members: isArr(p.members) ? p.members.map(String) : [],
+          groupId: p.groupId ? String(p.groupId) : ''
+        });
+      }
+    }
+  }
+  if (data && isArr(data.groups)) {
+    for (i = 0; i < data.groups.length; i++) {
+      var g = data.groups[i];
+      if (g && g.id && g.name) {
+        out.groups.push({
+          id: String(g.id), name: String(g.name), boss: String(g.boss || '보스'),
+          memberIds: isArr(g.memberIds) ? g.memberIds.map(String) : [],
+          memo: String(g.memo || '')
+        });
+      }
+    }
+  }
+  if (data && isArr(data.recruits)) {
+    for (i = 0; i < data.recruits.length; i++) {
+      var r = data.recruits[i];
+      if (r && r.id && r.name) {
+        out.recruits.push({
+          id: String(r.id), name: String(r.name), boss: String(r.boss || '보스'),
+          job: String(r.job || '기타'), spec: String(r.spec || ''),
+          need: String(r.need || ''), contact: String(r.contact || ''),
+          memo: String(r.memo || ''), status: r.status === 'closed' ? 'closed' : 'open',
+          createdAt: Number(r.createdAt) || 0
+        });
+      }
+    }
+  }
+  return out;
+}
+function migrateLegacy(old) {
+  var s = normalize({ members: old.members, availability: old.availability, parties: old.parties });
+  var sample = buildSample();
+  s.groups = sample.groups.filter(function (g) {
+    for (var i = 0; i < g.memberIds.length; i++) if (!getMemberIn(s.members, g.memberIds[i])) return false;
+    return true;
+  });
+  s.recruits = sample.recruits;
+  return s;
+}
+function getMemberIn(list, id) {
+  for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+  return null;
+}
+function load() {
+  var raw = readRaw(STORE_KEY);
+  if (raw) {
+    try {
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.members) { state = normalize(parsed); return; }
+    } catch (err) { /* 깨진 데이터는 다음 단계로 */ }
+  }
+  var legacy = readRaw(LEGACY_KEY);
+  if (legacy) {
+    try {
+      var old = JSON.parse(legacy);
+      if (old && old.members) { state = migrateLegacy(old); save(); return; }
+    } catch (err2) { /* 깨진 데이터는 샘플로 대체 */ }
+  }
+  state = buildSample();
+  save();
+}
+
+/* ---------------- 샘플 데이터 ---------------- */
+function buildSample() {
+  var members = [
+    { id: 'm1', nick: '단풍잎사냥꾼' },
+    { id: 'm2', nick: '새벽의불꽃' },
+    { id: 'm3', nick: '은빛발걸음' },
+    { id: 'm4', nick: '고요한칼날' },
+    { id: 'm5', nick: '강철의방패' },
+    { id: 'm6', nick: '달빛여우' }
+  ];
+  var pattern = {
+    m1: ['0:b2', '0:b3', '1:b2', '2:b2', '3:b2', '4:b1', '4:b2', '5:b1', '5:b2', '6:b2'],
+    m2: ['0:b3', '1:b2', '1:b3', '2:b2', '2:b3', '3:b2', '3:b3', '4:b1', '5:b2', '5:b3', '6:b3'],
+    m3: ['0:b2', '1:b2', '2:b2', '3:b2', '4:b2', '5:b1', '5:b2', '6:b2', '6:b3'],
+    m4: ['0:b3', '1:b3', '1:b4', '2:b2', '2:b3', '3:b2', '3:b3', '4:b3', '5:b2', '5:b3', '6:b4'],
+    m5: ['1:b2', '2:b2', '3:b2', '4:b2', '5:b3', '6:b3'],
+    m6: ['2:b1', '2:b2', '3:b2', '4:b2', '4:b3', '5:b1', '5:b2', '5:b3', '6:b1', '6:b2']
+  };
+  var availability = {};
+  var thisWeek = ymd(startOfWeek(new Date()));
+  var nextWeek = ymd(addDays(startOfWeek(new Date()), 7));
+  availability[thisWeek] = {};
+  availability[nextWeek] = {};
+  var i;
+  for (i = 0; i < members.length; i++) {
+    var id = members[i].id;
+    availability[thisWeek][id] = pattern[id].slice();
+    /* 다음 주는 조금 덜 되는 날도 있어요 (늦은 시간 위주로 빠짐) */
+    availability[nextWeek][id] = pattern[id].filter(function (slot) {
+      return slot.indexOf(':b3') < 0 || slot.indexOf('4:') === 0 || slot.indexOf('5:') === 0;
+    });
+    if (!availability[nextWeek][id].length) availability[nextWeek][id] = pattern[id].slice(0, 3);
+  }
+
+  var today = new Date();
+  var p1Date = nextWeekday(today, 5);        /* 다가오는 금요일 */
+  var p2Date = addDays(nextWeekday(today, 2), 7); /* 다음 주 화요일 */
+  var parties = [
+    {
+      id: 'p1',
+      boss: '하드 세렌',
+      date: ymd(p1Date),
+      startTime: '21:00',
+      durationMin: 60,
+      members: ['단풍잎사냥꾼', '새벽의불꽃', '은빛발걸음', '고요한칼날', '강철의방패', '달빛여우'],
+      memo: '21시 정각에 모여서 바로 입장해요. 물약·길드 버프 챙겨 주세요.',
+      alarmTime: '09:00'
+    },
+    {
+      id: 'p2',
+      boss: '노말 칼로스',
+      date: ymd(p2Date),
+      startTime: '22:00',
+      durationMin: 90,
+      members: ['단풍잎사냥꾼', '은빛발걸음', '고요한칼날', '강철의방패', '새벽의불꽃'],
+      memo: '1페이즈 브레스 타이밍 맞춰서 진행 / 늦으면 디스코드로 연락 주세요.',
+      alarmTime: '21:00'
+    }
+  ];
+
+  var groups = [
+    {
+      id: 'g1',
+      name: '하드 세렌 고정팟',
+      boss: '하드 세렌',
+      memberIds: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'],
+      memo: '6인 고정 · 날짜는 매주 자동 매칭으로 정해요'
+    },
+    {
+      id: 'g2',
+      name: '노말 칼로스 파티',
+      boss: '노말 칼로스',
+      memberIds: ['m1', 'm2', 'm3', 'm4', 'm6'],
+      memo: '5인 파티 · 서포터 없이 딜로 밀기'
+    }
+  ];
+
+  var now = Date.now();
+  var recruits = [
+    {
+      id: 'r1',
+      name: '하드 세렌 고정팟',
+      boss: '하드 세렌',
+      job: '비숍',
+      spec: '환산 5.2 · 하드 세렌 클리어',
+      need: '힐·브레스 담당 비숍 1명 구합니다.\n매주 목요일 22시 고정, 6인 파티입니다.',
+      contact: '디스코드 seren#0621',
+      memo: '보스 입장 10분 전에 모여서 버프 확인해요',
+      status: 'open',
+      createdAt: now - 1000 * 60 * 42
+    },
+    {
+      id: 'r2',
+      name: '달빛여우',
+      boss: '노말 칼로스',
+      job: '보우마스터',
+      spec: '환산 3.6 · 무릉 62층',
+      need: '딜러 1~2명 구해요. 2페이즈 패턴 숙지하신 분이면 좋아요.\n주말 오후 위주로 돌고 있습니다.',
+      contact: '인게임 귓말 · 디스코드 fox#7731',
+      memo: '처음 도전하는 분도 환영합니다',
+      status: 'open',
+      createdAt: now - 1000 * 60 * 60 * 5
+    },
+    {
+      id: 'r3',
+      name: '검마 도전팟',
+      boss: '하드 검은 마법사',
+      job: '아크메이지(썬·콜)',
+      spec: '환산 4.9 · 검마 반피 경험',
+      need: '비숍 1명 + 서포터(배틀메이지·미하일 등) 1명 구합니다.\n평일 22시 이후, 주 2회 예정이에요.',
+      contact: '디스코드 bm#0420',
+      memo: '3페이즈 연습부터 천천히 갑니다',
+      status: 'open',
+      createdAt: now - 1000 * 60 * 60 * 22
+    },
+    {
+      id: 'r4',
+      name: '고요한칼날',
+      boss: '노말 카링',
+      job: '나이트로드',
+      spec: '환산 4.5 · 카링 1페이즈 클리어',
+      need: '카링 파티 2명 구함 / 자정 이후 시작 가능한 분.\n1시간 안에 끝나는 빠른 파티입니다.',
+      contact: '디스코드 kal#9911',
+      memo: '주 2회, 자정 이후',
+      status: 'open',
+      createdAt: now - 1000 * 60 * 60 * 30
+    }
+  ];
+
+  return { members: members, availability: availability, parties: parties, groups: groups, recruits: recruits };
+}
+
+/* ---------------- 공통 헬퍼 ---------------- */
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function byId(id) { return document.getElementById(id); }
+function qsa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+function getMember(id) { return getMemberIn(state.members, id); }
+function getParty(id) {
+  for (var i = 0; i < state.parties.length; i++) if (state.parties[i].id === id) return state.parties[i];
+  return null;
+}
+function getGroup(id) {
+  for (var i = 0; i < state.groups.length; i++) if (state.groups[i].id === id) return state.groups[i];
+  return null;
+}
+function getRecruit(id) {
+  for (var i = 0; i < state.recruits.length; i++) if (state.recruits[i].id === id) return state.recruits[i];
+  return null;
+}
+function getBlock(id) {
+  for (var i = 0; i < BLOCKS.length; i++) if (BLOCKS[i].id === id) return BLOCKS[i];
+  return BLOCKS[0];
+}
+function uid(prefix) {
+  return prefix + '_' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+}
+var toastTimer = null;
+function toast(msg) {
+  var el = byId('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2600);
+}
+function nickList(list) {
+  var out = [];
+  for (var i = 0; i < list.length; i++) out.push(list[i].nick);
+  return out.join(', ');
+}
+
+/* ---------------- 가능 시간 ---------------- */
+function weekSlots() {
+  var wk = weekKeyFor(ui.weekOffset);
+  if (!state.availability[wk]) state.availability[wk] = {};
+  return state.availability[wk];
+}
+function slotsFor(memberId) {
+  var av = weekSlots();
+  if (!av[memberId]) av[memberId] = [];
+  return av[memberId];
+}
+function hasSlot(memberId, day, blockId) {
+  return slotsFor(memberId).indexOf(day + ':' + blockId) >= 0;
+}
+function hasSlotIn(weekKey, memberId, day, blockId) {
+  var av = state.availability[weekKey];
+  if (!av) return false;
+  var list = av[memberId];
+  if (!isArr(list)) return false;
+  return list.indexOf(day + ':' + blockId) >= 0;
+}
+function memberAnySlot(id) {
+  var weeks = Object.keys(state.availability);
+  for (var i = 0; i < weeks.length; i++) {
+    var list = state.availability[weeks[i]] && state.availability[weeks[i]][id];
+    if (isArr(list) && list.length) return true;
+  }
+  return false;
+}
+function membersAvailable(day, blockId) {
+  var out = [];
+  for (var i = 0; i < state.members.length; i++) {
+    if (hasSlot(state.members[i].id, day, blockId)) out.push(state.members[i]);
+  }
+  return out;
+}
+function slotCount(day, blockId) { return membersAvailable(day, blockId).length; }
+function toggleSlot(day, blockId) {
+  var m = getMember(ui.activeMemberId);
+  if (!m) { toast('먼저 위에서 길드원을 선택해 주세요'); return; }
+  var list = slotsFor(m.id);
+  var key = day + ':' + blockId;
+  var i = list.indexOf(key);
+  if (i >= 0) list.splice(i, 1); else list.push(key);
+  save();
+  renderGrid();
+  renderHeat();
+  renderSlotDetail();
+  if (ui.tab === 'parties') renderGroups();
+}
+function selectSlot(day, blockId) {
+  if (ui.selectedSlot && ui.selectedSlot.day === day && ui.selectedSlot.block === blockId) {
+    ui.selectedSlot = null;
+  } else {
+    ui.selectedSlot = { day: day, block: blockId };
+  }
+  renderHeat();
+  renderSlotDetail();
+}
+
+/* ---------------- 자동 매칭 ---------------- */
+function groupMembers(g) {
+  var out = [];
+  for (var i = 0; i < (g.memberIds || []).length; i++) {
+    var m = getMember(g.memberIds[i]);
+    if (m) out.push(m);
+  }
+  return out;
+}
+function partyConflict(dateStr, startTime, durMin) {
+  var s1 = timeToMin(startTime), e1 = s1 + (Number(durMin) || 120);
+  for (var i = 0; i < state.parties.length; i++) {
+    var p = state.parties[i];
+    if (p.date !== dateStr) continue;
+    var s2 = timeToMin(p.startTime), e2 = s2 + (Number(p.durationMin) || 120);
+    if (s1 < e2 && s2 < e1) return p;
+  }
+  return null;
+}
+function matchesForGroup(g) {
+  var members = groupMembers(g);
+  var total = members.length;
+  var res = { full: [], near: [], total: total, noSlot: [], best: null };
+  if (!total) return res;
+  var mi;
+  for (mi = 0; mi < members.length; mi++) {
+    if (!memberAnySlot(members[mi].id)) res.noSlot.push(members[mi]);
+  }
+  var now = new Date();
+  var curWeek = ymd(startOfWeek(now));
+  var weekKeys = Object.keys(state.availability).sort();
+  for (var wi = 0; wi < weekKeys.length; wi++) {
+    var wk = weekKeys[wi];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(wk)) continue;
+    if (wk < curWeek) continue;
+    var ws = parseYmd(wk);
+    if (!ws) continue;
+    var weekGap = Math.round((ws.getTime() - parseYmd(curWeek).getTime()) / 604800000);
+    if (weekGap > 8) continue;
+    for (var day = 0; day < 7; day++) {
+      var dateObj = addDays(ws, day);
+      for (var b = 0; b < BLOCKS.length; b++) {
+        var blk = BLOCKS[b];
+        var slotDate = blk.afterMidnight ? addDays(dateObj, 1) : dateObj;
+        var sm = timeToMin(blk.start);
+        var startDt = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate(), Math.floor(sm / 60), sm % 60);
+        if (startDt.getTime() <= now.getTime()) continue;
+        var avail = [], missing = [];
+        for (var k = 0; k < members.length; k++) {
+          if (hasSlotIn(wk, members[k].id, day, blk.id)) avail.push(members[k]);
+          else missing.push(members[k]);
+        }
+        if (!avail.length) continue;
+        var dateStr = ymd(slotDate);
+        if (partyConflict(dateStr, blk.start, blk.dur)) continue;
+        var item = {
+          date: dateStr, block: blk.id, avail: avail, missing: missing,
+          count: avail.length, total: total
+        };
+        if (!missing.length) res.full.push(item);
+        else if (missing.length === 1 && total >= 3) res.near.push(item);
+      }
+    }
+  }
+  function cmpTime(a, b) {
+    return (a.date + ' ' + getBlock(a.block).start).localeCompare(b.date + ' ' + getBlock(b.block).start);
+  }
+  res.full.sort(cmpTime);
+  res.near.sort(function (a, b) { return (a.count - b.count) * -1 || cmpTime(a, b); });
+  res.best = res.full.length ? res.full[0] : null;
+  return res;
+}
+
+/* ---------------- 렌더 : 주 / 길드원 ---------------- */
+function renderWeekBar() {
+  var ws = weekStartFor(ui.weekOffset);
+  var we = addDays(ws, 6);
+  byId('weekRange').textContent = fmtMD(ws) + ' ~ ' + fmtMD(we);
+  byId('weekLabel').textContent = weekLabelFor(ui.weekOffset);
+  var pills = qsa('.week-quick .pill');
+  for (var i = 0; i < pills.length; i++) {
+    var off = Number(pills[i].getAttribute('data-offset'));
+    if (off === ui.weekOffset) pills[i].classList.add('is-active');
+    else pills[i].classList.remove('is-active');
+  }
+}
+function renderMembers() {
+  var host = byId('memberChips');
+  if (!host) return;
+  if (!state.members.length) {
+    host.innerHTML = '<div class="empty" style="width:100%">아직 등록된 길드원이 없습니다. 아래에서 첫 길드원을 추가해 주세요.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.members.length; i++) {
+    var m = state.members[i];
+    var active = m.id === ui.activeMemberId;
+    html += '<div class="member-item">' +
+      '<button type="button" class="chip-member' + (active ? ' is-active' : '') + '" data-action="select-member" data-id="' + esc(m.id) + '" title="' + esc(m.nick) + ' 가능 시간표 보기">' +
+      esc(m.nick) +
+      '</button>' +
+      '<button type="button" class="mini" data-action="edit-member" data-id="' + esc(m.id) + '" title="수정" aria-label="' + esc(m.nick) + ' 수정">✎</button>' +
+      '<button type="button" class="mini del" data-action="delete-member" data-id="' + esc(m.id) + '" title="삭제" aria-label="' + esc(m.nick) + ' 삭제">×</button>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+function renderGridHint() {
+  var el = byId('gridHint');
+  if (!el) return;
+  var m = getMember(ui.activeMemberId);
+  if (!m) {
+    el.innerHTML = '길드원을 선택한 뒤 칸을 눌러 가능한 시간을 표시하세요.';
+  } else {
+    el.innerHTML = '<b>' + esc(m.nick) + '</b> 님의 ' + weekLabelFor(ui.weekOffset) + ' 가능 시간 — 칸을 누르면 표시/해제됩니다.';
+  }
+}
+function renderGrid() {
+  var host = byId('gridHost');
+  if (!host) return;
+  host.innerHTML = '<div class="grid grid-d">' + gridMarkup('edit', false) + '</div>' +
+    '<div class="grid grid-m">' + gridMarkup('edit', true) + '</div>';
+}
+
+/* ---------------- 렌더 : 히트맵(닉네임 포함) / 슬롯 상세 ---------------- */
+function heatClass(n) {
+  if (n <= 0) return 'h0';
+  if (n === 1) return 'h1';
+  if (n === 2) return 'h2';
+  if (n === 3) return 'h3';
+  if (n === 4) return 'h4';
+  if (n === 5) return 'h5';
+  return 'h6';
+}
+function renderHeat() {
+  var host = byId('heatHost');
+  if (!host) return;
+  host.innerHTML = '<div class="grid grid-d">' + gridMarkup('heat', false) + '</div>' +
+    '<div class="grid grid-m">' + gridMarkup('heat', true) + '</div>';
+}
+/* 표를 데스크톱(요일=열, 시간=행)과 모바일(요일=행, 시간=열) 두 가지로 그린다 */
+function gridMarkup(mode, mobile) {
+  var ws = weekStartFor(ui.weekOffset);
+  var m = getMember(ui.activeMemberId);
+  var html = '<div class="gh"></div>';
+  var b, day, d;
+  if (!mobile) {
+    for (d = 0; d < 7; d++) html += dayHeaderCell(d, ws);
+    for (b = 0; b < BLOCKS.length; b++) {
+      html += '<div class="rh"><span>' + BLOCKS[b].label + '</span><small>' + BLOCKS[b].time + '</small></div>';
+      for (day = 0; day < 7; day++) html += cellMarkup(mode, day, BLOCKS[b], m);
+    }
+  } else {
+    for (b = 0; b < BLOCKS.length; b++) {
+      html += '<div class="gh gb"><b>' + BLOCKS[b].short + '</b><small>' + BLOCKS[b].start + '</small></div>';
+    }
+    for (d = 0; d < 7; d++) {
+      var dd = addDays(ws, d);
+      html += '<div class="rh"><span>' + DAY_NAMES[d] + '</span><small>' + (dd.getMonth() + 1) + '/' + dd.getDate() + '</small></div>';
+      for (b = 0; b < BLOCKS.length; b++) html += cellMarkup(mode, d, BLOCKS[b], m);
+    }
+  }
+  return html;
+}
+function dayHeaderCell(d, ws) {
+  var dd = addDays(ws, d);
+  var isToday = ymd(dd) === ymd(new Date());
+  return '<div class="gh"><b style="' + (isToday ? 'color:#c96a0c' : '') + '">' + DAY_NAMES[d] + '</b><small>' + (dd.getMonth() + 1) + '/' + dd.getDate() + '</small></div>';
+}
+function cellMarkup(mode, day, blk, m) {
+  if (mode === 'edit') {
+    var on = m ? hasSlot(m.id, day, blk.id) : false;
+    return '<button type="button" class="cell' + (on ? ' on' : '') + '" data-action="cell" data-day="' + day + '" data-block="' + blk.id + '"' +
+      ' aria-pressed="' + (on ? 'true' : 'false') + '"' +
+      ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' 가능' + (on ? ' 표시됨' : '') + '">' +
+      (on ? '✓' : '') + '</button>';
+  }
+  var list = membersAvailable(day, blk.id);
+  var n = list.length;
+  var sel = ui.selectedSlot && ui.selectedSlot.day === day && ui.selectedSlot.block === blk.id;
+  var names = '';
+  for (var i = 0; i < list.length; i++) names += '<i>' + esc(list[i].nick) + '</i>';
+  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + '" data-action="heat" data-day="' + day + '" data-block="' + blk.id + '"' +
+    ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' ' + n + '명 가능' + (n ? ' — ' + esc(nickList(list)) : '') + '">' +
+    '<span class="c-top"><span class="c-n">' + (n > 0 ? n + '명' : '·') + '</span></span>' +
+    (n > 0 ? '<span class="c-names">' + names + '</span>' : '') +
+    '</button>';
+}
+function renderSlotDetail() {
+  var host = byId('slotDetail');
+  if (!host) return;
+  if (!ui.selectedSlot) {
+    host.innerHTML = '<div class="slot-detail"><p class="hint" style="margin:0">칸을 누르면 그 시간에 가능한 길드원과 <b>이 시간으로 파티 만들기</b> 버튼이 나타납니다.</p></div>';
+    return;
+  }
+  var ws = weekStartFor(ui.weekOffset);
+  var day = ui.selectedSlot.day;
+  var blk = getBlock(ui.selectedSlot.block);
+  var list = membersAvailable(day, blk.id);
+  var html = '<div class="slot-detail">' +
+    '<div class="sd-head"><b>' + DAY_NAMES[day] + '요일 ' + esc(blk.label) + '</b>' +
+    '<span class="badge-n' + (list.length ? '' : ' zero') + '">' + list.length + '명 가능</span></div>';
+  if (list.length) {
+    html += '<div class="who">';
+    for (var i = 0; i < list.length; i++) {
+      html += '<span>' + esc(list[i].nick) + '</span>';
+    }
+    html += '</div>';
+  } else {
+    html += '<p class="hint" style="margin:0 0 10px">이 시간에 가능하다고 표시한 길드원이 없습니다.</p>';
+  }
+  html += '<button type="button" class="btn btn-primary btn-sm" data-action="make-party"' + (list.length ? '' : ' disabled') + '>⚔ 이 시간으로 파티 만들기</button>';
+  html += '<p class="hint">' + fmtMDW(addDays(ws, day)) + ' ' + esc(blk.time) + ' 기준' + (blk.afterMidnight ? ' (자정 이후라 날짜는 다음 날로 들어갑니다)' : '') + '</p>';
+  html += '</div>';
+  host.innerHTML = html;
+}
+
+/* ---------------- 렌더 : 고정 파티 + 자동 매칭 ---------------- */
+function matchRowMarkup(g, it, isFull) {
+  var blk = getBlock(it.block);
+  var d = parseYmd(it.date);
+  var dd = dayDiffFromToday(it.date);
+  var dayText = dd === 0 ? '오늘' : (dd === 1 ? '내일' : (dd > 1 ? 'D-' + dd : ''));
+  var who = '';
+  for (var i = 0; i < it.avail.length; i++) {
+    who += (i ? ', ' : '') + esc(it.avail[i].nick);
+  }
+  var miss = '';
+  if (it.missing.length) {
+    miss = '<span class="m-miss">1명 부족 · ' + esc(it.missing[0].nick) + ' 님이 이 시간에 불가</span>';
+  }
+  return '<div class="match ' + (isFull ? 'is-full' : 'is-near') + '">' +
+    '<div class="m-when"><b>' + fmtMDW(d) + (dayText ? ' · ' + dayText : '') + '</b><span>' + esc(blk.label) + '</span></div>' +
+    '<div class="m-info">' +
+      '<span class="m-cnt">' + it.count + '/' + it.total + '명</span>' +
+      '<span class="m-names">' + who + '</span>' +
+      miss +
+    '</div>' +
+    '<button type="button" class="btn btn-sm ' + (isFull ? 'btn-primary' : 'btn-ghost') + '" data-action="confirm-match" data-id="' + esc(g.id) + '" data-date="' + esc(it.date) + '" data-block="' + esc(it.block) + '">' +
+      (isFull ? '✅ 이 날짜로 확정하기' : '이 날짜로 확정') +
+    '</button>' +
+    '</div>';
+}
+function groupCardMarkup(g) {
+  var mem = groupMembers(g);
+  var m = matchesForGroup(g);
+  var showAll = !!ui.showAllMatches[g.id];
+  var fullShown = showAll ? m.full : m.full.slice(0, 4);
+  var nearShown = showAll ? m.near : m.near.slice(0, 2);
+  var i, html = '';
+
+  html += '<article class="group" data-group="' + esc(g.id) + '">';
+  html += '<div class="g-head"><div class="g-title">' + esc(g.name) + '</div>' +
+    '<span class="g-boss">' + esc(g.boss) + '</span>' +
+    '<span class="g-size">' + mem.length + '명</span>' +
+    '<span style="margin-left:auto; display:flex; gap:5px">' +
+      '<button type="button" class="mini" data-action="edit-group" data-id="' + esc(g.id) + '" title="수정" aria-label="' + esc(g.name) + ' 수정">✎</button>' +
+      '<button type="button" class="mini del" data-action="delete-group" data-id="' + esc(g.id) + '" title="삭제" aria-label="' + esc(g.name) + ' 삭제">×</button>' +
+    '</span></div>';
+  if (mem.length) {
+    html += '<div class="g-members">';
+    for (i = 0; i < mem.length; i++) html += '<span>' + esc(mem[i].nick) + '</span>';
+    html += '</div>';
+  } else {
+    html += '<p class="g-warn">파티원이 없습니다. 파티원을 골라 주세요.</p>';
+  }
+  if (g.memo) html += '<p class="g-memo">' + esc(g.memo) + '</p>';
+
+  if (mem.length) {
+    html += '<div class="g-sum">' +
+      '<span class="badge-full">전원 가능 ' + m.full.length + '개</span>' +
+      '<span class="badge-near">1명 부족 ' + m.near.length + '개</span>' +
+      (m.best ? '<span class="g-best">가장 빠른 전원 가능 · ' + fmtMDW(parseYmd(m.best.date)) + ' ' + esc(getBlock(m.best.block).label) + '</span>' : '') +
+      '</div>';
+    if (m.noSlot.length) {
+      html += '<p class="g-warn">아직 가능 시간을 입력하지 않은 파티원: ' + esc(nickList(m.noSlot)) + '</p>';
+    }
+    if (!m.full.length && !m.near.length) {
+      html += '<div class="no-match">기간 내에 겹치는 시간이 없습니다. <b>주간 가능 시간표</b>에서 파티원들의 가능 시간을 더 칠해 보세요.</div>';
+    } else {
+      for (i = 0; i < fullShown.length; i++) html += matchRowMarkup(g, fullShown[i], true);
+      for (i = 0; i < nearShown.length; i++) html += matchRowMarkup(g, nearShown[i], false);
+      var hidden = (m.full.length - fullShown.length) + (m.near.length - nearShown.length);
+      if (hidden > 0 || showAll) {
+        html += '<button type="button" class="more-btn" data-action="show-all-matches" data-id="' + esc(g.id) + '">' +
+          (showAll ? '접기' : '겹치는 시간 ' + hidden + '개 더 보기') + '</button>';
+      }
+    }
+  }
+  html += '<div class="g-actions">' +
+    '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-group" data-id="' + esc(g.id) + '">파티원 수정</button>' +
+    '</div>';
+  html += '</article>';
+  return html;
+}
+function renderGroups() {
+  var host = byId('groupList');
+  if (!host) return;
+  if (!state.groups.length) {
+    host.innerHTML = '<div class="empty">등록된 고정 파티가 없습니다. 위에서 파티명과 파티원을 등록해 보세요.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.groups.length; i++) html += groupCardMarkup(state.groups[i]);
+  host.innerHTML = html;
+}
+function renderGroupChecks(selected) {
+  var host = byId('groupMemberChecks');
+  if (!host) return;
+  if (selected) ui.groupChecked = selected.slice(); else ui.groupChecked = [];
+  if (!state.members.length) {
+    host.innerHTML = '<span class="hint">등록된 길드원이 없습니다. 주간 가능 시간표 탭에서 길드원을 먼저 추가해 주세요.</span>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.members.length; i++) {
+    var m = state.members[i];
+    var on = ui.groupChecked.indexOf(m.id) >= 0;
+    html += '<label class="check' + (on ? ' is-on' : '') + '"><input type="checkbox" data-scope="group" value="' + esc(m.id) + '"' + (on ? ' checked' : '') + '>' +
+      '<span>' + esc(m.nick) + '</span></label>';
+  }
+  host.innerHTML = html;
+}
+function resetGroupForm() {
+  ui.editingGroupId = null;
+  byId('gName').value = '';
+  byId('gBoss').selectedIndex = 0;
+  byId('gMemo').value = '';
+  byId('groupSaveBtn').textContent = '고정 파티 등록';
+  byId('groupCancelBtn').style.display = 'none';
+  renderGroupChecks(null);
+}
+function fillGroupForm(g) {
+  ui.editingGroupId = g.id;
+  byId('gName').value = g.name;
+  byId('gBoss').value = g.boss;
+  byId('gMemo').value = g.memo || '';
+  byId('groupSaveBtn').textContent = '수정 저장';
+  byId('groupCancelBtn').style.display = '';
+  renderGroupChecks(g.memberIds || []);
+}
+function saveGroup() {
+  var name = String(byId('gName').value || '').trim();
+  var boss = byId('gBoss').value || '기타';
+  var memo = String(byId('gMemo').value || '').trim();
+  var ids = ui.groupChecked.slice();
+  if (!name) { toast('파티명을 입력해 주세요'); byId('gName').focus(); return; }
+  if (!ids.length) { toast('고정 파티원을 한 명 이상 골라 주세요'); return; }
+  if (ui.editingGroupId) {
+    var g = getGroup(ui.editingGroupId);
+    if (g) { g.name = name; g.boss = boss; g.memo = memo; g.memberIds = ids; }
+    toast('고정 파티를 수정했어요');
+  } else {
+    state.groups.push({ id: uid('g'), name: name, boss: boss, memo: memo, memberIds: ids });
+    toast(name + ' 등록 완료 — 겹치는 시간을 찾아 볼게요');
+  }
+  save();
+  resetGroupForm();
+  renderGroups();
+}
+function deleteGroup(id) {
+  var g = getGroup(id);
+  if (!g) return;
+  if (!confirm(g.name + ' 고정 파티를 삭제할까요?\n(확정된 파티 일정은 그대로 남습니다)')) return;
+  state.groups = state.groups.filter(function (x) { return x.id !== id; });
+  if (ui.editingGroupId === id) resetGroupForm();
+  save();
+  renderGroups();
+  toast('고정 파티를 삭제했어요');
+}
+function confirmFromMatch(groupId, dateStr, blockId) {
+  var g = getGroup(groupId);
+  if (!g) return;
+  var blk = getBlock(blockId);
+  var members = groupMembers(g);
+  if (!members.length) { toast('파티원이 없습니다'); return; }
+  var conflict = partyConflict(dateStr, blk.start, blk.dur);
+  if (conflict) {
+    toast('이미 같은 시간에 확정된 파티가 있어요 (' + conflict.boss + ')');
+    renderGroups();
+    return;
+  }
+  var np = {
+    id: uid('p'), boss: g.boss, date: dateStr, startTime: blk.start, durationMin: blk.dur,
+    alarmTime: '09:00', memo: g.name + ' 자동 매칭으로 확정 · ' + members.length + '명 전원 가능',
+    members: members.map(function (m) { return m.nick; }), groupId: g.id
+  };
+  state.parties.push(np);
+  save();
+  ui.freshPartyId = np.id;
+  renderParties();
+  renderGroups();
+  toast(g.name + ' — ' + fmtMDW(parseYmd(dateStr)) + ' ' + blk.label + '로 확정했어요. 아래에서 캘린더로 내보내세요');
+  var card = byId('partyList');
+  if (card && card.scrollIntoView) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
+}
+
+/* ---------------- 렌더 : 확정 파티 ---------------- */
+function sortedParties() {
+  return state.parties.slice().sort(function (a, b) {
+    return (a.date + ' ' + a.startTime).localeCompare(b.date + ' ' + b.startTime);
+  });
+}
+function renderParties() {
+  var host = byId('partyList');
+  if (!host) return;
+  var count = byId('partyCount');
+  if (count) count.textContent = String(state.parties.length);
+  var list = sortedParties();
+  if (!list.length) {
+    host.innerHTML = '<div class="empty">아직 확정된 파티가 없습니다. 위 자동 매칭에서 날짜를 골라 확정해 보세요.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var p = list[i];
+    var d = parseYmd(p.date) || new Date();
+    var dd = dayDiffFromToday(p.date);
+    var past = dd < 0;
+    var ddayText = dd === 0 ? 'D-DAY' : (dd > 0 ? 'D-' + dd : '지난 일정');
+    var ddayCls = dd === 0 || dd === 1 ? 'dday soon' : (past ? 'dday past' : 'dday');
+    var memberHtml = '';
+    for (var j = 0; j < (p.members || []).length; j++) {
+      memberHtml += '<span>' + esc(p.members[j]) + '</span>';
+    }
+    var gurl = buildGoogleUrl(p);
+    html += '<article class="party' + (past ? ' past' : '') + (p.id === ui.freshPartyId ? ' fresh' : '') + '">' +
+      '<div class="party-head">' +
+        '<div class="boss-name">' + esc(p.boss) + '</div>' +
+        '<div class="' + ddayCls + '">' + ddayText + '</div>' +
+      '</div>' +
+      '<div class="party-when"><b>' + fmtMDW(d) + '</b> · ' + esc(p.startTime) + ' 시작 · 예상 ' + esc(p.durationMin) + '분</div>' +
+      (memberHtml ? '<div class="p-members">' + memberHtml + '</div>' : '') +
+      (p.memo ? '<p class="p-memo">' + esc(p.memo) + '</p>' : '') +
+      '<div class="p-alarm">⏰ ' + esc(alarmLabel(p)) + '</div>' +
+      '<div class="p-actions">' +
+        '<button type="button" class="btn btn-sm btn-primary" data-action="ics" data-id="' + esc(p.id) + '">📅 애플 캘린더 (.ics)</button>' +
+        '<a class="btn btn-sm" href="' + esc(gurl) + '" target="_blank" rel="noopener">🗓 구글 캘린더</a>' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-party" data-id="' + esc(p.id) + '">수정</button>' +
+        '<button type="button" class="btn btn-sm btn-danger" data-action="delete-party" data-id="' + esc(p.id) + '">삭제</button>' +
+      '</div>' +
+      '</article>';
+  }
+  host.innerHTML = html;
+  var sub = byId('partyListSub');
+  if (sub) sub.textContent = '총 ' + list.length + '개의 확정 일정 · 다가오는 일정부터 순서대로 보여 드려요.';
+  ui.freshPartyId = null;
+}
+function renderMemberChecks(selected) {
+  var host = byId('partyMemberChecks');
+  if (!host) return;
+  if (selected) ui.formMembers = selected.slice(); else ui.formMembers = [];
+  if (!state.members.length) {
+    host.innerHTML = '<span class="hint">등록된 길드원이 없습니다. 주간 가능 시간표 탭에서 길드원을 먼저 추가해 주세요.</span>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < state.members.length; i++) {
+    var m = state.members[i];
+    var on = ui.formMembers.indexOf(m.nick) >= 0;
+    html += '<label class="check' + (on ? ' is-on' : '') + '"><input type="checkbox" data-scope="party" value="' + esc(m.nick) + '"' + (on ? ' checked' : '') + '>' +
+      '<span>' + esc(m.nick) + '</span></label>';
+  }
+  host.innerHTML = html;
+}
+
+/* ---------------- 렌더 : 파티 구함 ---------------- */
+function recruitBossList() {
+  var seen = {}, out = [];
+  for (var i = 0; i < state.recruits.length; i++) {
+    var b = state.recruits[i].boss;
+    if (b && !seen[b]) { seen[b] = 1; out.push(b); }
+  }
+  out.sort(function (a, b) { return a.localeCompare(b, 'ko'); });
+  return out;
+}
+function recruitJobList() {
+  var seen = {}, out = [];
+  for (var i = 0; i < state.recruits.length; i++) {
+    var j = state.recruits[i].job;
+    if (j && !seen[j]) { seen[j] = 1; out.push(j); }
+  }
+  out.sort(function (a, b) { return a.localeCompare(b, 'ko'); });
+  return out;
+}
+function filteredRecruits() {
+  var out = [];
+  for (var i = 0; i < state.recruits.length; i++) {
+    var r = state.recruits[i];
+    if (ui.openOnly && r.status !== 'open') continue;
+    if (ui.filterBoss && r.boss !== ui.filterBoss) continue;
+    if (ui.filterJob && r.job !== ui.filterJob) continue;
+    out.push(r);
+  }
+  out.sort(function (a, b) {
+    if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+  return out;
+}
+function renderRecruitFilters() {
+  var bossSel = byId('filterBoss');
+  var jobSel = byId('filterJob');
+  if (!bossSel || !jobSel) return;
+  var bosses = recruitBossList(), jobs = recruitJobList();
+  var bh = '<option value="">전체 보스</option>';
+  for (var i = 0; i < bosses.length; i++) {
+    bh += '<option value="' + esc(bosses[i]) + '"' + (ui.filterBoss === bosses[i] ? ' selected' : '') + '>' + esc(bosses[i]) + '</option>';
+  }
+  bossSel.innerHTML = bh;
+  var jh = '<option value="">전체 직업</option>';
+  for (var k = 0; k < jobs.length; k++) {
+    jh += '<option value="' + esc(jobs[k]) + '"' + (ui.filterJob === jobs[k] ? ' selected' : '') + '>' + esc(jobs[k]) + '</option>';
+  }
+  jobSel.innerHTML = jh;
+  if (ui.filterBoss && bosses.indexOf(ui.filterBoss) < 0) { ui.filterBoss = ''; bossSel.value = ''; }
+  if (ui.filterJob && jobs.indexOf(ui.filterJob) < 0) { ui.filterJob = ''; jobSel.value = ''; }
+  var btn = byId('openOnlyBtn');
+  if (btn) {
+    if (ui.openOnly) btn.classList.add('is-active'); else btn.classList.remove('is-active');
+  }
+}
+function renderRecruits() {
+  renderRecruitFilters();
+  var host = byId('recruitList');
+  if (!host) return;
+  var list = filteredRecruits();
+  var openCount = 0;
+  for (var o = 0; o < state.recruits.length; o++) if (state.recruits[o].status === 'open') openCount++;
+  var cnt = byId('recruitCount');
+  if (cnt) cnt.textContent = String(openCount);
+  var hint = byId('recruitCountHint');
+  if (hint) hint.textContent = '모집중 ' + openCount + '개 · 전체 ' + state.recruits.length + '개 중 ' + list.length + '개를 보여 주고 있어요.';
+
+  if (!list.length) {
+    host.innerHTML = '<div class="empty" style="grid-column:1/-1">조건에 맞는 모집 글이 없습니다. 필터를 바꾸거나 새 글을 올려 보세요.</div>';
+    updateRecruitSub(list.length);
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var r = list[i];
+    var closed = r.status === 'closed';
+    html += '<article class="recruit' + (closed ? ' closed' : '') + '">' +
+      '<div class="r-top"><div class="r-name">' + esc(r.name) + '</div>' +
+        '<span class="r-state ' + (closed ? 'closed' : 'open') + '">' + (closed ? '모집 마감' : '모집중') + '</span></div>' +
+      '<div class="r-tags">' +
+        '<span class="r-boss">' + esc(r.boss) + '</span>' +
+        '<span class="r-job">' + esc(r.job) + '</span>' +
+        (r.spec ? '<span class="r-spec">' + esc(r.spec) + '</span>' : '') +
+      '</div>' +
+      (r.need ? '<p class="r-need">' + esc(r.need) + '</p>' : '') +
+      (r.memo ? '<p class="r-memo">' + esc(r.memo) + '</p>' : '') +
+      (r.contact ? '<div class="r-contact"><span>연락</span><b>' + esc(r.contact) + '</b></div>' : '') +
+      '<div class="r-actions">' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-recruit" data-id="' + esc(r.id) + '">수정</button>' +
+        '<button type="button" class="btn btn-sm ' + (closed ? 'btn-ghost' : 'btn-danger') + '" data-action="toggle-recruit" data-id="' + esc(r.id) + '">' + (closed ? '다시 모집' : '마감') + '</button>' +
+        '<button type="button" class="btn btn-sm btn-ghost" data-action="delete-recruit" data-id="' + esc(r.id) + '">삭제</button>' +
+      '</div>' +
+      '</article>';
+  }
+  host.innerHTML = html;
+  updateRecruitSub(list.length);
+}
+function updateRecruitSub(n) {
+  var sub = byId('recruitListSub');
+  if (sub) sub.textContent = '조건에 맞는 글 ' + n + '개 · 최근에 올라온 글부터 보여 드려요.';
+}
+function resetRecruitForm() {
+  ui.editingRecruitId = null;
+  var t = byId('recruitFormTitle');
+  if (t) t.textContent = '모집 글 올리기';
+  byId('rName').value = '';
+  byId('rBoss').selectedIndex = 0;
+  byId('rBossCustom').value = '';
+  byId('rBossCustom').style.display = 'none';
+  byId('rJob').selectedIndex = 0;
+  byId('rSpec').value = '';
+  byId('rNeed').value = '';
+  byId('rContact').value = '';
+  byId('rMemo').value = '';
+  byId('recruitSaveBtn').textContent = '모집 글 올리기';
+  byId('recruitCancelBtn').style.display = 'none';
+}
+function fillRecruitForm(r) {
+  ui.editingRecruitId = r.id;
+  byId('recruitFormTitle').textContent = '모집 글 수정';
+  byId('recruitSaveBtn').textContent = '수정 저장';
+  byId('recruitCancelBtn').style.display = '';
+  byId('rName').value = r.name;
+  var known = BOSSES.indexOf(r.boss) >= 0;
+  byId('rBoss').value = known ? r.boss : BOSS_CUSTOM;
+  byId('rBossCustom').value = known ? '' : r.boss;
+  byId('rBossCustom').style.display = known ? 'none' : '';
+  byId('rJob').value = JOBS.indexOf(r.job) >= 0 ? r.job : '기타';
+  byId('rSpec').value = r.spec || '';
+  byId('rNeed').value = r.need || '';
+  byId('rContact').value = r.contact || '';
+  byId('rMemo').value = r.memo || '';
+  setFolded('recruitFormCard', false);
+}
+function saveRecruit() {
+  var bossSel = byId('rBoss').value;
+  var boss = bossSel === BOSS_CUSTOM ? String(byId('rBossCustom').value || '').trim() : bossSel;
+  var data = {
+    name: String(byId('rName').value || '').trim(),
+    boss: boss,
+    job: byId('rJob').value || '기타',
+    spec: String(byId('rSpec').value || '').trim(),
+    need: String(byId('rNeed').value || '').trim(),
+    contact: String(byId('rContact').value || '').trim(),
+    memo: String(byId('rMemo').value || '').trim()
+  };
+  if (!data.name) { toast('닉네임이나 파티명을 입력해 주세요'); byId('rName').focus(); return; }
+  if (!data.boss) { toast('목표 보스를 골라 주세요'); return; }
+  if (ui.editingRecruitId) {
+    var r = getRecruit(ui.editingRecruitId);
+    if (r) {
+      r.name = data.name; r.boss = data.boss; r.job = data.job; r.spec = data.spec;
+      r.need = data.need; r.contact = data.contact; r.memo = data.memo;
+    }
+    toast('모집 글을 수정했어요');
+  } else {
+    state.recruits.push({
+      id: uid('r'), name: data.name, boss: data.boss, job: data.job, spec: data.spec,
+      need: data.need, contact: data.contact, memo: data.memo,
+      status: 'open', createdAt: Date.now()
+    });
+    toast('모집 글을 올렸어요');
+  }
+  save();
+  resetRecruitForm();
+  renderRecruits();
+  if (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 560) setFolded('recruitFormCard', true);
+}
+function toggleRecruitStatus(id) {
+  var r = getRecruit(id);
+  if (!r) return;
+  r.status = r.status === 'open' ? 'closed' : 'open';
+  save();
+  renderRecruits();
+  toast(r.status === 'open' ? '다시 모집중으로 바꿨어요' : '모집을 마감했어요');
+}
+function deleteRecruit(id) {
+  var r = getRecruit(id);
+  if (!r) return;
+  if (!confirm(r.name + ' 님의 모집 글을 삭제할까요?')) return;
+  state.recruits = state.recruits.filter(function (x) { return x.id !== id; });
+  if (ui.editingRecruitId === id) resetRecruitForm();
+  save();
+  renderRecruits();
+  toast('모집 글을 삭제했어요');
+}
+
+/* ---------------- 렌더 : 전체 ---------------- */
+function renderAll() {
+  renderWeekBar();
+  renderMembers();
+  renderGridHint();
+  renderGrid();
+  renderHeat();
+  renderSlotDetail();
+  renderGroups();
+  renderParties();
+  renderRecruits();
+  renderMemberChecks(currentChecked());
+}
+
+/* ---------------- 탭 / 주 이동 ---------------- */
+function switchTab(tab) {
+  ui.tab = tab;
+  var tabs = qsa('.tab');
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].getAttribute('data-tab') === tab) tabs[i].classList.add('is-active');
+    else tabs[i].classList.remove('is-active');
+  }
+  var panels = qsa('.panel');
+  for (var j = 0; j < panels.length; j++) {
+    if (panels[j].id === 'panel-' + tab) panels[j].classList.add('is-active');
+    else panels[j].classList.remove('is-active');
+  }
+  if (tab === 'parties') renderGroups();
+}
+function changeWeek(delta) {
+  ui.weekOffset += delta;
+  afterWeekChange();
+}
+function gotoWeek(offset) {
+  ui.weekOffset = offset;
+  afterWeekChange();
+}
+function afterWeekChange() {
+  ui.selectedSlot = null;
+  renderWeekBar();
+  renderGridHint();
+  renderGrid();
+  renderHeat();
+  renderSlotDetail();
+}
+
+/* ---------------- 접기 ---------------- */
+function setFolded(cardId, collapsed) {
+  var card = byId(cardId);
+  if (!card) return;
+  if (collapsed) card.classList.add('is-collapsed');
+  else card.classList.remove('is-collapsed');
+  var btn = card.querySelector('.fold-btn');
+  if (btn) {
+    btn.textContent = collapsed ? '펼치기' : '접기';
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+}
+
+/* ---------------- 길드원 CRUD ---------------- */
+function startMemberEdit(id) {
+  var m = getMember(id);
+  if (!m) return;
+  ui.editingMemberId = id;
+  ui.activeMemberId = id;
+  byId('mNick').value = m.nick;
+  byId('memberSaveBtn').textContent = '수정 저장';
+  byId('memberCancelBtn').style.display = '';
+  renderMembers();
+  renderGridHint();
+  renderGrid();
+  byId('mNick').focus();
+}
+function cancelMemberEdit() {
+  ui.editingMemberId = null;
+  byId('mNick').value = '';
+  byId('memberSaveBtn').textContent = '길드원 추가';
+  byId('memberCancelBtn').style.display = 'none';
+}
+function saveMember() {
+  var nick = String(byId('mNick').value || '').trim();
+  if (!nick) { toast('닉네임을 입력해 주세요'); byId('mNick').focus(); return; }
+  var dup = null;
+  for (var i = 0; i < state.members.length; i++) {
+    if (state.members[i].nick === nick && state.members[i].id !== ui.editingMemberId) dup = state.members[i];
+  }
+  if (dup) { toast('이미 등록된 닉네임입니다'); return; }
+  if (ui.editingMemberId) {
+    var m = getMember(ui.editingMemberId);
+    if (m) { m.nick = nick; }
+    toast('길드원 정보를 수정했어요');
+    cancelMemberEdit();
+  } else {
+    var nm = { id: uid('m'), nick: nick };
+    state.members.push(nm);
+    ui.activeMemberId = nm.id;
+    byId('mNick').value = '';
+    toast(nick + ' 님을 추가했어요. 이제 가능한 시간을 칠해 주세요');
+  }
+  save();
+  renderMembers();
+  renderGridHint();
+  renderGrid();
+  renderHeat();
+  renderSlotDetail();
+  renderMemberChecks(currentChecked());
+  renderGroupChecks(ui.groupChecked);
+  renderGroups();
+}
+function deleteMember(id) {
+  var m = getMember(id);
+  if (!m) return;
+  if (!confirm(m.nick + ' 님을 삭제할까요?\n등록된 가능 시간도 함께 삭제됩니다.')) return;
+  state.members = state.members.filter(function (x) { return x.id !== id; });
+  var weeks = Object.keys(state.availability);
+  for (var i = 0; i < weeks.length; i++) {
+    if (state.availability[weeks[i]] && state.availability[weeks[i]][id]) delete state.availability[weeks[i]][id];
+  }
+  for (var gi = 0; gi < state.groups.length; gi++) {
+    state.groups[gi].memberIds = (state.groups[gi].memberIds || []).filter(function (x) { return x !== id; });
+  }
+  if (ui.activeMemberId === id) ui.activeMemberId = state.members.length ? state.members[0].id : null;
+  if (ui.editingMemberId === id) cancelMemberEdit();
+  ui.groupChecked = (ui.groupChecked || []).filter(function (x) { return x !== id; });
+  save();
+  renderMembers();
+  renderGridHint();
+  renderGrid();
+  renderHeat();
+  renderSlotDetail();
+  renderMemberChecks(currentChecked());
+  renderGroupChecks(ui.groupChecked);
+  renderGroups();
+  toast('길드원을 삭제했어요');
+}
+
+/* ---------------- 확정 파티 폼 ---------------- */
+function toggleBossCustom() {
+  var sel = byId('bossSelect');
+  var custom = byId('bossCustom');
+  if (!sel || !custom) return;
+  custom.style.display = sel.value === BOSS_CUSTOM ? '' : 'none';
+}
+function resetPartyForm() {
+  ui.editingPartyId = null;
+  byId('partyFormTitle').textContent = '확정 파티 직접 추가';
+  byId('partySaveBtn').textContent = '일정 추가';
+  byId('partyCancelBtn').style.display = 'none';
+  byId('bossSelect').selectedIndex = 0;
+  byId('bossCustom').value = '';
+  byId('bossCustom').style.display = 'none';
+  byId('partyDate').value = ymd(new Date());
+  byId('partyStart').value = '22:00';
+  byId('partyDuration').value = '120';
+  byId('partyAlarm').value = '09:00';
+  byId('partyExtra').value = '';
+  byId('partyMemo').value = '';
+  renderMemberChecks(null);
+}
+function fillPartyForm(p) {
+  ui.editingPartyId = p.id;
+  byId('partyFormTitle').textContent = '파티 일정 수정';
+  byId('partySaveBtn').textContent = '수정 저장';
+  byId('partyCancelBtn').style.display = '';
+  var known = BOSSES.indexOf(p.boss) >= 0;
+  byId('bossSelect').value = known ? p.boss : BOSS_CUSTOM;
+  byId('bossCustom').value = known ? '' : p.boss;
+  byId('bossCustom').style.display = known ? 'none' : '';
+  byId('partyDate').value = p.date;
+  byId('partyStart').value = p.startTime;
+  byId('partyDuration').value = String(p.durationMin);
+  byId('partyAlarm').value = p.alarmTime || '09:00';
+  byId('partyMemo').value = p.memo || '';
+  var nicks = state.members.map(function (m) { return m.nick; });
+  var extras = (p.members || []).filter(function (n) { return nicks.indexOf(n) < 0; });
+  byId('partyExtra').value = extras.join(', ');
+  renderMemberChecks(p.members || []);
+}
+function readPartyForm() {
+  var bossSel = byId('bossSelect').value;
+  var boss = bossSel === BOSS_CUSTOM ? String(byId('bossCustom').value || '').trim() : bossSel;
+  var date = String(byId('partyDate').value || '').trim();
+  var startTime = String(byId('partyStart').value || '').trim();
+  var durationMin = Number(byId('partyDuration').value) || 120;
+  var alarmTime = String(byId('partyAlarm').value || '09:00').trim();
+  var memo = String(byId('partyMemo').value || '').trim();
+  var extraRaw = String(byId('partyExtra').value || '');
+  var members = currentChecked();
+  var extras = extraRaw.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+  for (var i = 0; i < extras.length; i++) if (members.indexOf(extras[i]) < 0) members.push(extras[i]);
+  return {
+    boss: boss, date: date, startTime: startTime, durationMin: durationMin,
+    alarmTime: alarmTime, memo: memo, members: members
+  };
+}
+function checkPartyForm(data) {
+  if (!data.boss) return '보스 이름을 선택하거나 입력해 주세요';
+  if (!data.date) return '날짜를 선택해 주세요';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return '날짜 형식이 올바르지 않습니다';
+  if (!data.startTime) return '시작 시간을 입력해 주세요';
+  if (!/^\d{2}:\d{2}$/.test(data.startTime)) return '시작 시간 형식이 올바르지 않습니다';
+  return '';
+}
+function saveParty() {
+  var data = readPartyForm();
+  var err = checkPartyForm(data);
+  if (err) { toast(err); return; }
+  if (ui.editingPartyId) {
+    var p = getParty(ui.editingPartyId);
+    if (p) {
+      p.boss = data.boss; p.date = data.date; p.startTime = data.startTime;
+      p.durationMin = data.durationMin; p.alarmTime = data.alarmTime;
+      p.memo = data.memo; p.members = data.members;
+      toast('일정을 수정했어요');
+    }
+  } else {
+    var np = {
+      id: uid('p'), boss: data.boss, date: data.date, startTime: data.startTime,
+      durationMin: data.durationMin, alarmTime: data.alarmTime,
+      memo: data.memo, members: data.members, groupId: ''
+    };
+    state.parties.push(np);
+    ui.freshPartyId = np.id;
+    toast(data.boss + ' 파티 일정을 추가했어요');
+  }
+  save();
+  resetPartyForm();
+  renderParties();
+  renderGroups();
+  if (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 560) setFolded('partyFormCard', true);
+}
+function startPartyEdit(id) {
+  var p = getParty(id);
+  if (!p) return;
+  switchTab('parties');
+  setFolded('partyFormCard', false);
+  fillPartyForm(p);
+  var form = byId('partyFormCard');
+  if (form && form.scrollIntoView) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('수정할 내용을 고쳐 주세요');
+}
+function deleteParty(id) {
+  var p = getParty(id);
+  if (!p) return;
+  if (!confirm(p.boss + ' 파티 일정을 삭제할까요?')) return;
+  state.parties = state.parties.filter(function (x) { return x.id !== id; });
+  if (ui.editingPartyId === id) resetPartyForm();
+  save();
+  renderParties();
+  renderGroups();
+  toast('일정을 삭제했어요');
+}
+function makePartyFromSlot() {
+  if (!ui.selectedSlot) return;
+  var ws = weekStartFor(ui.weekOffset);
+  var day = ui.selectedSlot.day;
+  var blk = getBlock(ui.selectedSlot.block);
+  var dateObj = addDays(ws, day);
+  if (blk.afterMidnight) dateObj = addDays(dateObj, 1);
+  var list = membersAvailable(day, blk.id);
+  resetPartyForm();
+  byId('partyDate').value = ymd(dateObj);
+  byId('partyStart').value = blk.start;
+  byId('partyDuration').value = String(blk.dur);
+  byId('partyMemo').value = fmtMDW(addDays(ws, day)) + ' ' + blk.label + ' 가능 인원 ' + list.length + '명 기준으로 잡은 일정';
+  renderMemberChecks(list.map(function (m) { return m.nick; }));
+  switchTab('parties');
+  setFolded('partyFormCard', false);
+  toast('가능 인원 ' + list.length + '명으로 폼을 채웠어요. 보스만 골라 주세요');
+  var form = byId('partyFormCard');
+  if (form && form.scrollIntoView) setTimeout(function () { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 40);
+}
+function currentChecked() { return ui.formMembers.slice(); }
+
+/* ---------------- 캘린더 내보내기 ---------------- */
+function downloadICS(id) {
+  var p = getParty(id);
+  if (!p) { toast('일정을 찾지 못했습니다'); return; }
+  var text = buildICS(p);
+  var filename = icsFileName(p);
+  try {
+    var blob = new Blob([text], { type: 'text/calendar;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1500);
+    toast('캘린더 파일을 내려받았어요 — 열어서 추가하면 ' + alarmLabel(p) + '이 등록됩니다');
+  } catch (err) {
+    var a2 = document.createElement('a');
+    a2.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(text);
+    a2.download = filename;
+    document.body.appendChild(a2);
+    a2.click();
+    setTimeout(function () { document.body.removeChild(a2); }, 1500);
+    toast('캘린더 파일을 내보냈어요');
+  }
+}
+
+/* ---------------- 초기화 / 이벤트 ---------------- */
+function buildSelects() {
+  var bossHtml = '<option value="">— 보스 선택 —</option>';
+  for (var j = 0; j < BOSSES.length; j++) bossHtml += '<option value="' + esc(BOSSES[j]) + '">' + esc(BOSSES[j]) + '</option>';
+  bossHtml += '<option value="' + esc(BOSS_CUSTOM) + '">' + esc(BOSS_CUSTOM) + '</option>';
+  byId('bossSelect').innerHTML = bossHtml;
+  byId('gBoss').innerHTML = bossHtml;
+  byId('rBoss').innerHTML = bossHtml;
+
+  var jobHtml = '<option value="">직업 선택</option>';
+  for (var i = 0; i < JOBS.length; i++) jobHtml += '<option value="' + esc(JOBS[i]) + '">' + esc(JOBS[i]) + '</option>';
+  byId('rJob').innerHTML = jobHtml;
+}
+function resetSample() {
+  if (!confirm('샘플 데이터로 초기화할까요?\n지금 입력한 길드원·가능 시간·파티 일정·모집 글이 모두 사라집니다.')) return;
+  state = buildSample();
+  ui.weekOffset = 0;
+  ui.selectedSlot = null;
+  ui.activeMemberId = state.members.length ? state.members[0].id : null;
+  ui.showAllMatches = {};
+  ui.filterBoss = '';
+  ui.filterJob = '';
+  ui.openOnly = false;
+  ui.freshPartyId = null;
+  save();
+  resetPartyForm();
+  resetGroupForm();
+  resetRecruitForm();
+  renderAll();
+  toast('샘플 데이터로 초기화했어요');
+}
+
+function handleAction(action, el) {
+  switch (action) {
+    case 'tab': switchTab(el.getAttribute('data-tab')); break;
+    case 'week-prev': changeWeek(-1); break;
+    case 'week-next': changeWeek(1); break;
+    case 'week-goto': gotoWeek(Number(el.getAttribute('data-offset'))); break;
+    case 'select-member':
+      ui.activeMemberId = (ui.activeMemberId === el.getAttribute('data-id')) ? null : el.getAttribute('data-id');
+      renderMembers(); renderGridHint(); renderGrid();
+      break;
+    case 'edit-member': startMemberEdit(el.getAttribute('data-id')); break;
+    case 'delete-member': deleteMember(el.getAttribute('data-id')); break;
+    case 'save-member': saveMember(); break;
+    case 'cancel-member': cancelMemberEdit(); break;
+    case 'cell': toggleSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
+    case 'heat': selectSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
+    case 'make-party': makePartyFromSlot(); break;
+    case 'save-party': saveParty(); break;
+    case 'cancel-party': resetPartyForm(); toast('수정을 취소했어요'); break;
+    case 'edit-party': startPartyEdit(el.getAttribute('data-id')); break;
+    case 'delete-party': deleteParty(el.getAttribute('data-id')); break;
+    case 'ics': downloadICS(el.getAttribute('data-id')); break;
+    case 'reset-sample': resetSample(); break;
+    case 'toggle-fold':
+      var cardId = el.getAttribute('data-target') === 'groupForm' ? 'groupFormCard' :
+        (el.getAttribute('data-target') === 'partyFormBody' ? 'partyFormCard' :
+          (el.getAttribute('data-target') === 'recruitFormBody' ? 'recruitFormCard' : ''));
+      if (cardId) setFolded(cardId, !byId(cardId).classList.contains('is-collapsed'));
+      break;
+    case 'save-group': saveGroup(); break;
+    case 'cancel-group': resetGroupForm(); toast('수정을 취소했어요'); break;
+    case 'edit-group': {
+      var g = getGroup(el.getAttribute('data-id'));
+      if (g) {
+        setFolded('groupFormCard', false);
+        fillGroupForm(g);
+        var gf = byId('groupFormCard');
+        if (gf && gf.scrollIntoView) gf.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      break;
+    }
+    case 'delete-group': deleteGroup(el.getAttribute('data-id')); break;
+    case 'confirm-match':
+      confirmFromMatch(el.getAttribute('data-id'), el.getAttribute('data-date'), el.getAttribute('data-block'));
+      break;
+    case 'show-all-matches': {
+      var gid = el.getAttribute('data-id');
+      ui.showAllMatches[gid] = !ui.showAllMatches[gid];
+      renderGroups();
+      break;
+    }
+    case 'save-recruit': saveRecruit(); break;
+    case 'cancel-recruit': resetRecruitForm(); toast('수정을 취소했어요'); break;
+    case 'edit-recruit': {
+      var r = getRecruit(el.getAttribute('data-id'));
+      if (r) {
+        fillRecruitForm(r);
+        var rf = byId('recruitFormCard');
+        if (rf && rf.scrollIntoView) rf.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      break;
+    }
+    case 'delete-recruit': deleteRecruit(el.getAttribute('data-id')); break;
+    case 'toggle-recruit': toggleRecruitStatus(el.getAttribute('data-id')); break;
+    case 'recruit-open-only':
+      ui.openOnly = !ui.openOnly;
+      renderRecruits();
+      break;
+  }
+}
+
+function bindEvents() {
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var host = null;
+    if (t && t.closest) host = t.closest('[data-action]');
+    if (!host) return;
+    if (host.hasAttribute && host.hasAttribute('disabled')) return;
+    handleAction(host.getAttribute('data-action'), host);
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.id === 'bossSelect') { toggleBossCustom(); return; }
+    if (t.id === 'rBoss') {
+      var rc = byId('rBossCustom');
+      if (rc) rc.style.display = t.value === BOSS_CUSTOM ? '' : 'none';
+      return;
+    }
+    if (t.id === 'filterBoss') { ui.filterBoss = t.value; renderRecruits(); return; }
+    if (t.id === 'filterJob') { ui.filterJob = t.value; renderRecruits(); return; }
+    if (t.type === 'checkbox') {
+      var scope = t.getAttribute('data-scope');
+      var arr = scope === 'group' ? ui.groupChecked : ui.formMembers;
+      var val = t.value;
+      var at = arr.indexOf(val);
+      if (t.checked) { if (at < 0) arr.push(val); } else { if (at >= 0) arr.splice(at, 1); }
+      if (t.parentNode && t.parentNode.classList) {
+        if (t.checked) t.parentNode.classList.add('is-on');
+        else t.parentNode.classList.remove('is-on');
+      }
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    var id = e.target && e.target.id;
+    if (id === 'mNick') { e.preventDefault(); saveMember(); }
+    if (id === 'gName') { e.preventDefault(); saveGroup(); }
+    if (id === 'rName') { e.preventDefault(); saveRecruit(); }
+  });
+}
+
+function init() {
+  load();
+  if (!ui.activeMemberId && state.members.length) ui.activeMemberId = state.members[0].id;
+  buildSelects();
+  resetPartyForm();
+  resetGroupForm();
+  resetRecruitForm();
+  renderAll();
+  bindEvents();
+  /* 등록 폼은 접어 두고, 고정 파티·모집 글 목록이 먼저 보이게 한다 */
+  setFolded('partyFormCard', true);
+  setFolded('groupFormCard', true);
+  setFolded('recruitFormCard', true);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
