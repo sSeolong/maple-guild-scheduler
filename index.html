@@ -3294,6 +3294,7 @@ var FB = {
   ref: null,
   db: null,
   ready: false,
+  synced: false,         /* 서버와 처음 한 번 맞춘 뒤에만 밀어 올린다 (낡은 로컬 값으로 덮지 않도록) */
   connected: false,
   failed: false,
   shadow: null,          /* 마지막으로 서버와 맞춘 값 (평평한 경로 → 값) */
@@ -3582,7 +3583,7 @@ function fbSchedulePush() {
   FB.pushTimer = setTimeout(function () { FB.pushTimer = null; fbFlush(); }, 140);
 }
 function fbFlush() {
-  if (!FB.ref) return;
+  if (!FB.ref || !FB.synced) return;
   var cur = fbFlattenTree(fbStateToRemote(state), '', {});
   var base = FB.shadow || {};
   var updates = {};
@@ -3666,6 +3667,7 @@ function fbInit() {
       FB.appliedSig = fbSig(flat);
       return FB.ref.set(seed).then(function () {
         FB.failed = false;
+        FB.synced = true;
         setSyncStatus('on');
         fbListen();
       }, function (err) {
@@ -3674,6 +3676,7 @@ function fbInit() {
       });
     }
     FB.failed = false;
+    FB.synced = true;
     fbApplyRemote(val, true);
     setSyncStatus('on');
     fbListen();
