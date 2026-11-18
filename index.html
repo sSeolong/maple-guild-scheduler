@@ -156,6 +156,34 @@
   }
   .pill.is-active{background:var(--slate); border-color:var(--slate); color:#ffe6c2}
 
+  /* ---------- 카드 헤더 + 카드 안 미니 주 전환 ---------- */
+  .card-head{display:flex; align-items:center; gap:7px 10px; flex-wrap:wrap; margin-bottom:5px}
+  .card-head h2{margin:0; flex:1 1 auto; min-width:0}
+  .wk-mini{
+    display:flex; align-items:center; gap:3px; flex:0 0 auto;
+    padding:3px; border-radius:999px; background:#f4ecdd; border:1px solid #e6d8c0;
+  }
+  .wk-btn{
+    width:24px; height:24px; flex:0 0 auto; padding:0 0 2px; border-radius:999px;
+    border:1px solid #e6d8c0; background:#fffdf8; color:#6b5a46;
+    font-family:inherit; font-size:14px; line-height:1; cursor:pointer;
+    transition:background .15s;
+  }
+  .wk-btn:hover{background:#f3e8d5}
+  .wk-btn:active{transform:translateY(1px)}
+  .wk-pill{
+    padding:4px 9px; border-radius:999px; border:1px solid transparent; background:transparent;
+    color:#6b5a46; font-family:inherit; font-size:11.5px; font-weight:800; cursor:pointer;
+    white-space:nowrap; transition:.15s;
+  }
+  .wk-pill:hover{background:#fffdf8; border-color:#e0d2bb}
+  .wk-pill.is-active{background:var(--slate); border-color:var(--slate); color:#ffe6c2}
+  .wk-pill.is-active:hover{background:var(--slate); border-color:var(--slate)}
+  .wk-range{
+    padding:0 7px 0 4px; font-size:10.5px; font-weight:800; color:#9a7a52;
+    letter-spacing:-0.01em; white-space:nowrap; font-variant-numeric:tabular-nums;
+  }
+
   /* ---------- member chips ---------- */
   .chips{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px}
   .member-item{display:inline-flex; align-items:center; gap:2px; background:#fffdf8; border-radius:999px; border:1px solid #e4d6c0; padding:2px 3px 2px 2px}
@@ -650,6 +678,9 @@
     .hero h1{font-size:17.5px}
     .hero .guild{display:none}
     .card{padding:14px 13px; border-radius:16px}
+    .card-head{gap:6px 8px}
+    .wk-mini{flex:1 1 100%; justify-content:space-between}
+    .wk-range{padding:0 8px 0 2px}
     .form-row{grid-template-columns:1fr}
     .tab{font-size:11.5px; padding:9px 4px}
     .tab-count{font-size:10px; min-width:15px; padding:1px 4px}
@@ -842,8 +873,17 @@
         <div class="grid-wrap" id="gridHost"></div>
       </div>
 
-      <div class="card">
-        <h2>길드 전체 가능 시간</h2>
+      <div class="card" id="heatCard">
+        <div class="card-head">
+          <h2>길드 전체 가능 시간</h2>
+          <div class="wk-mini" role="group" aria-label="주 이동">
+            <button type="button" class="wk-btn" data-action="week-prev" aria-label="이전 주 보기">‹</button>
+            <button type="button" class="wk-pill" data-action="week-goto" data-offset="0">이번 주</button>
+            <button type="button" class="wk-pill" data-action="week-goto" data-offset="1">다음 주</button>
+            <button type="button" class="wk-btn" data-action="week-next" aria-label="다음 주 보기">›</button>
+            <span class="wk-range" id="heatWeekRange">-</span>
+          </div>
+        </div>
         <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다. <b>테두리</b>는 고정 파티가 전원 모일 수 있는 시간이에요. 칸을 누르면 자세히 보고 바로 확정할 수 있습니다.</p>
         <div class="grid-wrap" id="heatHost"></div>
         <div class="legend">
@@ -1963,7 +2003,24 @@ function renderWeekBar() {
     if (off === ui.weekOffset) pills[i].classList.add('is-active');
     else pills[i].classList.remove('is-active');
   }
+  renderHeatWeekBar();
   renderWeekEndNote();
+}
+/* '길드 전체 가능 시간' 카드 안 미니 주 전환 — 위 주간 바와 같은 ui.weekOffset을 쓴다 */
+function renderHeatWeekBar() {
+  var card = byId('heatCard');
+  if (!card) return;
+  var off = ui.weekOffset;
+  var pills = qsa('#heatCard .wk-pill');
+  for (var i = 0; i < pills.length; i++) {
+    if (Number(pills[i].getAttribute('data-offset')) === off) pills[i].classList.add('is-active');
+    else pills[i].classList.remove('is-active');
+  }
+  var badge = byId('heatWeekRange');
+  if (badge) {
+    badge.textContent = (off === 0 || off === 1) ? weekRangeShort(off) : weekLabelFor(off) + ' ' + weekRangeShort(off);
+    badge.title = weekLabelFor(off) + ' (' + weekEndLabel(off).textFull + ')';
+  }
 }
 /* 곧 끝나는 주(화·수)이거나 이미 지난 주를 보고 있을 때 — 다음 주로 넘어가는 버튼을 바로 보여 준다 */
 function renderWeekEndNote() {
@@ -3458,15 +3515,26 @@ function switchTab(tab) {
   }
   if (tab === 'parties') { renderGroups(); }
 }
-function changeWeek(delta) {
+function changeWeek(delta, srcEl) {
   ui.weekOffset += delta;
-  afterWeekChange();
+  afterWeekChange(srcEl);
 }
-function gotoWeek(offset) {
+function gotoWeek(offset, srcEl) {
   ui.weekOffset = offset;
-  afterWeekChange();
+  afterWeekChange(srcEl);
 }
-function afterWeekChange() {
+/* 주를 바꾼 버튼이 있던 카드를 화면 같은 자리에 남긴다 (아래쪽 카드에서 눌러도 위로 튀지 않게) */
+function closestCard(el) {
+  var n = el;
+  while (n && n.nodeType === 1) {
+    if (n.classList && n.classList.contains('card')) return n;
+    n = n.parentNode;
+  }
+  return null;
+}
+function afterWeekChange(srcEl) {
+  var keepCard = srcEl ? closestCard(srcEl) : null;
+  var keepTop = keepCard ? keepCard.getBoundingClientRect().top : null;
   ui.selectedSlot = null;
   ui.pasteNote = '';
   renderWeekBar();
@@ -3477,6 +3545,13 @@ function afterWeekChange() {
   renderGroups();
   renderPasteWeekBar();
   renderPastePreview();
+  if (keepCard) {
+    var diff = keepCard.getBoundingClientRect().top - keepTop;
+    if (Math.abs(diff) > 1) {
+      if (window.scrollBy) window.scrollBy(0, diff);
+      else window.scrollTo(0, (window.pageYOffset || 0) + diff);
+    }
+  }
 }
 /* 파티 일정 탭의 '다음 주 시간표로 이동' — 주를 바꾸고 가능 시간표로 데려간다 */
 function jumpToWeekSchedule(offset) {
@@ -3820,9 +3895,9 @@ function resetSample() {
 function handleAction(action, el) {
   switch (action) {
     case 'tab': switchTab(el.getAttribute('data-tab')); break;
-    case 'week-prev': changeWeek(-1); break;
-    case 'week-next': changeWeek(1); break;
-    case 'week-goto': gotoWeek(Number(el.getAttribute('data-offset'))); break;
+    case 'week-prev': changeWeek(-1, el); break;
+    case 'week-next': changeWeek(1, el); break;
+    case 'week-goto': gotoWeek(Number(el.getAttribute('data-offset')), el); break;
     case 'week-schedule': jumpToWeekSchedule(Number(el.getAttribute('data-offset'))); break;
     case 'select-member':
       ui.activeMemberId = el.getAttribute('data-id');
