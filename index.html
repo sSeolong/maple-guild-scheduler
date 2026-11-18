@@ -556,6 +556,63 @@
   .sgr-act{display:flex; gap:4px; margin-left:auto}
   .boss-tag{padding:2px 7px; border-radius:7px; background:var(--slate); color:#ffe6c2; font-size:10.5px; font-weight:800; white-space:nowrap}
   .boss-tag.soft{background:#efe3cd; color:#6b5a46}
+
+  /* ---------- 목표 보스 → 난이도 2단계 선택 ---------- */
+  .field-note{font-weight:600; color:#96836c; font-size:10.5px}
+  .bp-wrap{margin-top:2px}
+  .bp-grid{display:flex; flex-wrap:wrap; gap:6px}
+  .bp-boss{
+    display:inline-flex; align-items:center; gap:5px; padding:8px 12px;
+    border-radius:11px; border:1px solid #e0d2bb; background:#fffdf8;
+    color:#5a4835; font-family:inherit; font-size:12.5px; font-weight:700;
+    cursor:pointer; transition:background .15s, border-color .15s, box-shadow .15s, color .15s;
+  }
+  .bp-boss:hover{background:#f8eedb}
+  .bp-boss.is-open{border-color:#e9a54c; color:#8a4d05; background:#fff6e4; box-shadow:0 0 0 2px rgba(233,165,76,.22)}
+  .bp-boss.has-sel{background:var(--slate); border-color:var(--slate); color:#ffe6c2}
+  .bp-boss.is-open.has-sel{box-shadow:0 0 0 2px rgba(233,165,76,.45)}
+  .bp-etc{border-style:dashed; color:#7a6a58}
+  .bp-n{
+    display:inline-grid; place-items:center; min-width:16px; height:16px; padding:0 4px;
+    border-radius:8px; background:#ffe1b6; color:#8a4d05; font-size:10px; font-weight:800; font-style:normal;
+  }
+  .bp-boss.has-sel .bp-n{background:rgba(255,255,255,.24); color:#fff6e4}
+  .bp-diff{
+    flex:0 0 100%; display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    margin:1px 0 3px; padding:8px 10px; border-radius:11px;
+    background:#fff6e4; border:1px dashed #ecc98d;
+  }
+  .bp-diff-label{font-size:11px; font-weight:800; color:#96652a}
+  .bp-diff-pill{
+    padding:5px 12px; border-radius:999px; border:1px solid #e3cfa9; background:#fffdf8;
+    color:#6b5a46; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  .bp-diff-pill:hover{background:#f8eedb}
+  .bp-diff-pill.is-on{
+    background:linear-gradient(160deg,#f5a63f,#dc7a11); border-color:#dc7a11; color:#2a1a06;
+    box-shadow:0 3px 9px rgba(220,122,17,.30);
+  }
+  .bp-diff-close{
+    margin-left:auto; width:22px; height:22px; border-radius:50%; border:0; background:#f0e5d2;
+    color:#8a7660; font-size:12px; line-height:1; cursor:pointer; font-family:inherit; padding:0;
+  }
+  .bp-diff-close:hover{background:#e5d5bc; color:#5a4835}
+  .bp-etc-row input{flex:1 1 140px; min-width:0; padding:8px 11px; font-size:12.5px}
+  .bp-etc-row .btn{flex:0 0 auto}
+  .bp-selected{margin-top:9px; padding-top:9px; border-top:1px dashed #ecdcc0}
+  .bp-sel-label{display:block; font-size:11px; font-weight:800; color:#96652a; margin-bottom:6px}
+  .bp-sel-label b{color:#8a4d05}
+  .bp-sel-pills{display:flex; flex-wrap:wrap; gap:5px}
+  .bp-sel-pill{
+    display:inline-flex; align-items:center; gap:4px; padding:3px 4px 3px 9px;
+    border-radius:999px; background:var(--slate); color:#ffe6c2; font-size:11.5px; font-weight:800;
+  }
+  .bp-sel-pill button{
+    width:16px; height:16px; border-radius:50%; border:0; background:rgba(255,255,255,.20);
+    color:#ffe6c2; font-size:11px; line-height:1; cursor:pointer; font-family:inherit; padding:0;
+  }
+  .bp-sel-pill button:hover{background:rgba(230,110,80,.70)}
+  .bp-empty{font-size:11.5px; color:#96836c}
   .member-item.is-mine{border-color:#e0a44f; background:#fff6e4}
   .member-pick{display:flex; align-items:center; gap:7px; margin-bottom:9px; flex-wrap:wrap}
   .member-pick select{flex:1 1 170px; min-width:0}
@@ -715,9 +772,8 @@
                   <div class="checks" id="groupMemberChecks"></div>
                 </div>
                 <div class="field-block">
-                  <span class="field">목표 보스 — 여러 개 선택</span>
-                  <div class="checks" id="groupBossChecks"></div>
-                  <input type="text" id="gBossCustom" placeholder="그 외 보스 직접 입력 (쉼표로 구분)" style="margin-top:7px" autocomplete="off">
+                  <span class="field">목표 보스 <span class="field-note">— 보스를 누르면 난이도가 열려요 · 여러 개 고를 수 있어요</span></span>
+                  <div class="bp-wrap" id="groupBossPicker" role="group" aria-label="목표 보스 선택"></div>
                 </div>
                 <div class="form-actions">
                   <button type="button" class="btn btn-primary btn-sm" data-action="save-group" id="groupSaveBtn">고정 파티 저장</button>
@@ -751,16 +807,6 @@
         <p class="hint" style="margin:8px 0 0">보스 리셋이 목요일이라 주간은 <b>목요일 ~ 수요일</b>로 셉니다.</p>
       </div>
 
-      <div class="card">
-        <h2>가능 시간 입력</h2>
-        <div class="member-pick">
-          <select id="activeMemberSelect" aria-label="가능 시간을 편집할 길드원"></select>
-          <button type="button" class="btn btn-sm btn-ghost" data-action="set-my-member" id="myStarBtn">☆ 내 캐릭터로 지정</button>
-        </div>
-        <p class="sub" id="gridHint">길드원을 선택한 뒤 칸을 눌러 가능한 시간을 표시하세요.</p>
-        <div class="grid-wrap" id="gridHost"></div>
-      </div>
-
       <!-- ===== 카톡 채팅 붙여넣어 자동 입력 ===== -->
       <div class="card" id="pasteCard">
         <div class="form-head">
@@ -784,6 +830,16 @@
           <p class="hint">‘10시 이후’는 <b>밤 10시</b>로 읽습니다. 오전에 하겠다면 ‘오전 10시’처럼 적어 주세요. ‘주말’·‘평일’·‘매일’, 카톡 시간 표시(<b>오후 9:12</b>)도 알아서 걸러 냅니다.</p>
           <div id="pastePreview"></div>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>가능 시간 입력</h2>
+        <div class="member-pick">
+          <select id="activeMemberSelect" aria-label="가능 시간을 편집할 길드원"></select>
+          <button type="button" class="btn btn-sm btn-ghost" data-action="set-my-member" id="myStarBtn">☆ 내 캐릭터로 지정</button>
+        </div>
+        <p class="sub" id="gridHint">길드원을 선택한 뒤 칸을 눌러 가능한 시간을 표시하세요.</p>
+        <div class="grid-wrap" id="gridHost"></div>
       </div>
 
       <div class="card">
@@ -1032,18 +1088,28 @@ var BOSSES = [
   '노말 칼로스', '하드 칼로스', '익스트림 칼로스',
   '노말 카링', '하드 카링', '익스트림 카링',
   '하드 림보', '노말 림보', '노말 흉성', '하드 흉성',
-  '하드 검은 마법사', '익스트림 스우', '하드 스우', '노말 스우',
+  '하드 검은 마법사', '익스트림 검은마법사', '익스트림 스우', '하드 스우', '노말 스우',
+  '노말 벨로나', '하드 벨로나', '노말 발드릭스', '하드 발드릭스',
   '하드 루시드', '하드 윌', '카오스 더스크', '하드 듄켈', '하드 데미안',
   '카오스 파풀라투스', '하드 매그너스', '하드 힐라', '카오스 자쿰',
   '하드 가엔슬', '노말 가엔슬', '카오스 핑크빈', '하드 반레온'
 ];
 var BOSS_CUSTOM = '기타 (직접 입력)';
-/* 고정 파티 편집에서 바로 누를 수 있는 보스 칩 */
-var BOSS_PICKS = [
-  '하드 세렌', '노말 세렌', '노말 칼로스', '하드 칼로스',
-  '하드 림보', '노말 흉성', '하드 흉성',
-  '노말 카링', '하드 카링', '하드 검은 마법사', '익스트림 스우', '하드 윌'
+/* 초기 세팅 — 보스를 누르면 그 보스의 난이도만 펼쳐지는 2단계 선택 */
+var BOSS_PICKER = [
+  { name: '세렌', diffs: ['하드', '익스트림'] },
+  { name: '칼로스', diffs: ['노말', '카오스', '익스트림'] },
+  { name: '카링', diffs: ['노말', '하드'] },
+  { name: '림보', diffs: ['노말', '하드'] },
+  { name: '흉성', diffs: ['노말', '하드'] },
+  { name: '벨로나', diffs: ['노말', '하드'] },
+  { name: '스우', diffs: ['익스트림'] },
+  { name: '발드릭스', diffs: ['노말', '하드'] },
+  { name: '검은마법사', diffs: ['익스트림'] }
 ];
+var BP_ETC = '__etc';
+/* 예전에 저장된 표기(세랜·검은 마법사 등)도 같은 보스로 보고 표시만 맞춘다 — 저장 값은 건드리지 않는다 */
+var BOSS_ALIAS = { '세랜': '세렌', '검은 마법사': '검은마법사', '검마': '검은마법사' };
 /* 고정 파티마다 다른 색 — 테두리·배지에 그대로 쓰인다 */
 var PARTY_COLORS = ['#2f7ff0', '#12a67a', '#c3418f', '#7a5cff', '#0e93a7', '#d1622a'];
 
@@ -1062,6 +1128,7 @@ var ui = {
   editingGroupId: null,
   groupChecked: [],
   groupBosses: [],
+  pickerBoss: '',        /* 보스 선택기에서 난이도를 펼쳐 둔 보스 ('' = 없음) */
   setupOpen: true,
   showAllMatches: {},
   editingRecruitId: null,
@@ -2337,19 +2404,128 @@ function renderGroupChecks(selected) {
   }
   host.innerHTML = html;
 }
-function renderGroupBossChecks() {
-  var host = byId('groupBossChecks');
-  if (!host) return;
-  var chosen = ui.groupBosses.slice();
-  var list = BOSS_PICKS.slice();
-  for (var i = 0; i < chosen.length; i++) if (list.indexOf(chosen[i]) < 0) list.push(chosen[i]);
-  var html = '';
-  for (var j = 0; j < list.length; j++) {
-    var on = chosen.indexOf(list[j]) >= 0;
-    html += '<label class="check' + (on ? ' is-on' : '') + '"><input type="checkbox" data-scope="gboss" value="' + esc(list[j]) + '"' + (on ? ' checked' : '') + '>' +
-      '<span>' + esc(list[j]) + '</span></label>';
+/* ---------- 목표 보스 : 보스 → 난이도 2단계 선택 ---------- */
+function bossDef(name) {
+  for (var i = 0; i < BOSS_PICKER.length; i++) if (BOSS_PICKER[i].name === name) return BOSS_PICKER[i];
+  return null;
+}
+function bossBaseName(boss) {
+  var base = shortenBoss(boss);
+  return BOSS_ALIAS[base] || base;
+}
+function bossPickLabel(diff, name) { return diff ? diff + ' ' + name : name; }
+function bossHasPick(name, diff) { return ui.groupBosses.indexOf(bossPickLabel(diff, name)) >= 0; }
+function toggleBossPick(name, diff) {
+  var label = bossPickLabel(diff, name);
+  var i = ui.groupBosses.indexOf(label);
+  if (i >= 0) { ui.groupBosses.splice(i, 1); return false; }
+  ui.groupBosses.push(label);
+  return true;
+}
+function removeBossPick(label) {
+  var i = ui.groupBosses.indexOf(label);
+  if (i >= 0) { ui.groupBosses.splice(i, 1); renderBossPicker(); }
+}
+function addEtcBoss() {
+  var input = byId('bpEtcInput');
+  var raw = String((input && input.value) || '');
+  var parts = raw.split(',');
+  var added = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var nm = parts[i].trim().replace(/\s+/g, ' ');
+    if (!nm) continue;
+    if (ui.groupBosses.indexOf(nm) >= 0) continue;
+    ui.groupBosses.push(nm);
+    added++;
   }
+  if (input) input.value = '';
+  renderBossPicker();
+  if (added) toast('목표 보스에 ' + (added > 1 ? added + '개' : '') + ' 추가했어요');
+  else toast('보스 이름을 적어 주세요');
+  var again = byId('bpEtcInput');
+  if (again && again.focus) again.focus();
+}
+function togglePickerBoss(name) {
+  if (name === BP_ETC) {
+    ui.pickerBoss = ui.pickerBoss === BP_ETC ? '' : BP_ETC;
+    renderBossPicker();
+    if (ui.pickerBoss === BP_ETC) {
+      var inp = byId('bpEtcInput');
+      if (inp && inp.focus) setTimeout(function () { inp.focus(); }, 40);
+    }
+    return;
+  }
+  var def = bossDef(name);
+  if (ui.pickerBoss === name) {
+    /* 난이도가 하나뿐인 보스(스우·검은마법사)는 한 번 더 누르면 해제 */
+    if (def && def.diffs.length === 1) toggleBossPick(name, def.diffs[0]);
+    else ui.pickerBoss = '';
+    renderBossPicker();
+    return;
+  }
+  ui.pickerBoss = name;
+  /* 난이도가 하나뿐이면 한 번에 골라진다 */
+  if (def && def.diffs.length === 1) toggleBossPick(name, def.diffs[0]);
+  renderBossPicker();
+}
+function renderBossPicker() {
+  var host = byId('groupBossPicker');
+  if (!host) return;
+  var active = ui.pickerBoss || '';
+  /* 보스별 선택 개수 */
+  var counts = {};
+  for (var c = 0; c < ui.groupBosses.length; c++) {
+    var base = bossBaseName(ui.groupBosses[c]);
+    if (bossDef(base)) counts[base] = (counts[base] || 0) + 1;
+  }
+  var html = '<div class="bp-grid">';
+  for (var i = 0; i < BOSS_PICKER.length; i++) {
+    var bd = BOSS_PICKER[i];
+    var n = counts[bd.name] || 0;
+    html += '<button type="button" class="bp-boss' + (active === bd.name ? ' is-open' : '') + (n ? ' has-sel' : '') + '"' +
+      ' data-action="bp-boss" data-boss="' + esc(bd.name) + '" aria-pressed="' + (n ? 'true' : 'false') + '">' +
+      esc(bd.name) + (n ? '<i class="bp-n">' + n + '</i>' : '') + '</button>';
+    if (active === bd.name) html += bossDiffRow(bd);
+  }
+  html += '<button type="button" class="bp-boss bp-etc' + (active === BP_ETC ? ' is-open' : '') + '" data-action="bp-boss" data-boss="' + BP_ETC + '">＋ 그외</button>';
+  if (active === BP_ETC) {
+    html += '<div class="bp-diff bp-etc-row">' +
+      '<span class="bp-diff-label">그 외 보스</span>' +
+      '<input type="text" id="bpEtcInput" placeholder="보스 이름 (예: 루시드 · 하드 윌)" autocomplete="off">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-action="bp-etc-add">추가</button>' +
+      '<button type="button" class="bp-diff-close" data-action="bp-boss" data-boss="' + BP_ETC + '" aria-label="닫기">×</button>' +
+      '</div>';
+  }
+  html += '</div>';
+
+  /* 선택한 보스 요약 — X 로 바로 빼기 */
+  html += '<div class="bp-selected"><span class="bp-sel-label">선택한 보스 <b>' + ui.groupBosses.length + '</b></span>';
+  if (!ui.groupBosses.length) {
+    html += '<span class="bp-empty">아직 고른 보스가 없어요. 위에서 보스를 누르고 난이도를 골라 주세요.</span>';
+  } else {
+    html += '<div class="bp-sel-pills">';
+    for (var s = 0; s < ui.groupBosses.length; s++) {
+      var label = ui.groupBosses[s];
+      html += '<span class="bp-sel-pill">' + esc(label) +
+        '<button type="button" data-action="bp-remove" data-boss="' + esc(label) + '" aria-label="' + esc(label) + ' 삭제" title="삭제">×</button></span>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
   host.innerHTML = html;
+}
+function bossDiffRow(bd) {
+  var html = '<div class="bp-diff" data-for="' + esc(bd.name) + '"><span class="bp-diff-label">' + esc(bd.name) + ' 난이도</span>';
+  for (var i = 0; i < bd.diffs.length; i++) {
+    var on = bossHasPick(bd.name, bd.diffs[i]);
+    html += '<button type="button" class="bp-diff-pill' + (on ? ' is-on' : '') + '" data-action="bp-diff" data-boss="' + esc(bd.name) + '" data-diff="' + esc(bd.diffs[i]) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+      (on ? '✓ ' : '') + esc(bd.diffs[i]) + '</button>';
+  }
+  html += '<button type="button" class="bp-diff-close" data-action="bp-close-diff" aria-label="난이도 접기">×</button></div>';
+  return html;
+}
+function renderGroupBossChecks() {
+  renderBossPicker();
 }
 function renderSetupGroupList() {
   var host = byId('setupGroupList');
@@ -2404,8 +2580,13 @@ function openGroupEditor(id) {
   ui.editingGroupId = g ? g.id : null;
   if (byId('gName')) byId('gName').value = g ? g.name : '';
   if (byId('gMemo')) byId('gMemo').value = g ? (g.memo || '') : '';
-  if (byId('gBossCustom')) byId('gBossCustom').value = '';
   ui.groupBosses = g ? groupBossList(g) : [];
+  /* 수정할 때는 이미 고른 보스의 난이도를 바로 펼쳐 둔다 */
+  ui.pickerBoss = '';
+  for (var pi = 0; pi < ui.groupBosses.length; pi++) {
+    var pb = bossBaseName(ui.groupBosses[pi]);
+    if (bossDef(pb)) { ui.pickerBoss = pb; break; }
+  }
   ui.groupChecked = g ? (g.memberIds || []).slice() : [];
   renderGroupChecks(ui.groupChecked);
   renderGroupBossChecks();
@@ -2419,8 +2600,8 @@ function resetGroupForm() {
   ui.editingGroupId = null;
   if (byId('gName')) byId('gName').value = '';
   if (byId('gMemo')) byId('gMemo').value = '';
-  if (byId('gBossCustom')) byId('gBossCustom').value = '';
   ui.groupBosses = [];
+  ui.pickerBoss = '';
   ui.groupChecked = [];
   renderGroupChecks([]);
   renderGroupBossChecks();
@@ -2431,12 +2612,6 @@ function fillGroupForm(g) { openGroupEditor(g ? g.id : null); }
 function saveGroup() {
   var ids = ui.groupChecked.slice();
   var bosses = ui.groupBosses.slice();
-  var custom = String((byId('gBossCustom') && byId('gBossCustom').value) || '');
-  var parts = custom.split(',');
-  for (var ci = 0; ci < parts.length; ci++) {
-    var nm = parts[ci].trim();
-    if (nm && bosses.indexOf(nm) < 0) bosses.push(nm);
-  }
   var memo = String((byId('gMemo') && byId('gMemo').value) || '').trim();
   var name = String((byId('gName') && byId('gName').value) || '').trim();
   if (!ids.length) { toast('고정 파티원을 한 명 이상 골라 주세요'); return; }
@@ -3685,6 +3860,16 @@ function handleAction(action, el) {
       if (cardId && byId(cardId)) setFolded(cardId, !byId(cardId).classList.contains('is-collapsed'));
       break;
     case 'save-group': saveGroup(); break;
+    case 'bp-boss': togglePickerBoss(el.getAttribute('data-boss')); break;
+    case 'bp-diff': {
+      var bpBoss = el.getAttribute('data-boss'), bpDiff = el.getAttribute('data-diff');
+      toggleBossPick(bpBoss, bpDiff);
+      renderBossPicker();
+      break;
+    }
+    case 'bp-remove': removeBossPick(el.getAttribute('data-boss')); break;
+    case 'bp-etc-add': addEtcBoss(); break;
+    case 'bp-close-diff': ui.pickerBoss = ''; renderBossPicker(); break;
     case 'cancel-group': resetGroupForm(); toast('수정을 취소했어요'); break;
     case 'edit-group': {
       var g = getGroup(el.getAttribute('data-id'));
@@ -3799,7 +3984,7 @@ function bindEvents() {
     var id = e.target && e.target.id;
     if (id === 'bulkNicks') { e.preventDefault(); bulkAddMembers(); }
     if (id === 'gName') { e.preventDefault(); saveGroup(); }
-    if (id === 'gBossCustom') { e.preventDefault(); saveGroup(); }
+    if (id === 'bpEtcInput') { e.preventDefault(); addEtcBoss(); }
     if (id === 'rName') { e.preventDefault(); saveRecruit(); }
   });
 }
@@ -3812,10 +3997,8 @@ function init() {
   if (!getMember(ui.activeMemberId)) {
     ui.activeMemberId = getMember(state.settings.myMemberId) ? state.settings.myMemberId : (state.members.length ? state.members[0].id : null);
   }
-  var foldPref = readRaw(SETUP_FOLD_KEY);
-  if (foldPref === '0') ui.setupOpen = true;
-  else if (foldPref === '1') ui.setupOpen = false;
-  else ui.setupOpen = !state.settings.setupDone;
+  /* 창을 열면 초기 세팅은 항상 접힌 채로 시작한다 (첫 화면이 깔끔하게) */
+  ui.setupOpen = false;
   buildSelects();
   resetPartyForm();
   resetGroupForm();
