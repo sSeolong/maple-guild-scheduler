@@ -806,8 +806,16 @@
             </select>
           </div>
           <div>
-            <label class="field" for="partyAlarm">당일 아침 알림</label>
-            <input type="time" id="partyAlarm" value="09:00">
+            <label class="field" for="partyAlarm">알림</label>
+            <select id="partyAlarm">
+              <option value="10">10분 전</option>
+              <option value="30">30분 전</option>
+              <option value="60" selected>1시간 전</option>
+              <option value="120">2시간 전</option>
+              <option value="180">3시간 전</option>
+              <option value="morning">당일 아침 09:00</option>
+              <option value="none">알림 없음</option>
+            </select>
           </div>
         </div>
 
@@ -830,7 +838,7 @@
           <button type="button" class="btn btn-primary" data-action="save-party" id="partySaveBtn">일정 추가</button>
           <button type="button" class="btn btn-ghost" data-action="cancel-party" id="partyCancelBtn" style="display:none">수정 취소</button>
         </div>
-        <p class="hint"><b>당일 아침 알림</b>은 .ics 파일 안에 <b>VALARM</b>으로 들어갑니다. 애플 캘린더에 저장하면 파티 당일 아침에 알림이 울리고, 구글 캘린더는 일정만 추가되니 알림은 캘린더 앱에서 직접 설정해 주세요.</p>
+        <p class="hint">알림은 기본 <b>1시간 전</b>이고, .ics 파일 안에 <b>VALARM</b>(1시간 전)으로 들어갑니다. 애플 캘린더에 저장하면 파티 시작 1시간 전에 알림이 울리고, 구글 캘린더는 일정만 추가되니 알림은 캘린더 앱에서 1시간 전으로 직접 설정해 주세요.</p>
         </div>
       </div>
 
@@ -1093,6 +1101,27 @@ function utf8Len(ch) {
 function kstToUtc(y, m, d, hh, mm) {
   return new Date(Date.UTC(y, m - 1, d, hh - 9, mm, 0));
 }
+/* 알림 설정: '60'처럼 시작 몇 분 전인지, 'morning'(당일 아침 09:00), 'none'(알림 없음) */
+function normalizeAlarm(v) {
+  var a = (v === undefined || v === null) ? '60' : String(v);
+  if (a === 'none' || a === 'morning') return a;
+  var n = Number(a);
+  return (isFinite(n) && n > 0) ? String(n) : '60';
+}
+/* 시작 시각에서 몇 분 전에 울릴지(분). null이면 알림 없음 */
+function alarmMinutesBefore(p) {
+  var a = normalizeAlarm(p.alarm);
+  if (a === 'none') return null;
+  if (a === 'morning') {
+    var st = String(p.startTime || '22:00').split(':');
+    var sm = (Number(st[0]) || 0) * 60 + (Number(st[1]) || 0);
+    var off = sm - 9 * 60;
+    /* 시작이 09시 이전이면 전날 아침 09:00에 알린다 */
+    if (off <= 0) off += 1440;
+    return off;
+  }
+  return Number(a);
+}
 function partyTimes(p) {
   var d = parseYmd(p.date) || new Date();
   var st = String(p.startTime || '22:00').split(':');
@@ -1100,20 +1129,26 @@ function partyTimes(p) {
   var startUtc = kstToUtc(d.getFullYear(), d.getMonth() + 1, d.getDate(), sh, sm);
   var dur = Number(p.durationMin) || 120;
   var endUtc = new Date(startUtc.getTime() + dur * 60000);
-  var at = String(p.alarmTime || '09:00').split(':');
-  var ah = Number(at[0]) || 0, am = Number(at[1]) || 0;
-  var alarmUtc = kstToUtc(d.getFullYear(), d.getMonth() + 1, d.getDate(), ah, am);
-  /* 자정 파티처럼 시작이 알림 시각보다 이르면 '전날 아침'에 알린다 */
-  var alarmPrevDay = false;
-  if (alarmUtc.getTime() >= startUtc.getTime()) {
-    alarmUtc = new Date(alarmUtc.getTime() - 86400000);
-    alarmPrevDay = true;
-  }
-  return { startUtc: startUtc, endUtc: endUtc, alarmUtc: alarmUtc, alarmPrevDay: alarmPrevDay, kstHour: sh, kstMinute: sm };
+  var before = alarmMinutesBefore(p);
+  var alarmUtc = before === null ? null : new Date(startUtc.getTime() - before * 60000);
+  return { startUtc: startUtc, endUtc: endUtc, alarmUtc: alarmUtc, alarmBefore: before, kstHour: sh, kstMinute: sm };
 }
 function alarmLabel(p) {
-  var t = partyTimes(p);
-  return (t.alarmPrevDay ? '전날 ' : '당일 ') + (p.alarmTime || '09:00') + ' 알림';
+  var a = normalizeAlarm(p.alarm);
+  if (a === 'none') return '알림 없음';
+  if (a === 'morning') {
+    var st = String(p.startTime || '22:00').split(':');
+    var sm = (Number(st[0]) || 0) * 60 + (Number(st[1]) || 0);
+    return (sm <= 9 * 60 ? '전날 아침 09:00 알림' : '당일 아침 09:00 알림');
+  }
+  var n = Number(a);
+  if (n % 60 === 0) return (n / 60) + '시간 전 알림';
+  return n + '분 전 알림';
+}
+/* 캘린더에 들어갈 일정 제목 */
+function calendarTitle(p) {
+  var name = String(p.boss || '보스').trim() || '보스';
+  return '오늘은 보스 ' + name + ' 가는 날 입니다';
 }
 function partyDescription(p) {
   var d = parseYmd(p.date) || new Date();
@@ -1123,13 +1158,14 @@ function partyDescription(p) {
   lines.push('예상 소요: ' + p.durationMin + '분');
   if (p.members && p.members.length) lines.push('파티원: ' + p.members.join(', '));
   if (p.memo) lines.push('메모: ' + p.memo);
-  lines.push('알림: ' + alarmLabel(p) + ' (KST)');
+  if (alarmLabel(p) !== '알림 없음') lines.push('알림: ' + alarmLabel(p) + ' (KST)');
   lines.push('— ' + GUILD_NAME + ' 스케줄에서 만든 일정');
   return lines.join('\n');
 }
 function buildICS(p) {
   var t = partyTimes(p);
-  var alarmDesc = p.boss + ' 파티 ' + (t.alarmPrevDay ? '내일' : '오늘') + '입니다 (' + p.startTime + ' 시작)';
+  var title = calendarTitle(p);
+  var alarmDesc = title + ' (' + p.startTime + ' 시작)';
   var lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -1141,19 +1177,25 @@ function buildICS(p) {
     'DTSTAMP:' + utcStamp(new Date()),
     'DTSTART:' + utcStamp(t.startUtc),
     'DTEND:' + utcStamp(t.endUtc),
-    'SUMMARY:' + icsText(p.boss + ' 파티'),
+    'SUMMARY:' + icsText(title),
     'LOCATION:' + icsText('메이플스토리'),
     'DESCRIPTION:' + icsText(partyDescription(p)),
     'STATUS:CONFIRMED',
-    'TRANSP:OPAQUE',
-    'BEGIN:VALARM',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:' + icsText(alarmDesc),
-    'TRIGGER;VALUE=DATE-TIME:' + utcStamp(t.alarmUtc),
-    'END:VALARM',
-    'END:VEVENT',
-    'END:VCALENDAR'
+    'TRANSP:OPAQUE'
   ];
+  if (t.alarmBefore !== null) {
+    lines.push('BEGIN:VALARM');
+    lines.push('ACTION:DISPLAY');
+    lines.push('DESCRIPTION:' + icsText(alarmDesc));
+    if (normalizeAlarm(p.alarm) === 'morning') {
+      lines.push('TRIGGER;VALUE=DATE-TIME:' + utcStamp(t.alarmUtc));
+    } else {
+      lines.push('TRIGGER:-PT' + t.alarmBefore + 'M');
+    }
+    lines.push('END:VALARM');
+  }
+  lines.push('END:VEVENT');
+  lines.push('END:VCALENDAR');
   var out = [];
   for (var i = 0; i < lines.length; i++) out.push(foldIcsLine(lines[i]));
   return out.join('\r\n') + '\r\n';
@@ -1162,7 +1204,7 @@ function buildGoogleUrl(p) {
   var t = partyTimes(p);
   var params = [
     'action=TEMPLATE',
-    'text=' + encodeURIComponent(p.boss + ' 파티'),
+    'text=' + encodeURIComponent(calendarTitle(p)),
     'dates=' + utcStamp(t.startUtc) + '/' + utcStamp(t.endUtc),
     'details=' + encodeURIComponent(partyDescription(p)),
     'location=' + encodeURIComponent('메이플스토리'),
@@ -1203,7 +1245,7 @@ function normalize(data) {
         out.parties.push({
           id: String(p.id), boss: String(p.boss || '보스'), date: String(p.date),
           startTime: String(p.startTime), durationMin: Number(p.durationMin) || 120,
-          alarmTime: String(p.alarmTime || '09:00'), memo: String(p.memo || ''),
+          alarm: normalizeAlarm(p.alarm), memo: String(p.memo || ''),
           members: isArr(p.members) ? p.members.map(String) : [],
           groupId: p.groupId ? String(p.groupId) : ''
         });
@@ -1384,7 +1426,7 @@ function buildSample() {
       durationMin: 60,
       members: ['가을단풍', '새벽불꽃', '은빛걸음', '고요칼날', '강철방패'],
       memo: '21시 정각에 모여서 바로 입장해요. 물약·길드 버프 챙겨 주세요.',
-      alarmTime: '09:00'
+      alarm: '60'
     },
     {
       id: 'p2',
@@ -1394,7 +1436,7 @@ function buildSample() {
       durationMin: 90,
       members: ['가을단풍', '새벽불꽃', '은빛걸음', '고요칼날'],
       memo: '1페이즈 브레스 타이밍 맞춰서 진행 / 늦으면 디스코드로 연락 주세요.',
-      alarmTime: '21:00'
+      alarm: '60'
     }
   ];
 
@@ -2292,7 +2334,7 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   }
   var np = {
     id: uid('p'), boss: bosses.join(' · '), date: dateStr, startTime: blk.start,
-    durationMin: dur, alarmTime: '09:00',
+    durationMin: dur, alarm: '60',
     memo: g.name + ' 자동 매칭으로 확정 · ' + members.length + '명 전원 가능' +
       (bosses.length > 1 ? ' · 보스 ' + bosses.length + '개 연속(' + dur + '분)' : ''),
     members: nicks, groupId: g.id
@@ -2347,7 +2389,7 @@ function renderParties() {
       '<div class="party-when"><b>' + fmtMDW(d) + '</b> · ' + esc(p.startTime) + ' 시작 · 예상 ' + esc(p.durationMin) + '분</div>' +
       (memberHtml ? '<div class="p-members">' + memberHtml + '</div>' : '') +
       (p.memo ? '<p class="p-memo">' + esc(p.memo) + '</p>' : '') +
-      '<div class="p-alarm">⏰ ' + esc(alarmLabel(p)) + '</div>' +
+      (alarmLabel(p) === '알림 없음' ? '' : '<div class="p-alarm">⏰ ' + esc(alarmLabel(p)) + '</div>') +
       '<div class="p-actions">' +
         '<button type="button" class="btn btn-sm btn-primary" data-action="ics" data-id="' + esc(p.id) + '">📅 애플 캘린더 (.ics)</button>' +
         '<a class="btn btn-sm" href="' + esc(gurl) + '" target="_blank" rel="noopener">🗓 구글 캘린더</a>' +
@@ -2846,7 +2888,7 @@ function resetPartyForm() {
   byId('partyDate').value = ymd(new Date());
   byId('partyStart').value = '22:00';
   byId('partyDuration').value = '120';
-  byId('partyAlarm').value = '09:00';
+  byId('partyAlarm').value = '60';
   byId('partyExtra').value = '';
   byId('partyMemo').value = '';
   renderMemberChecks(null);
@@ -2863,7 +2905,10 @@ function fillPartyForm(p) {
   byId('partyDate').value = p.date;
   byId('partyStart').value = p.startTime;
   byId('partyDuration').value = String(p.durationMin);
-  byId('partyAlarm').value = p.alarmTime || '09:00';
+  var alarmSel = byId('partyAlarm');
+  var alarmVal = normalizeAlarm(p.alarm);
+  alarmSel.value = alarmVal;
+  if (alarmSel.value !== alarmVal) alarmSel.value = '60';
   byId('partyMemo').value = p.memo || '';
   var nicks = state.members.map(function (m) { return m.nick; });
   var extras = (p.members || []).filter(function (n) { return nicks.indexOf(n) < 0; });
@@ -2876,7 +2921,7 @@ function readPartyForm() {
   var date = String(byId('partyDate').value || '').trim();
   var startTime = String(byId('partyStart').value || '').trim();
   var durationMin = Number(byId('partyDuration').value) || 120;
-  var alarmTime = String(byId('partyAlarm').value || '09:00').trim();
+  var alarm = normalizeAlarm(byId('partyAlarm').value);
   var memo = String(byId('partyMemo').value || '').trim();
   var extraRaw = String(byId('partyExtra').value || '');
   var members = currentChecked();
@@ -2884,7 +2929,7 @@ function readPartyForm() {
   for (var i = 0; i < extras.length; i++) if (members.indexOf(extras[i]) < 0) members.push(extras[i]);
   return {
     boss: boss, date: date, startTime: startTime, durationMin: durationMin,
-    alarmTime: alarmTime, memo: memo, members: members
+    alarm: alarm, memo: memo, members: members
   };
 }
 function checkPartyForm(data) {
@@ -2903,14 +2948,14 @@ function saveParty() {
     var p = getParty(ui.editingPartyId);
     if (p) {
       p.boss = data.boss; p.date = data.date; p.startTime = data.startTime;
-      p.durationMin = data.durationMin; p.alarmTime = data.alarmTime;
+      p.durationMin = data.durationMin; p.alarm = data.alarm;
       p.memo = data.memo; p.members = data.members;
       toast('일정을 수정했어요');
     }
   } else {
     var np = {
       id: uid('p'), boss: data.boss, date: data.date, startTime: data.startTime,
-      durationMin: data.durationMin, alarmTime: data.alarmTime,
+      durationMin: data.durationMin, alarm: data.alarm,
       memo: data.memo, members: data.members, groupId: ''
     };
     state.parties.push(np);
@@ -2985,7 +3030,7 @@ function downloadICS(id) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 1500);
-    toast('캘린더 파일을 내려받았어요 — 열어서 추가하면 ' + alarmLabel(p) + '이 등록됩니다');
+    toast('캘린더 파일을 내려받았어요 — 열어서 추가하면 ' + (alarmLabel(p) === '알림 없음' ? '일정만 등록됩니다' : alarmLabel(p) + '에 알림이 울립니다'));
   } catch (err) {
     var a2 = document.createElement('a');
     a2.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(text);
