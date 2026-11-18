@@ -1245,8 +1245,21 @@ function normalize(data) {
   if (out.settings.myMemberId && !getMemberIn(out.members, out.settings.myMemberId)) out.settings.myMemberId = '';
   return out;
 }
+var V2_SAMPLE_NICKS = ['단풍잎사냥꾼', '새벽의불꽃', '은빛발걸음', '고요한칼날', '강철의방패', '달빛여우'];
+function looksLikeV2Sample(s) {
+  if (!s || !s.members || s.members.length !== V2_SAMPLE_NICKS.length) return false;
+  var seen = {};
+  for (var i = 0; i < s.members.length; i++) {
+    if (V2_SAMPLE_NICKS.indexOf(s.members[i].nick) < 0) return false;
+    seen[s.members[i].nick] = 1;
+  }
+  for (var j = 0; j < V2_SAMPLE_NICKS.length; j++) if (!seen[V2_SAMPLE_NICKS[j]]) return false;
+  return true;
+}
 function migrateLegacy(old) {
   var s = normalize(old);
+  /* v2 샘플을 그대로 쓰던 경우에만 새 샘플로 교체 (직접 넣은 닉네임이 있으면 그대로 둠) */
+  if (looksLikeV2Sample(s)) return buildSample();
   if (!s.groups.length) {
     var sample = buildSample();
     s.groups = sample.groups.filter(function (g) {
