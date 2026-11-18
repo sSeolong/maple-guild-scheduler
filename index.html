@@ -308,6 +308,17 @@
   .cell.h6{background:linear-gradient(160deg,#e8801a,#ac5806); color:#fff6e6}
   .cell.h0{background:#f4ebdb; border-color:#e8dcc6; color:#c3b39c}
   .cell.is-sel{outline:2.5px solid #c96a0c; outline-offset:1px}
+
+  /* 칸 맨 아래: 이미 확정된 파티 배지 */
+  .c-conf{
+    margin-top:auto; display:block; min-width:0; max-width:100%;
+    font-size:9px; font-weight:800; line-height:1.25; letter-spacing:-0.03em;
+    padding:1px 4px; border-radius:5px;
+    background:#2f7a4a; color:#f4fff8;
+    box-shadow:0 0 0 1px rgba(255,255,255,.55);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cell.heat.has-conf{padding-bottom:5px}
   .legend{display:flex; align-items:center; gap:5px; margin-top:11px; font-size:10.5px; color:var(--ink3); flex-wrap:wrap}
   .legend i{width:16px; height:12px; border-radius:4px; display:inline-block; border:1px solid #eadcc6}
   .legend .l0{background:#f4ebdb}
@@ -695,6 +706,7 @@
     .grid-m .cell.has-party{height:72px; padding:6px 5px}
     .grid-m .c-names i{font-size:8.2px; padding:1px 2px}
     .grid-m .c-n{font-size:8px}
+    .grid-m .c-conf{font-size:7.6px; padding:1px 2px; letter-spacing:-0.05em}
     .grid-m .c-dots i{width:4.5px; height:4.5px}
     .step{gap:8px}
     .step-no{width:20px; height:20px; font-size:11px}
@@ -905,24 +917,24 @@
     <!-- ============ TAB 2 : 확정 파티 일정 ============ -->
     <section class="panel" id="panel-parties">
 
+      <div class="card" id="partyListCard">
+        <h2>확정된 파티</h2>
+        <p class="sub" id="partyListSub">다가오는 일정부터 순서대로 보여 드려요.</p>
+        <div id="partyList"></div>
+      </div>
+
       <div class="card">
         <div class="form-head">
           <h2>고정 파티 자동 매칭</h2>
           <button type="button" class="fold-btn" data-action="open-setup">초기 세팅에서 편집</button>
         </div>
-        <p class="sub">고정 파티원을 등록해 두면 위 <b>주간 가능 시간표</b>와 자동으로 맞춰서, 전원이 가능한 날짜·시간을 찾아 드려요. 파티 하나에 보스를 여러 개 넣을 수 있습니다.</p>
+        <p class="sub">고정 파티원을 등록해 두면 <b>주간 가능 시간표</b>와 자동으로 맞춰서, 전원이 가능한 날짜·시간을 찾아 드려요. 파티 하나에 보스를 여러 개 넣을 수 있습니다.</p>
 
         <div id="groupList"></div>
 
         <div class="form-actions" style="margin-top:10px">
           <button type="button" class="btn btn-ghost btn-sm" data-action="new-group-jump">＋ 고정 파티 추가</button>
         </div>
-      </div>
-
-      <div class="card">
-        <h2>확정된 파티</h2>
-        <p class="sub" id="partyListSub">다가오는 일정부터 순서대로 보여 드려요.</p>
-        <div id="partyList"></div>
       </div>
 
       <div class="card" id="partyFormCard">
@@ -1880,6 +1892,45 @@ function slotParties(day, blockId) {
   var runnable = runnableGroupsIn(weekKeyFor(ui.weekOffset), day, blockId, '');
   return { runnable: runnable, shared: sharedMembersOf(runnable) };
 }
+/* 이 칸(날짜+시간)에 이미 확정된 파티 — 칸 아래 배지로 보여 준다 */
+function confirmedPartiesIn(day, blockId) {
+  var blk = getBlock(blockId);
+  if (!blk) return [];
+  var d = addDays(weekStartFor(ui.weekOffset), day);
+  if (blk.afterMidnight) d = addDays(d, 1);
+  var dateStr = ymd(d);
+  var s1 = timeToMin(blk.start), e1 = s1 + (Number(blk.dur) || 120);
+  var out = [];
+  for (var i = 0; i < state.parties.length; i++) {
+    var p = state.parties[i];
+    if (p.date !== dateStr) continue;
+    var s2 = timeToMin(p.startTime), e2 = s2 + (Number(p.durationMin) || 120);
+    if (!(s1 < e2 && s2 < e1)) continue;
+    out.push(p);
+  }
+  return out;
+}
+/* 칸에 들어갈 만큼 짧게: '하드 세렌 · 노말 칼로스' → '하드세렌+1' */
+function partyShortLabel(p) {
+  var parts = String(p.boss || '').split('·');
+  var labels = [];
+  for (var i = 0; i < parts.length; i++) {
+    var t = parts[i].replace(/\s+/g, '');
+    if (t) labels.push(t);
+  }
+  if (!labels.length) return '파티';
+  return labels.length > 1 ? labels[0] + '+' + (labels.length - 1) : labels[0];
+}
+function confirmedBadgesIn(day, blockId) {
+  var list = confirmedPartiesIn(day, blockId);
+  if (!list.length) return '';
+  var first = partyShortLabel(list[0]);
+  var extra = list.length - 1;
+  var text = '✅' + first + (extra > 0 ? ' +' + extra : '');
+  var title = [];
+  for (var i = 0; i < list.length; i++) title.push(list[i].boss + ' · ' + list[i].startTime + ' 시작');
+  return '<span class="c-conf" title="' + esc(title.join(' / ')) + '">' + esc(text) + '</span>';
+}
 function toggleSlot(day, blockId) {
   var m = getMember(ui.activeMemberId);
   if (!m) { toast('먼저 위에서 길드원을 선택해 주세요'); return; }
@@ -2211,12 +2262,18 @@ function cellMarkup(mode, day, blk, m, mobile) {
   if (list.length > limit) names += '<i class="more">+' + (list.length - limit) + '</i>';
   var runnableNames = '';
   for (var r2 = 0; r2 < rn; r2++) runnableNames += (r2 ? ', ' : '') + st.runnable[r2].group.name;
-  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls + '"' + styleAttr +
+  var confirmed = confirmedPartiesIn(day, blk.id);
+  var confirmedNames = '';
+  for (var c2 = 0; c2 < confirmed.length; c2++) confirmedNames += (c2 ? ', ' : '') + confirmed[c2].boss;
+  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls +
+    (confirmed.length ? ' has-conf' : '') + '"' + styleAttr +
     ' data-action="heat" data-day="' + day + '" data-block="' + blk.id + '"' +
     ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' ' + n + '명 가능' + (n ? ' — ' + esc(nickList(list)) : '') +
-    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') + '">' +
+    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') +
+    (confirmed.length ? ' / 확정된 파티: ' + esc(confirmedNames) : '') + '">' +
     '<span class="c-top"><span class="c-dots">' + dots + '</span><span class="c-n">' + (n > 0 ? n + '명' : '·') + '</span></span>' +
     (n > 0 ? '<span class="c-names">' + names + '</span>' : '') +
+    confirmedBadgesIn(day, blk.id) +
     '</button>';
 }
 function slotConfirmMarkup(rg, members, dateStr, blk) {
@@ -2736,7 +2793,7 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   renderGroups();
   renderHeat();
   renderSlotDetail();
-  toast(g.name + ' — ' + fmtMDW(parseYmd(dateStr)) + ' ' + blk.label + '로 확정했어요. 아래에서 캘린더로 내보내세요');
+  toast(g.name + ' — ' + fmtMDW(parseYmd(dateStr)) + ' ' + blk.label + '로 확정했어요! \'확정 파티 일정\'에서 확인해 주세요');
   var card = byId('partyList');
   if (card && card.scrollIntoView) setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60);
 }
@@ -2754,7 +2811,7 @@ function renderParties() {
   if (count) count.textContent = String(state.parties.length);
   var list = sortedParties();
   if (!list.length) {
-    host.innerHTML = '<div class="empty">아직 확정된 파티가 없습니다. 위 자동 매칭에서 날짜를 골라 확정해 보세요.</div>';
+    host.innerHTML = '<div class="empty">아직 확정된 파티가 없습니다. 아래 자동 매칭에서 날짜를 골라 확정해 보세요.</div>';
     return;
   }
   var html = '';
@@ -3802,6 +3859,8 @@ function saveParty() {
   resetPartyForm();
   renderParties();
   renderGroups();
+  renderHeat();
+  renderSlotDetail();
   if (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 560) setFolded('partyFormCard', true);
 }
 function startPartyEdit(id) {
@@ -3823,6 +3882,8 @@ function deleteParty(id) {
   save();
   renderParties();
   renderGroups();
+  renderHeat();
+  renderSlotDetail();
   toast('일정을 삭제했어요');
 }
 function currentChecked() { return ui.formMembers.slice(); }
