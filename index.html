@@ -245,8 +245,9 @@
   /* 칸 안에 닉네임 표시 */
   .cell.heat{
     display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
-    gap:2px; padding:4px 4px 5px; min-height:62px; text-align:left;
+    gap:2px; padding:5px 6px 6px; min-height:62px; text-align:left;
   }
+  .cell.has-party{padding:8px 8px 8px}
   .c-top{display:flex; justify-content:space-between; align-items:center; line-height:1; min-height:11px; gap:3px}
   .c-n{font-size:9px; font-weight:800; letter-spacing:0; margin-left:auto}
   .c-dots{display:flex; gap:2px; align-items:center}
@@ -561,7 +562,8 @@
     .grid-d{display:none}
     .grid-m{display:grid; min-width:0; grid-template-columns:44px repeat(4,minmax(0,1fr)); gap:4px}
     .grid-m .cell{min-height:44px; border-radius:10px; font-size:13.5px}
-    .grid-m .cell.heat{height:64px; min-height:64px; overflow:hidden; padding:3px 4px 4px; gap:1px}
+    .grid-m .cell.heat{height:70px; min-height:70px; overflow:hidden; padding:4px 5px 5px; gap:1px}
+    .grid-m .cell.has-party{height:70px; padding:7px 6px}
     .grid-m .c-names i{font-size:8.6px; padding:1px 3px}
     .grid-m .c-n{font-size:8.5px}
     .grid-m .c-dots i{width:5px; height:5px}
@@ -1842,7 +1844,7 @@ function cellMarkup(mode, day, blk, m, mobile) {
   var dots = '';
   for (var d2 = 0; d2 < rn && d2 < 4; d2++) dots += '<i style="--pc:' + groupColor(st.runnable[d2].group) + '"></i>';
   var names = '';
-  var limit = mobile ? 2 : 4;
+  var limit = mobile ? 2 : 3;
   var shownList = list.length > limit ? list.slice(0, limit) : list;
   for (var i = 0; i < shownList.length; i++) {
     var hit = false;
