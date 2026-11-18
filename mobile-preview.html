@@ -18,8 +18,9 @@
       try {
         var w = f.contentWindow, d = w.document;
         var target = new URLSearchParams(location.search).get('anchor') || 'heatHost';
+        var off = Number(new URLSearchParams(location.search).get('off') || 12);
         var el = d.getElementById(target) || d.querySelector('.card');
-        var y = el.getBoundingClientRect().top + w.scrollY - 12;
+        var y = el.getBoundingClientRect().top + w.scrollY - off;
         w.scrollTo(0, Math.max(0, Math.round(y)));
         document.title = 'mobile-preview y=' + Math.round(y);
       } catch (e) { document.title = 'mobile-preview error: ' + e.message; }
