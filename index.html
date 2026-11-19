@@ -707,12 +707,23 @@
   .cell.union{z-index:1}
   .c-names i.hit{background:#ffdcd2; color:#a02f16; font-weight:800}
   .c-names i.more{background:#efe3cd; color:#6b5a46; font-weight:800}
+  /* 이번 주에 확정된 파티 — 확정된 그 칸에만 이름 배지로 */
+  .c-confs{display:flex; flex-direction:column; gap:2px; min-width:0; flex:0 0 auto}
+  .c-conf{
+    display:block; max-width:100%; min-width:0;
+    font-size:9px; font-weight:900; line-height:1.25; letter-spacing:-.02em;
+    padding:1px 3px 1px 5px; border-radius:5px;
+    background:#eef7f1; color:#1d5636; text-align:left;
+    box-shadow:inset 2.5px 0 0 var(--cc,#2f7a4a), inset 0 0 0 1px #cfe6d8;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
   .cell.heat.h0 .c-names i.hit{background:#ffdcd2}
   .cell.heat.h5 .c-names i.hit, .cell.heat.h6 .c-names i.hit{background:#ffe0d2; color:#8f2a12}
   .legend .lg{display:inline-flex; align-items:center; gap:5px}
   .legend i.lg1{background:#fdf8ef; box-shadow:inset 0 0 0 2px #2f7ff0}
   .legend i.lg2{background:#fdf8ef; box-shadow:inset 0 0 0 2px #2f7ff0, inset 0 0 0 4px #12a67a}
   .legend i.lgw{background:#ffdcd2; color:#a02f16; font-size:9px; font-weight:800; text-align:center; line-height:11px; font-style:normal}
+  .legend i.lgc{background:#eef7f1; color:#1d5636; box-shadow:inset 2.5px 0 0 #2f7a4a, inset 0 0 0 1px #cfe6d8; font-size:9px; font-weight:900; text-align:center; line-height:10px; font-style:normal}
 
   /* ---------- 초기 세팅 ---------- */
   .setup-card{border:1px solid #e9bf85; background:linear-gradient(180deg,#fffaf1,#fdf2e0)}
@@ -858,6 +869,8 @@
     .grid-m .cell.heat{height:72px; min-height:72px; overflow:hidden; padding:4px 4px 5px; gap:1px}
     .grid-m .cell.has-party{height:72px; padding:6px 5px}
     .grid-m .c-names i{font-size:8.2px; padding:1px 2px}
+    .grid-m .c-conf{font-size:7.6px; line-height:1.2; padding:1px 2px 1px 4px; letter-spacing:-.03em}
+    .grid-m .c-confs{gap:1px}
     .grid-m .c-n{font-size:8px}
     .grid-m .c-dots i{width:4.5px; height:4.5px}
 
@@ -1083,7 +1096,7 @@
             <span class="wk-range" id="heatWeekRange">-</span>
           </div>
         </div>
-        <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다.<br><b>테두리</b>는 고정 파티가 전원 모일 수 있는 시간이에요.<br>칸을 누르면 자세히 보고 바로 확정할 수 있습니다.</p>
+        <p class="sub">칸 안에 그 시간에 가능한 길드원 <b>닉네임</b>이 그대로 보입니다.<br><b>테두리</b>는 이 주에 아직 확정하지 않은 고정 파티가 전원 모일 수 있는 시간이에요.<br>✓ 표시는 이 주에 <b>확정된 파티</b>로, 확정된 그 칸에만 나옵니다.<br>칸을 누르면 자세히 보고 바로 확정할 수 있습니다.</p>
         <div class="grid-wrap" id="heatHost"></div>
         <div class="legend">
           <span>적음</span>
@@ -1094,6 +1107,7 @@
         <div class="legend" style="margin-top:6px">
           <span class="lg"><i class="lg1"></i>파티 하나 전원 가능</span>
           <span class="lg"><i class="lg2"></i>두 파티 이상 겹침</span>
+          <span class="lg"><i class="lgc">✓</i>이 주에 확정된 파티</span>
           <span class="lg"><i class="lgw">!</i>파티원 겹침</span>
         </div>
         <div id="heatHideNote"></div>
@@ -1341,6 +1355,7 @@
           <span class="guide-t">길드 전체 시간 확인 &amp; 파티 확정</span>
           <p class="guide-txt">아래 '길드 전체 가능 시간' 표에서 누가 되는지 바로 보입니다.
 고정 파티 전원이 되는 시간은 테두리로 표시돼요.
+이 주에 이미 확정된 고정 파티는 테두리 대신, 확정된 그 날짜·시간 칸에 파티 이름 배지로 나옵니다.
 고정 파티가 그 주에 모두 확정된 길드원은 이 표에서 자동으로 숨겨집니다.
 숨긴 인원은 표 아래 '함께 보기'를 누르면 잠깐 펼쳐 볼 수 있어요.
 시간 칸을 눌러 '이 팟으로 확정'을 누르면 바로 일정이 잡힙니다.</p>
@@ -1378,7 +1393,8 @@
 /* =========================================================
    메이플스토리 길드 스케줄 — 단일 파일 (v7)
    1) 초기 세팅: 길드원 한 번에 추가 · 고정 파티(보스 여러 개) · 내 캐릭터 저장
-   2) 파티 테두리: 전원 가능 파티 / 두 파티 이상 겹치는 칸 구분 · 파티원 겹침 표시
+   2) 파티 테두리: 아직 확정 안 된 고정 파티의 전원 가능 시간 / 두 파티 이상 겹치는 칸 구분 · 파티원 겹침 표시
+      확정된 파티는 테두리 대신 확정된 그 칸에 '✓ 파티 이름' 배지로 표시
    3) 가능 시간 칸에 길드원 닉네임 표시 · '파티 구함' 탭 · 자동 매칭 · .ics 내보내기
    4) 카톡 채팅 붙여넣어 자동 입력: 이름·요일·시간을 읽어 표에 바로 반영
    ========================================================= */
@@ -2206,9 +2222,38 @@ function sharedMembersOf(list) {
   }
   return out;
 }
+/* 보고 있는 주(목~수)에 이미 확정된 고정 파티(groupId) 모음.
+   이 파티들은 그 주 표에서 테두리·점을 그리지 않고, 실제 확정된 칸에만 이름 배지로 나온다.
+   주가 바뀌면(다음 주 등) 그 주 기준으로 다시 판단하므로, 아직 확정 전이면 테두리가 정상 표시된다. */
+function confirmedGroupIdsInViewWeek() {
+  var wk = weekKeyFor(ui.weekOffset), set = {};
+  for (var i = 0; i < state.parties.length; i++) {
+    var p = state.parties[i];
+    if (!p || !p.groupId) continue;
+    var pd = parseYmd(p.date);
+    if (!pd || ymd(startOfWeek(pd)) !== wk) continue;
+    set[String(p.groupId)] = true;
+  }
+  return set;
+}
 function slotParties(day, blockId) {
   var runnable = runnableGroupsIn(weekKeyFor(ui.weekOffset), day, blockId, '');
-  return { runnable: runnable, shared: sharedMembersOf(runnable) };
+  /* pending = 이 주에 아직 확정되지 않은 고정 파티 → 테두리·점은 이들만 */
+  var done = confirmedGroupIdsInViewWeek(), pending = [];
+  for (var i = 0; i < runnable.length; i++) {
+    if (!done[String(runnable[i].group.id)]) pending.push(runnable[i]);
+  }
+  return {
+    runnable: runnable, pending: pending,
+    shared: sharedMembersOf(runnable), sharedPending: sharedMembersOf(pending)
+  };
+}
+/* 이 칸이 '시작 칸'인 확정 파티만 — 길게 잡힌 파티가 여러 칸에 중복으로 서지 않게 */
+function confirmedStartHere(day, blk) {
+  var out = [], key = day + ':' + blk.id;
+  var cp = confirmedPartiesIn(day, blk.id);
+  for (var i = 0; i < cp.length; i++) if (partyStartCell(cp[i]) === key) out.push(cp[i]);
+  return out;
 }
 /* 이 칸(날짜+시간)의 실제 시각 범위 — 00-02시 칸은 그 날 00:00부터 */
 function slotRangeFor(day, blockId) {
@@ -2650,33 +2695,47 @@ function cellMarkup(mode, day, blk, m, mobile) {
   var n = list.length;
   var sel = ui.selectedSlot && ui.selectedSlot.day === day && ui.selectedSlot.block === blk.id;
   var st = slotParties(day, blk.id);
-  var rn = st.runnable.length;
+  var pend = st.pending;              /* 아직 확정되지 않은 고정 파티만 테두리 */
+  var cf = confirmedStartHere(day, blk); /* 이 칸에서 실제로 확정된 파티 */
+  var rn = pend.length;
   var partyCls = '';
   var styleAttr = '';
   if (rn) {
     partyCls = ' has-party party-' + Math.min(rn, 3) + (rn >= 2 ? ' union' : '');
-    styleAttr = ' style="--pc1:' + groupColor(st.runnable[0].group) +
-      ';--pc2:' + groupColor(rn > 1 ? st.runnable[1].group : st.runnable[0].group) +
-      ';--pc3:' + groupColor(rn > 2 ? st.runnable[2].group : st.runnable[0].group) + '"';
+    styleAttr = ' style="--pc1:' + groupColor(pend[0].group) +
+      ';--pc2:' + groupColor(rn > 1 ? pend[1].group : pend[0].group) +
+      ';--pc3:' + groupColor(rn > 2 ? pend[2].group : pend[0].group) + '"';
   }
   var dots = '';
-  for (var d2 = 0; d2 < rn && d2 < 4; d2++) dots += '<i style="--pc:' + groupColor(st.runnable[d2].group) + '"></i>';
+  for (var d2 = 0; d2 < rn && d2 < 4; d2++) dots += '<i style="--pc:' + groupColor(pend[d2].group) + '"></i>';
   var names = '';
-  var limit = mobile ? 2 : 3;
+  var limit = mobile ? (cf.length ? 1 : 2) : 3;
   var shownList = list.length > limit ? list.slice(0, limit) : list;
   for (var i = 0; i < shownList.length; i++) {
     var hit = false;
-    for (var s = 0; s < st.shared.length; s++) if (st.shared[s].id === shownList[i].id) hit = true;
+    for (var s = 0; s < st.sharedPending.length; s++) if (st.sharedPending[s].id === shownList[i].id) hit = true;
     names += '<i' + (hit ? ' class="hit"' : '') + '>' + esc(shownList[i].nick) + '</i>';
   }
   if (list.length > limit) names += '<i class="more">+' + (list.length - limit) + '</i>';
   var runnableNames = '';
-  for (var r2 = 0; r2 < rn; r2++) runnableNames += (r2 ? ', ' : '') + st.runnable[r2].group.name;
-  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls + '"' + styleAttr +
+  for (var r2 = 0; r2 < rn; r2++) runnableNames += (r2 ? ', ' : '') + pend[r2].group.name;
+  var confNames = [], confHtml = '';
+  if (cf.length) {
+    var cs = '';
+    for (var c2 = 0; c2 < cf.length; c2++) {
+      var cg = cf[c2].groupId ? getGroup(cf[c2].groupId) : null;
+      confNames.push(partyShortLabel(cf[c2]));
+      cs += '<span class="c-conf" style="--cc:' + (cg ? groupColor(cg) : '#2f7a4a') + '">✓ ' + esc(partyShortLabel(cf[c2])) + '</span>';
+    }
+    confHtml = '<span class="c-confs">' + cs + '</span>';
+  }
+  return '<button type="button" class="cell heat ' + heatClass(n) + (sel ? ' is-sel' : '') + partyCls + (cf.length ? ' has-conf' : '') + '"' + styleAttr +
     ' data-action="heat" data-day="' + day + '" data-block="' + blk.id + '"' +
     ' aria-label="' + DAY_NAMES[day] + '요일 ' + blk.label + ' ' + n + '명 가능' + (n ? ' — ' + esc(nickList(list)) : '') +
-    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') + '">' +
+    (rn ? ' / 전원 가능 파티: ' + esc(runnableNames) : '') +
+    (cf.length ? ' / 이 칸 확정: ' + esc(confNames.join(', ')) : '') + '">' +
     '<span class="c-top"><span class="c-dots">' + dots + '</span><span class="c-n">' + (n > 0 ? n + '명' : '·') + '</span></span>' +
+    confHtml +
     (n > 0 ? '<span class="c-names">' + names + '</span>' : '') +
     '</button>';
 }
