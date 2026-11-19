@@ -438,10 +438,19 @@
   .pv-line b{flex:0 0 auto; width:17px; text-align:center; font-size:12.5px; font-weight:800; color:#8a4d05; padding-top:1px}
   .pv-blocks{display:flex; gap:4px; flex-wrap:wrap}
   .pv-blocks span{padding:1px 8px; border-radius:999px; background:#ffe6c2; border:1px solid #f0cfa0; color:#8a4d05; font-size:11px; font-weight:800}
+  .pv-blocks span.on{background:#ffe6c2; border-color:#f0cfa0; color:#8a4d05}
+  .pv-blocks span.off{background:#fde4dd; border-color:#efbcae; color:#a6341f}
+  .pv-legend{display:flex; gap:6px; flex-wrap:wrap; margin:-3px 0 9px; font-size:10.5px; font-weight:800}
+  .pv-legend span{padding:1px 8px; border-radius:999px; border:1px solid transparent}
+  .pv-legend span.on{background:#ffe6c2; border-color:#f0cfa0; color:#8a4d05}
+  .pv-legend span.off{background:#fde4dd; border-color:#efbcae; color:#a6341f}
   .pv-warn{margin-top:9px; padding:8px 10px; border-radius:10px; background:#fbe7d2; border:1px solid #eec9a0; color:#8a4a10; font-size:11.5px; line-height:1.5}
   .pv-foot{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:11px}
   .pv-sum{font-size:11.5px; font-weight:700; color:#6b5a46}
   .pv-note{margin-top:9px; font-size:11.5px; font-weight:700; color:#2f7d4f; line-height:1.5}
+
+  .heat-hide{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; padding:8px 10px; border-radius:10px; background:#f2e8d7; border:1px solid #e3d3ba; font-size:11.5px; font-weight:700; color:#6b5a46; line-height:1.5}
+  .heat-hide .btn{margin-left:auto}
 
   /* ---------- party cards ---------- */
   .party{
@@ -1048,7 +1057,7 @@
             <button type="button" class="pill is-active" data-action="paste-mode" data-mode="add" id="pasteModeAdd">기존 시간 유지하고 추가</button>
             <button type="button" class="pill" data-action="paste-mode" data-mode="replace" id="pasteModeReplace">해당 멤버 시간 덮어쓰기</button>
           </div>
-          <p class="hint">‘10시 이후’는 <b>밤 10시</b>로 읽습니다.<br>오전에 하겠다면 ‘오전 10시’처럼 적어 주세요.<br>‘주말’·‘평일’·‘매일’, 카톡 시간 표시(<b>오후 9:12</b>)도 알아서 걸러 냅니다.</p>
+          <p class="hint">‘10시 이후’는 <b>밤 10시</b>로 읽습니다.<br>오전에 하겠다면 ‘오전 10시’처럼 적어 주세요.<br>‘주말’·‘평일’·‘매일’, 카톡 시간 표시(<b>오후 9:12</b>)도 알아서 걸러 냅니다.<br>“목요일 안돼요”, “목요일 빼고 다 돼요”도 알아듣습니다.</p>
           <div id="pastePreview"></div>
         </div>
       </div>
@@ -1087,6 +1096,7 @@
           <span class="lg"><i class="lg2"></i>두 파티 이상 겹침</span>
           <span class="lg"><i class="lgw">!</i>파티원 겹침</span>
         </div>
+        <div id="heatHideNote"></div>
         <div id="slotDetail"></div>
       </div>
 
@@ -1321,6 +1331,7 @@
           <p class="guide-txt">'가능 시간 입력'에서 본인 닉네임을 고른 뒤, 이번 주(목~수) 되는 시간 칸을 눌러 체크해 주세요.
 실수로 다른 사람 칸을 건드리지 않게, 본인 닉네임인지 먼저 확인해 주세요.
 맨 위 '카톡 채팅 붙여넣어 자동 입력'에 "서롱 목,금,토 10시 이후"처럼 적어 넣어도 자동으로 체크됩니다.
+"서롱 목요일 안돼요", "서롱 목요일 빼고 다 돼요"처럼 안 되는 시간도 같이 적으면 그 칸은 빠집니다.
 '00-02시' 칸은 그날 밤 자정 넘어가는 새벽 0시~2시 기준이에요. (예: 목 00-02시 = 리셋 직후 목요일 00시)</p>
         </div>
       </div>
@@ -1330,6 +1341,8 @@
           <span class="guide-t">길드 전체 시간 확인 &amp; 파티 확정</span>
           <p class="guide-txt">아래 '길드 전체 가능 시간' 표에서 누가 되는지 바로 보입니다.
 고정 파티 전원이 되는 시간은 테두리로 표시돼요.
+고정 파티가 그 주에 모두 확정된 길드원은 이 표에서 자동으로 숨겨집니다.
+숨긴 인원은 표 아래 '함께 보기'를 누르면 잠깐 펼쳐 볼 수 있어요.
 시간 칸을 눌러 '이 팟으로 확정'을 누르면 바로 일정이 잡힙니다.</p>
         </div>
       </div>
@@ -1458,6 +1471,7 @@ var ui = {
   commentDraft: {},      /* 모집 카드 댓글 입력 중인 값 (실시간 갱신으로 다시 그려도 남긴다) */
   setupOpen: true,
   showAllMatches: {},
+  showConfirmedHeat: false,  /* 고정 파티가 모두 확정된 길드원도 전체 표에 함께 볼지 */
   editingRecruitId: null,
   filterBoss: '',
   openOnly: false,
@@ -2539,8 +2553,56 @@ function heatClass(n) {
 function renderHeat() {
   var host = byId('heatHost');
   if (!host) return;
+  computeHeatHidden();
   host.innerHTML = '<div class="grid grid-d">' + gridMarkup('heat', false) + '</div>' +
     '<div class="grid grid-m">' + gridMarkup('heat', true) + '</div>';
+  renderHeatHideNote();
+}
+/* ---------- 모두 확정된 길드원은 '길드 전체 가능 시간' 표에서 접는다 ----------
+   보고 있는 주(목~수)에 그 사람이 속한 고정 파티가 '전부' 확정되어 있으면
+   그 주 표의 닉네임 알약·인원 수에서 뺀다.
+   - 고정 파티가 하나도 없는 사람은 판단할 수 없으므로 그대로 보여 준다.
+   - 이번 주에 확정돼도 다음 주 표에서는 다음 주 기준으로 다시 판단한다. */
+var heatHidden = [], heatHiddenIds = {};
+function memberGroupsOf(memberId) {
+  var out = [];
+  for (var i = 0; i < state.groups.length; i++) {
+    var g = state.groups[i];
+    if (!g || !isArr(g.memberIds)) continue;
+    if (g.memberIds.indexOf(memberId) >= 0) out.push(g);
+  }
+  return out;
+}
+function memberFullyConfirmed(memberId) {
+  var gs = memberGroupsOf(memberId);
+  if (!gs.length) return false;
+  var dateStr = ymd(weekStartFor(ui.weekOffset));
+  for (var i = 0; i < gs.length; i++) {
+    if (!confirmedOfGroupInWeek(gs[i].id, dateStr).length) return false;
+  }
+  return true;
+}
+function computeHeatHidden() {
+  var list = [], ids = {};
+  for (var i = 0; i < state.members.length; i++) {
+    var m = state.members[i];
+    if (m && memberFullyConfirmed(m.id)) { list.push(m); ids[m.id] = true; }
+  }
+  heatHidden = list;
+  heatHiddenIds = ids;
+}
+function renderHeatHideNote() {
+  var host = byId('heatHideNote');
+  if (!host) return;
+  if (!heatHidden.length) { host.innerHTML = ''; return; }
+  var names = [];
+  for (var i = 0; i < heatHidden.length; i++) names.push(heatHidden[i].nick);
+  host.innerHTML = '<div class="heat-hide">' +
+    (ui.showConfirmedHeat
+      ? '👀 모두 확정된 인원 ' + heatHidden.length + '명(' + esc(names.join(', ')) + ')도 함께 보는 중'
+      : '✅ 모두 확정된 인원 ' + heatHidden.length + '명(' + esc(names.join(', ')) + ') 숨김 중') +
+    '<button type="button" class="btn btn-ghost btn-sm" data-action="heat-show-all">' +
+    (ui.showConfirmedHeat ? '숨기기' : '함께 보기') + '</button></div>';
 }
 /* 표를 데스크톱(요일=열, 시간=행)과 모바일(요일=행, 시간=열) 두 가지로 그린다 */
 function gridMarkup(mode, mobile) {
@@ -2580,6 +2642,11 @@ function cellMarkup(mode, day, blk, m, mobile) {
       (on ? '✓' : '') + '</button>';
   }
   var list = membersAvailable(day, blk.id);
+  if (mode === 'heat' && !ui.showConfirmedHeat && heatHidden.length) {
+    var shown = [];
+    for (var h = 0; h < list.length; h++) if (!heatHiddenIds[list[h].id]) shown.push(list[h]);
+    list = shown;
+  }
   var n = list.length;
   var sel = ui.selectedSlot && ui.selectedSlot.day === day && ui.selectedSlot.block === blk.id;
   var st = slotParties(day, blk.id);
@@ -4054,7 +4121,7 @@ function pasteTokenize(text) {
       i += m[0].length; continue;
     }
     /* 오전 · 저녁 처럼 낱말만 */
-    m = restS.match(/^(오전|오후|아침|점심|낮|저녁|밤|새벽|자정)(?:에는|엔|에|때|쯤|은|는|도)?(?![가-힣])/);
+    m = restS.match(/^(오전|오후|아침|점심|낮|저녁|밤|새벽|자정)(?:에는|엔|에|때|쯤|은|는|도|만)?(?![가-힣])/);
     if (m) {
       flush();
       toks.push({ k: 'time', blocks: pasteWordBlocks(m[1]) });
@@ -4152,36 +4219,142 @@ function pasteGroupChunks(chunks) {
   }
   return out;
 }
-/* 한 덩어리 → [{days:[요일번호], blocks:[칸]}] */
-function pasteParseChunk(text) {
+/* ---------- 부정 · 제외 표현 ----------
+   '목요일 안돼요' → 목요일 불가, '목요일 빼고 다 돼요' → 목요일만 빼고 나머지 가능.
+   말투(가능/불가)가 나오는 자리마다 글을 끊어, 그 앞에 적힌 요일·시간을 그 말투로 묶는다. */
+var PASTE_NEG_SRC = [
+  '안\\s*[되돼됩댐됨될된됄됬]',    /* 안돼 · 안 될 · 안됨 · 안됩 */
+  '안\\s*[가갈]',                  /* 안 갈 것 같아 */
+  '불가',
+  '못\\s*[가해함갈]',              /* 못 가요 · 못 해요 */
+  '빼|뺄',                         /* 빼고 · 빼주세요 · 빼면 */
+  '제외', '말고',
+  '어려|어렵|힘들|힘듦|힘드',      /* 어려워요 · 힘들어요 */
+  '불참'
+].join('|');
+var PASTE_POS_SRC = ['돼', '되', '가능', '괜찮', '좋', '오케이', '오키', '콜', '참석'].join('|');
+var PASTE_CUE_RE = new RegExp('(' + PASTE_NEG_SRC + ')|(' + PASTE_POS_SRC + ')', 'g');
+var PASTE_CUE_ANY = new RegExp('(' + PASTE_NEG_SRC + ')|(' + PASTE_POS_SRC + ')');
+
+/* '다 · 전부 · 모두' 처럼 나머지 요일 전부를 뜻하는 말 */
+function pasteAllMarker(text) {
+  var t = String(text === null || text === undefined ? '' : text).replace(/\s+/g, ' ').trim();
+  if (!t) return false;
+  if (/^(다|전부|전체|모두|모든)$/.test(t)) return true;
+  if (/(?:^|[\s,·])(다|전부|전체|모두|모든)\s*$/.test(t)) return true;
+  if (/(전부|전체|모두|모든|다)\s*(?:돼|되|가능|괜찮|좋)/.test(t)) return true;
+  return false;
+}
+
+/* 글을 '말투가 붙는 구간'으로 나눈다. cue 가 붙은 구간은 그 말투로 읽는다 */
+function pasteClauses(text) {
+  var s = String(text === null || text === undefined ? '' : text);
+  var out = [], cursor = 0, m;
+  PASTE_CUE_RE.lastIndex = 0;
+  while ((m = PASTE_CUE_RE.exec(s)) !== null) {
+    if (!m[0]) { PASTE_CUE_RE.lastIndex++; continue; }
+    out.push({ text: s.slice(cursor, m.index), cue: m[0], kind: m[1] ? 'neg' : 'pos' });
+    cursor = m.index + m[0].length;
+  }
+  out.push({ text: s.slice(cursor), cue: '', kind: 'pos' });
+  return out;
+}
+
+/* 한 구간 → {rules:[{days, blocks}], days: 적힌 요일 전부, sawTime, lastBlocks} */
+function pasteParseClause(text) {
   var toks = pasteTokenize(text);
-  var rules = [], pending = [], last = [], sawDay = false, sawTime = false;
+  var rules = [], pending = [], last = [], days = [], lastBlocks = null, sawTime = false;
   for (var i = 0; i < toks.length; i++) {
     var t = toks[i];
     if (t.k === 'day') {
-      sawDay = true;
-      for (var d = 0; d < t.days.length; d++) if (pending.indexOf(t.days[d]) < 0) pending.push(t.days[d]);
+      for (var d = 0; d < t.days.length; d++) {
+        if (pending.indexOf(t.days[d]) < 0) pending.push(t.days[d]);
+        if (days.indexOf(t.days[d]) < 0) days.push(t.days[d]);
+      }
       continue;
     }
     if (t.k !== 'time') continue;
     sawTime = true;
-    var days = pending.slice();
-    if (!days.length) {
+    lastBlocks = t.blocks.slice();
+    var ds = pending.slice();
+    if (!ds.length) {
       /* 시간이 먼저 나왔으면 뒤에 나오는 요일을 모아 쓴다 */
       for (var j = i + 1; j < toks.length; j++) {
         if (toks[j].k === 'time') break;
         if (toks[j].k === 'day') {
-          for (var a = 0; a < toks[j].days.length; a++) if (days.indexOf(toks[j].days[a]) < 0) days.push(toks[j].days[a]);
+          for (var a = 0; a < toks[j].days.length; a++) if (ds.indexOf(toks[j].days[a]) < 0) ds.push(toks[j].days[a]);
         }
       }
     }
-    if (!days.length) days = last.slice();
-    if (!days.length) continue;
-    rules.push({ days: days, blocks: t.blocks.slice() });
-    last = days.slice();
+    if (!ds.length) ds = last.slice();
+    if (!ds.length) continue;
+    rules.push({ days: ds, blocks: t.blocks.slice() });
+    last = ds.slice();
     pending = [];
   }
-  return { rules: rules, sawDay: sawDay, sawTime: sawTime };
+  return { rules: rules, days: days, sawTime: sawTime, lastBlocks: lastBlocks };
+}
+
+/* 한 덩어리 → 가능(posRules) · 불가(negRules) 규칙 */
+function pasteParseChunk(text) {
+  var clauses = pasteClauses(text);
+  var posRules = [], negRules = [], days = [], prevDays = [];
+  var sawTime = false, hasCue = false, hasAll = false, allBlocks = null;
+  var src = String(text === null || text === undefined ? '' : text);
+  if (PASTE_CUE_ANY.test(src)) hasCue = true;
+  var hasExcl = /빼|뺄|제외|말고/.test(src);
+
+  for (var i = 0; i < clauses.length; i++) {
+    var c = clauses[i];
+    var pc = pasteParseClause(c.text);
+    for (var d = 0; d < pc.days.length; d++) if (days.indexOf(pc.days[d]) < 0) days.push(pc.days[d]);
+    if (pc.sawTime) sawTime = true;
+
+    /* 그 구간에서 시간이 붙은 요일 / 시간 없이 적힌 요일 */
+    var covered = [], r, q;
+    for (r = 0; r < pc.rules.length; r++) {
+      for (q = 0; q < pc.rules[r].days.length; q++) {
+        if (covered.indexOf(pc.rules[r].days[q]) < 0) covered.push(pc.rules[r].days[q]);
+      }
+      if (c.kind === 'neg') negRules.push(pc.rules[r]);
+      else posRules.push(pc.rules[r]);
+    }
+    var left = [];
+    for (var k = 0; k < pc.days.length; k++) {
+      if (covered.indexOf(pc.days[k]) < 0 && left.indexOf(pc.days[k]) < 0) left.push(pc.days[k]);
+    }
+
+    if (c.kind === 'neg') {
+      /* '목요일 안됨' — 시간을 안 적었으면 그 요일 전체 칸을 불가로 */
+      if (left.length) negRules.push({ days: left.slice(), blocks: PASTE_BID.slice() });
+      /* '10시는 안돼요' — 요일 없이 시간만이면 바로 앞 구간의 요일을 쓴다 */
+      else if (!pc.days.length && !pc.rules.length && pc.sawTime && prevDays.length) {
+        negRules.push({ days: prevDays.slice(), blocks: (pc.lastBlocks || PASTE_BID).slice() });
+      }
+    } else {
+      /* '평일 가능' — 시간을 안 적은 요일은 그 요일 전체 (말투가 적혀 있을 때만) */
+      if (left.length && hasCue) posRules.push({ days: left.slice(), blocks: PASTE_BID.slice() });
+      /* '목요일 빼고 다 돼요' — 요일 없이 '다·전부'면 부정한 날만 뺀 나머지 요일 전부 */
+      if (!pc.days.length && pasteAllMarker(c.text)) {
+        hasAll = true;
+        allBlocks = (pc.lastBlocks || PASTE_BID).slice();
+      }
+    }
+    if (pc.days.length) prevDays = pc.days.slice();
+  }
+
+  if (hasAll) {
+    var negDays = [];
+    for (var n = 0; n < negRules.length; n++) {
+      for (var nd = 0; nd < negRules[n].days.length; nd++) {
+        if (negDays.indexOf(negRules[n].days[nd]) < 0) negDays.push(negRules[n].days[nd]);
+      }
+    }
+    var restDays = [];
+    for (var x = 0; x < 7; x++) if (negDays.indexOf(x) < 0) restDays.push(x);
+    if (restDays.length) posRules.push({ days: restDays, blocks: allBlocks.slice() });
+  }
+  return { posRules: posRules, negRules: negRules, days: days, sawTime: sawTime, hasCue: hasCue, hasAll: hasAll, hasExcl: hasExcl };
 }
 function pasteMergeRules(byDay, rules) {
   for (var i = 0; i < rules.length; i++) {
@@ -4222,7 +4395,7 @@ function parsePaste(text) {
       continue;
     }
     var pr = pasteParseChunk(body);
-    if (!pr.rules.length) {
+    if (!pr.posRules.length && !pr.negRules.length) {
       res.warnings.push('‘' + (c.name ? c.name + ' · ' : '') + pasteShorten(body) + '’ 에서 요일과 시간을 함께 읽지 못했어요.');
       continue;
     }
@@ -4240,28 +4413,48 @@ function parsePaste(text) {
     var entry = null;
     for (var k = 0; k < res.members.length; k++) if (res.members[k].key === key) entry = res.members[k];
     if (!entry) {
-      entry = { key: key, nick: who.nick, memberId: who.memberId, isNew: who.isNew, fallback: who.fallback, byDay: {}, slots: [] };
+      entry = { key: key, nick: who.nick, memberId: who.memberId, isNew: who.isNew, fallback: who.fallback, byDay: {}, rmByDay: {}, slots: [], removes: [] };
       res.members.push(entry);
     } else {
       entry.memberId = who.memberId; entry.isNew = who.isNew; entry.fallback = who.fallback;
     }
-    pasteMergeRules(entry.byDay, pr.rules);
-  }
-  for (var mi = 0; mi < res.members.length; mi++) {
-    var mem = res.members[mi];
-    mem.slots = [];
-    for (var day = 0; day < 7; day++) {
-      var bl = mem.byDay[day];
-      if (!bl || !bl.length) continue;
-      for (var bi = 0; bi < bl.length; bi++) mem.slots.push(day + ':' + bl[bi]);
+    pasteMergeRules(entry.byDay, pr.posRules);
+    pasteMergeRules(entry.rmByDay, pr.negRules);
+    /* 불가로만 적힌 글은 나머지 요일을 알 수 없으니 안내한다 */
+    if (pr.negRules.length && !pr.posRules.length && !pr.hasAll && pr.hasExcl) {
+      res.warnings.push('‘' + (c.name ? c.name + ' · ' : '') + pasteShorten(body) + '’ 는 불가로 적힌 요일만 읽었어요 — 나머지 요일은 표에서 직접 확인해 주세요.');
     }
   }
-  if (/제외|빼고|빼주|안\s*됨|안됨|불가/.test(raw)) {
-    res.warnings.push('‘제외’·‘불가’ 같은 표현은 자동으로 해석하지 않아요 — 미리보기를 꼭 확인해 주세요.');
+  /* 불가 칸은 '가능'에서 빼고, 기존 체크도 해제할 목록으로 따로 남긴다 */
+  var kept = [];
+  for (var mi = 0; mi < res.members.length; mi++) {
+    var mem = res.members[mi];
+    var rmSlots = [];
+    for (var d1 = 0; d1 < 7; d1++) {
+      var rbl = mem.rmByDay[d1];
+      if (!rbl || !rbl.length) continue;
+      for (var rb = 0; rb < rbl.length; rb++) rmSlots.push(d1 + ':' + rbl[rb]);
+    }
+    var netByDay = {};
+    mem.slots = [];
+    for (var d2 = 0; d2 < 7; d2++) {
+      var bl = mem.byDay[d2];
+      if (!bl || !bl.length) continue;
+      var keep = [];
+      for (var bi = 0; bi < bl.length; bi++) {
+        if (rmSlots.indexOf(d2 + ':' + bl[bi]) >= 0) continue;
+        keep.push(bl[bi]);
+        mem.slots.push(d2 + ':' + bl[bi]);
+      }
+      if (keep.length) netByDay[d2] = keep;
+    }
+    mem.byDay = netByDay;
+    mem.removes = rmSlots;
+    if (mem.slots.length || mem.removes.length) kept.push(mem);
   }
+  res.members = kept;
   return res;
 }
-
 /* ---------- 미리보기 ---------- */
 function renderPastePreview() {
   var host = byId('pastePreview');
@@ -4269,20 +4462,27 @@ function renderPastePreview() {
   var res = ui.pasteParsed;
   if (!res || res.empty) { host.innerHTML = ''; return; }
   var ws = weekStartFor(ui.weekOffset), we = addDays(ws, 6);
-  var total = 0, rows = '';
+  var total = 0, totalRm = 0, rows = '';
   for (var i = 0; i < res.members.length; i++) {
     var mem = res.members[i];
     total += mem.slots.length;
+    totalRm += mem.removes.length;
     var lines = '';
     for (var day = 0; day < 7; day++) {
-      var bl = mem.byDay[day];
-      if (!bl || !bl.length) continue;
+      var adds = mem.byDay[day] || [], rms = mem.rmByDay[day] || [];
+      if (!adds.length && !rms.length) continue;
       var chips = '';
-      for (var b = 0; b < bl.length; b++) chips += '<span>' + esc(getBlock(bl[b]).short) + '</span>';
+      for (var b = 0; b < adds.length; b++) chips += '<span class="on">+ ' + esc(getBlock(adds[b]).short) + '</span>';
+      if (rms.length >= PASTE_BID.length) {
+        chips += '<span class="off">− 전체 · 불가 (기존 체크 해제)</span>';
+      } else {
+        for (var b2 = 0; b2 < rms.length; b2++) chips += '<span class="off">− ' + esc(getBlock(rms[b2]).short) + '</span>';
+      }
       lines += '<div class="pv-line"><b>' + DAY_NAMES[day] + '</b><div class="pv-blocks">' + chips + '</div></div>';
     }
     rows += '<div class="pv-row"><div class="pv-name">' + esc(mem.nick) +
-      (mem.fallback ? '<span class="pv-why">이름 없음 → 내 캐릭터</span>' : (mem.isNew ? '<span class="pv-new">새 길드원 자동 추가</span>' : '')) +
+      (mem.fallback ? '<span class="pv-why">이름 없음 → 내 캐릭터</span>'
+        : (mem.isNew ? '<span class="pv-new">' + (mem.slots.length ? '새 길드원 자동 추가' : '표에 없음 · 해제할 칸 없음') + '</span>' : '')) +
       '</div><div class="pv-lines">' + lines + '</div></div>';
   }
   var warn = '';
@@ -4291,14 +4491,18 @@ function renderPastePreview() {
     for (var x = 0; x < res.warnings.length; x++) w += (x ? '<br>' : '') + '⚠ ' + esc(res.warnings[x]);
     warn = '<div class="pv-warn">' + w + '</div>';
   }
+  var any = total || totalRm;
   var out = '<div class="paste-prev">';
   out += '<div class="pv-head">📅 ' + esc(weekLabelFor(ui.weekOffset)) + ' (' + fmtMD(ws) + ' ~ ' + fmtMD(we) + ') 에 ' +
-    (ui.pasteMode === 'replace' ? '<b>덮어쓸 내용</b>' : '<b>추가할 내용</b>') + '</div>';
+    (ui.pasteMode === 'replace' ? '<b>덮어쓸 내용</b>' : '<b>반영할 내용</b>') + '</div>';
+  if (totalRm) {
+    out += '<div class="pv-legend"><span class="on">+ 표에 체크</span><span class="off">− 기존 체크 해제</span></div>';
+  }
   out += rows || '<p class="hint" style="margin:0">읽어낸 내용이 없습니다.<br>이름과 요일·시간을 함께 적어 주세요.</p>';
   out += warn;
   out += '<div class="pv-foot">' +
-    '<button type="button" class="btn btn-primary btn-sm" data-action="paste-apply"' + (res.members.length && total ? '' : ' disabled') + '>✅ 표에 바로 반영</button>' +
-    '<span class="pv-sum">' + (res.members.length && total ? res.members.length + '명 · ' + total + '칸' : '반영할 내용 없음') + '</span>' +
+    '<button type="button" class="btn btn-primary btn-sm" data-action="paste-apply"' + ((res.members.length && any) ? '' : ' disabled') + '>✅ 표에 바로 반영</button>' +
+    '<span class="pv-sum">' + ((res.members.length && any) ? res.members.length + '명 · 추가 ' + total + '칸' + (totalRm ? ' · 해제 ' + totalRm + '칸' : '') : '반영할 내용 없음') + '</span>' +
     '</div>';
   if (ui.pasteNote) out += '<div class="pv-note">' + esc(ui.pasteNote) + '</div>';
   out += '</div>';
@@ -4323,10 +4527,14 @@ function applyPaste() {
   if (!res || !res.members.length) { toast('먼저 붙여넣은 내용을 해석해 주세요'); return; }
   var wk = weekKeyFor(ui.weekOffset);
   if (!state.availability[wk]) state.availability[wk] = {};
-  var names = [], added = 0, slots = 0;
+  var names = [], added = 0, put = 0, cut = 0, skipped = [], keptNone = [];
   for (var i = 0; i < res.members.length; i++) {
     var pm = res.members[i];
     var m = pm.memberId ? getMember(pm.memberId) : pasteFindMemberByNick(pm.nick);
+    /* 해제만 적혀 있는데 표에 없는 사람이면 새로 만들지 않는다 */
+    if (!m && !pm.slots.length) { skipped.push(pm.nick); continue; }
+    /* 덮어쓰기 모드에서 '불가'만 적힌 사람은 통째로 지우지 않고 그대로 둔다 */
+    if (ui.pasteMode === 'replace' && !pm.slots.length) { keptNone.push(pm.nick); continue; }
     if (!m) {
       m = { id: uid('m'), nick: pm.nick };
       state.members.push(m);
@@ -4334,20 +4542,34 @@ function applyPaste() {
     }
     var list = isArr(state.availability[wk][m.id]) ? state.availability[wk][m.id].slice() : [];
     if (ui.pasteMode === 'replace') list = [];
-    for (var s = 0; s < pm.slots.length; s++) if (list.indexOf(pm.slots[s]) < 0) list.push(pm.slots[s]);
+    for (var s = 0; s < pm.slots.length; s++) {
+      if (list.indexOf(pm.slots[s]) < 0) { list.push(pm.slots[s]); put++; }
+    }
+    /* 불가·제외로 적힌 칸은 기존에 체크돼 있어도 해제한다 ("기존 시간 유지하고 추가" 모드에서도) */
+    for (var r = 0; r < pm.removes.length; r++) {
+      var idx = list.indexOf(pm.removes[r]);
+      if (idx >= 0) { list.splice(idx, 1); cut++; }
+    }
     state.availability[wk][m.id] = list;
-    slots += pm.slots.length;
     names.push(m.nick);
     if (i === 0) ui.activeMemberId = m.id;
+  }
+  if (!names.length) {
+    ui.pasteNote = '⚠ 표에 있는 길드원이 없어 반영할 내용이 없었어요' + (skipped.length ? ' — ' + skipped.join(', ') : '') + '.';
+    renderPastePreview();
+    toast('반영할 길드원을 찾지 못했어요');
+    return;
   }
   save();
   if (!getMember(ui.activeMemberId) && state.members.length) ui.activeMemberId = state.members[0].id;
   ui.pasteNote = '✅ ' + weekLabelFor(ui.weekOffset) + ' 표에 반영했어요 — ' + names.join(', ') +
-    (added ? ' (새 길드원 ' + added + '명 추가)' : '');
+    (added ? ' (새 길드원 ' + added + '명 추가)' : '') +
+    ' (추가 ' + put + '칸' + (cut ? ' · 해제 ' + cut + '칸' : '') + ')' +
+    (skipped.length ? '<br>' + skipped.join(', ') + ' 님은 표에 없어 해제할 칸이 없었어요.' : '') +
+    (keptNone.length ? '<br>' + keptNone.join(', ') + ' 님은 덮어쓸 가능 시간이 없어 그대로 뒀어요.' : '');
   renderAll();
-  toast('표에 반영했어요 — ' + names.length + '명 · ' + slots + '칸');
+  toast('표에 반영했어요 — ' + names.length + '명 · 추가 ' + put + '칸' + (cut ? ' · 해제 ' + cut + '칸' : ''));
 }
-
 /* ---------------- 렌더 : 전체 ---------------- */
 function renderAll() {
   renderWeekBar();
@@ -4851,6 +5073,7 @@ function handleAction(action, el) {
     }
     case 'cell': toggleSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
     case 'heat': selectSlot(Number(el.getAttribute('data-day')), el.getAttribute('data-block')); break;
+    case 'heat-show-all': ui.showConfirmedHeat = !ui.showConfirmedHeat; renderHeat(); break;
     case 'cal-party': focusPartyCard(el.getAttribute('data-id')); break;
     case 'save-party': saveParty(); break;
     case 'cancel-party': resetPartyForm(); toast('수정을 취소했어요'); break;
