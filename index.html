@@ -2614,8 +2614,8 @@ function cellMarkup(mode, day, blk, m, mobile) {
     '</button>';
 }
 function slotConfirmMarkup(rg, members, dateStr, blk) {
-  var bosses = groupBossList(rg);
-  var dur = Number(blk.dur) * Math.max(1, bosses.length);
+  /* 소요 시간은 보스 개수와 상관없이 한 칸(2시간) */
+  var dur = Number(blk.dur) || 120;
   var nicks = [];
   for (var i = 0; i < members.length; i++) nicks.push(members[i].nick);
   /* 이 고정 파티가 이번 주에 이미 확정되어 있으면 그 사실을 먼저 보여 준다 */
@@ -3239,11 +3239,10 @@ function applyReschedule() {
   if (!p) { toast('옮길 확정 파티를 찾지 못했어요. 다시 시도해 주세요'); return; }
   var members = groupMembers(g), bosses = groupBossList(g);
   if (!members.length || !bosses.length) { toast('고정 파티 정보를 확인해 주세요'); return; }
-  /* 옮기는 것은 날짜·시각(+보스 개수만큼의 길이)뿐 — 적어 둔 보스 이름·파티원·메모는 그대로 둔다 */
-  var bossCount = String(p.boss || '').split('·').filter(function (x) { return x.trim(); }).length;
+  /* 옮기는 것은 날짜·시각뿐 — 길이는 보스 개수와 상관없이 한 칸(2시간), 적어 둔 보스 이름·파티원·메모도 그대로 둔다 */
   p.date = req.dateStr;
   p.startTime = blk.start;
-  p.durationMin = Number(blk.dur) * Math.max(1, bossCount);
+  p.durationMin = Number(blk.dur) || 120;
   save();
   ui.freshPartyId = p.id;
   renderAll();
@@ -3261,7 +3260,8 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   var bosses = groupBossList(g);
   if (!bosses.length) { toast('목표 보스가 없어요. 고정 파티를 수정해 주세요'); return; }
   var nicks = members.map(function (m) { return m.nick; });
-  var dur = Number(blk.dur) * bosses.length;
+  /* 소요 시간은 보스 개수와 상관없이 한 칸(2시간) — 보스가 여러 개여도 다음 칸을 잡아먹지 않는다 */
+  var dur = Number(blk.dur) || 120;
 
   /* 같은 고정 파티가 같은 보스 주에 이미 확정되어 있는지 먼저 확인 (중복 생성 방지) */
   var inWeek = confirmedOfGroupInWeek(g.id, dateStr);
@@ -3299,8 +3299,7 @@ function confirmFromMatch(groupId, dateStr, blockId) {
   var np = {
     id: uid('p'), boss: bosses.join(' · '), date: dateStr, startTime: blk.start,
     durationMin: dur, alarm: '60',
-    memo: g.name + ' 자동 매칭으로 확정 · ' + members.length + '명 전원 가능' +
-      (bosses.length > 1 ? ' · 보스 ' + bosses.length + '개 연속(' + dur + '분)' : ''),
+    memo: g.name + ' 자동 매칭으로 확정 · ' + members.length + '명 전원 가능',
     members: nicks, groupId: g.id
   };
   state.parties.push(np);
