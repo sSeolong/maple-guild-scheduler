@@ -867,6 +867,8 @@
     .grid-m{display:grid; min-width:0; grid-template-columns:38px repeat(5,minmax(0,1fr)); gap:3px}
     .grid-m .cell{min-height:44px; border-radius:9px; font-size:13px}
     .grid-m .cell.heat{height:72px; min-height:72px; overflow:hidden; padding:4px 4px 5px; gap:1px}
+    /* 확정 파티 배지가 들어간 칸은 배지가 잘리지 않게 그만큼 늘어난다 */
+    .grid-m .cell.heat.has-conf{height:auto; min-height:72px}
     .grid-m .cell.has-party{height:72px; padding:6px 5px}
     .grid-m .c-names i{font-size:8.2px; padding:1px 2px}
     .grid-m .c-conf{font-size:7.6px; line-height:1.2; padding:1px 2px 1px 4px; letter-spacing:-.03em}
